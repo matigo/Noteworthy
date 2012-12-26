@@ -1,0 +1,143 @@
+		<div class="container_16" id="top"><!-- page top with logotype and login options-->
+			<div id="logo"><span>[admin_lblLogo]</span></div>
+			<div id="logout">
+				<img class="grav_default" src="[IMG_DIR]/grav_default.jpeg" alt="Welcome">[lblWelcome]<a class="welcome-link" href="#">Silly Puppy</a>
+				<img src="[IMG_DIR]/icons/lock_large_locked.png" alt="Logout"> <a href="index.html">[lblLogout]</a>
+			</div>
+		</div>
+
+		<div id="nav-container"><!-- main navigation -->
+			<div class="container_16 sticky" id="navigation"><!-- main navigation -->
+				<ul class="nav-list" id="main-nav">
+					[NAVIGATION]
+				</ul>
+				<div class="search"><!-- page search -->
+					<form action="#" method="GET">
+						<input type="text" value="" />
+						<button class="silver" type="submit"><span>[lblSearch]</span></button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="clear"></div>
+
+		<div class="container_16 admin-panel background"><!-- main panel container -->
+			<div class="module-box grid_16 alpha"><!-- admin module box -->
+				<h2 class="title show_hide"> <span class="close-icon"></span>Access List</h2><!-- admin module title -->
+				<div class="module-box-inner"><!-- admin module spacing -->
+					<h3 class="add-new"><a href="#"><img src="[IMG_DIR]/icons/add_small.png" alt="Add new">Add new</a></h3>
+					<h3 class="table-options"><a href="#"><img src="[IMG_DIR]/icons/sprocket_dark.png" alt="Table Options">Options</a></h3>
+					<table id="dataTable" class="pages-table tablesorter"> <!-- START admin table -->
+						<thead> <!-- admin table header -->
+							<tr>
+								<td><input type="checkbox" class="checkall" value="1" /></td>
+								<th class="header">Person</th>
+								<th class="header">Link</th>
+								<th class="header">Created</th>
+								<th class="header">Expires</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr><!-- table row -->
+								<td><input type="checkbox" value="1" /></td>
+								<td><a href="#">Sed dictum nisi sodales</a></td>
+								<td>Draft</td>
+								<td>26th June 2011</td>
+								<td>First, Lastname</td>
+								<td class="table-icons">
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
+								</td>
+							</tr>
+							<tr><!-- table row -->
+								<td><input type="checkbox" value="1" /></td>
+								<td><a href="#">Duis iaculis velit auctor magna ornare</a></td>
+								<td>Published</td>
+								<td>25th June 2011</td>
+								<td>First, Lastname</td>
+								<td class="table-icons">
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
+								</td>
+							</tr>
+							<tr><!-- table row -->
+								<td><input type="checkbox" value="1" /></td>
+								<td><a href="#">Pellentesque erat sapien</a></td>
+								<td>Draft</td>
+								<td>23th June 2011</td>
+								<td>First, Lastname</td>
+								<td class="table-icons">
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
+								</td>
+							</tr>
+							<tr><!-- table row -->
+								<td><input type="checkbox" value="1" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis in faucibus</a></td>
+								<td>Published</td>
+								<td>22th June 2011</td>
+								<td>First, Lastname</td>
+								<td class="table-icons">
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
+								</td>
+							</tr>
+							<tr><!-- table row -->
+								<td><input type="checkbox" value="1" /></td>
+								<td><a href="#">Mauris commodo sapien ac nibh</a></td>
+								<td>Published</td>
+								<td>21th June 2011</td>
+								<td>First, Lastname</td>
+								<td class="table-icons">
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
+									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
+								</td>
+							</tr>
+						</tbody>
+					</table><!-- END admin table -->
+					<div class="table-bottom"><!-- admin table OPTIONS -->
+						<div class="table-actions">
+							<form action="#" method="post">
+								<select class="action" tabindex="-1"><!-- admin table ACTIONS -->
+									<option>Actions</option>
+									<option>Delete</option>
+									<option>Edit</option>
+								</select>
+								<button class="silver" type="submit"><span>apply</span></button>
+							</form>
+						</div>
+						<div class="pagination"><!-- admin table PAGINATION -->
+							<a href="#" class="left-arr">&larr;</a>
+							<a href="#">1</a>
+							<a href="#">2</a>
+							<a class="active" href="#">3</a>
+							<a href="#">4</a>
+							<a href="#">5</a>
+							<a href="#">6</a>
+							<a href="#">7</a>
+							<a href="#" class="right-arr">&rarr;</a>
+						</div>
+					</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="container_16" id="footer-inner-page">
+			<p>&copy; [CopyYear] &middot; [lblPoweredBy] &middot; [lblAllRights] &middot; <a href="#" id="to-top">[lblTop]</a></p>
+		</div>
+		<div class="clear height-fix"></div>
+
+		<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[JS_DIR]/excanvas.js"></script><![endif]-->
+		<script type="text/javascript" src="[JS_DIR]/tabs.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.flot.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.tipsy.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.prettyPhoto.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/markitup/jquery.markitup.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/markitup/sets/default/set.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery-ui-1.9.0.custom.min.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.tablesorter.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/common.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/plot-init.js"></script>
