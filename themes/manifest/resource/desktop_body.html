@@ -1,0 +1,57 @@
+		<!--[if gte IE 7]><!-->
+			<link rel="stylesheet" href="[CSS_DIR]/style.css" type="text/css" media="screen" charset="utf-8" />
+		<!-- <![endif]-->
+		
+		<!--[if IE 7]>
+			<link rel="stylesheet" href="[CSS_DIR]/style_ie.css" type="text/css" media="screen" charset="utf-8" />
+		<![endif]-->
+		
+		<!--[if IE 6]>
+			<link rel="stylesheet" type="text/css" media="screen" href="[CSS_DIR]/style_ie6.css" />
+		<![endif]-->
+
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+	    <style type="text/css" media="screen">
+			.return{
+				position: fixed;
+				top: 10px;
+				left: 10px;
+			}
+			.return a:link,
+			.return a:visited{
+				display: inline-block;
+				background: #ccc;
+				border: 1px solid #999;
+				-webkit-border-radius: 5px;
+				padding: 3px 8px;
+				font-size: 1.5em;
+				color: #666;
+				font-family: helvetica, arial;
+			}
+			.return a:hover,
+			.return a:active{
+				text-decoration: none;
+				background: #999;
+				color: #fff;
+			}
+	    </style>
+[EXTEND_HDR]
+	</head>
+	<body class="home blog">
+		<div id="siteWrapper">
+			<h1 class="vcard author"><a href="http://demo.jimbarraud.com/manifest/" title="Home" class="fn">Manifest</a></h1> 
+			<div id="mainNav">
+				<ul>
+					[NAVIGATION]
+				</ul>
+			</div>
+
+			<div id="siteDescription">[site_descr]</div>
+			<div id="coreContent" class="hfeed">
+[BLOG_BODY]
+				<div class="pageNav">
+					<div class="prev"><a href="[HOMEURL]/page/2/" >&laquo; Older</a></div>
+					<div class="next"></div>
+				</div>
+			</div>
+		</div>      

@@ -1,0 +1,228 @@
+		<div class="container_16" id="top"><!-- page top with logotype and login options-->
+			<div id="logo"><span>[admin_lblLogo]</span></div>
+			<div id="logout">
+				<img class="grav_default" src="[IMG_DIR]/grav_default.jpeg" alt="Welcome">[lblWelcome]<a class="welcome-link" href="#">Silly Puppy</a>
+				<img src="[IMG_DIR]/icons/lock_large_locked.png" alt="Logout"> <a href="index.html">[lblLogout]</a>
+			</div>
+		</div>
+
+		<div id="nav-container"><!-- main navigation -->
+			<div class="container_16 sticky" id="navigation"><!-- main navigation -->
+				<ul class="nav-list" id="main-nav">
+					[NAVIGATION]
+				</ul>
+				<div class="search"><!-- page search -->
+					<form action="#" method="GET">
+						<input type="text" value="" />
+						<button class="silver" type="submit"><span>[lblSearch]</span></button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="clear"></div>
+
+		<div class="container_16 admin-panel background"><!-- main panel container -->
+			<div class="module-box grid_16 alpha"><!-- admin module box -->
+				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2><!-- admin module title -->
+				<div class="module-box-inner"><!-- admin module spacing -->
+					<form action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
+						<div>
+							<label for="txtSiteURL">Site URL</label>
+							<input type="text" value="[HOMEURL]" id="txtSiteURL" name="txtSiteURL" />
+						</div>
+						<div>
+							<label for="txtSiteName">Site Name</label>
+							<input class="input-medium" type="text" value="[SiteName]" id="txtSiteName" name="txtSiteName" maxlength="80" />
+						</div>
+						<div>
+							<label for="txtSiteDescr">Site Description</label>
+							<input class="input-medium" type="text" value="[SiteDescr]" id="txtSiteDescr" name="txtSiteDescr" maxlength="160" />
+						</div>
+						<div>
+							<label for="txtSiteSEO">Site SEO Key Words <i style="margin-left: 10px;">(Comma Separated)</i></label>
+							<input class="input-medium" type="text" value="[SiteSEOTags]" id="txtSiteSEO" name="txtSiteSEO" maxlength="240" />
+						</div>
+						<div>
+							<input id="chkIsDefault" type="checkbox" class="checkbox" checked="checked" name="chkIsDefault" /> <label class="float-label" for="chkIsDefault">Default Landing Site</label><span style="margin-left: 10px;"><i>(Redirects people going to invalid domains or sub-domains to this site)</i></span>
+						</div>
+
+						<hr />
+						
+						<div><!-- Theme Selection -->
+							<div class="legend">Syling</div>
+							<label for="cmbTheme">Choose Your Theme</label>
+							<div>
+								<select id="cmbTheme" name="cmbTheme" tabindex="-1">
+									<option value="dematigo">Dematigo</option>
+									<option value="eight-thirty">Eight Thirty</option>
+									<option value="fresh">Fresh</option>
+									<option value="manifest" selected="4">Manifest</option>
+									<option value="nojiko">Nojiko</option>
+								</select>
+							</div>
+						</div>
+						
+						<hr />
+
+						<div><!-- Comment Usage -->
+							<div class="legend">Comments</div>
+							<input id="raNoComment" type="radio" class="radio" checked="checked" name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">Comments Off</label>
+							<input id="raGoComment" type="radio" class="radio" name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">Comments On</label>
+							<div id="disqussed" style="display: none;">
+								<label for="disqus-id">Disqus ID</label>
+								<input type="text" value="[DisqusID]" id="disqus-id" name="disqus-id"/>
+							</div>
+							<div id="disqus-err" class="validation-message"></div>
+						</div>
+						<br />
+
+						<hr />
+
+						<div>
+							<div class="legend">Spam Filtering</div>
+							<label for="akismet-id">Akismet Key</label>
+							<input type="text" value="[AkismetKey]" id="akismet-id" name="akismet-id" style="float: left;" />
+							<button id="akismet-test" class="btn-small silver" style="margin-top: -2px;"><span>Test</span></button>
+							<div id="akismet-err" class="validation-message"></div>
+						</div>
+						
+						<hr />
+						
+						<input type='hidden' name='accessKey' value='[ACCESSKEY]' />
+						<button class="btn-small silver" type="submit"><span>Save Changes</span></button>
+					</form><!-- END form elements -->
+				</div>
+			</div>
+			<div class="clear"></div>
+			<div class="module-box grid_12 alpha"><!-- admin module box -->
+				<h2 class="title show_hide">Evernote Connection<span class="close-icon"></span></h2>
+				<div class="module-box-inner"><!-- admin module spacing -->
+					<div>
+						<label for="ttoken">Evernote Token <span style="font-size: 80%;">(Get a <a href="https://sandbox.evernote.com/api/DeveloperToken.action" title="Evernote Sandbox Token"><b>Sandbox Token Here</b></a> or a <a href="https://www.evernote.com/api/DeveloperToken.action" title="Evernote Production Token"><b>Production Token Here</b></a>)</span></label>
+						<input class="input-large" type="text" value="[EN_TOKEN]" id="ttoken" maxlength="120" />
+						<input id="raSandbox" type="radio" class="radio" [raSandboxChk] name="UseSandbox" value="Y" onclick="displayServerNote(this.id);" /> <label class="float-label" for="raSandbox">Sandbox <span style="font-size: 90%; font-style: italic;">(Evernote's Test Servers)</span></label>
+						<br />
+						<input id="raProduction" type="radio" class="radio" [raProductionChk] name="UseSandbox" value="N" onclick="displayServerNote(this.id);" /> <label class="float-label" for="raProduction">Production <span style="font-size: 90%; font-style: italic;">(Evernote's Real Servers)</span></label>
+					</div>
+					<button id="evernote-test" class="btn-small green" type="submit"><span>Connect to Evernote</span></button>
+
+					<table id="notebookTable" class="pages-table tablesorter"> <!-- START admin table -->
+						<thead> <!-- admin table header -->
+							<tr>
+								<td><input type="checkbox" class="checkall" id="checkall" value="1" /></td>
+								<th class="header sorting">Notebook</th>
+								<th class="header sorting">Default</th>
+								<th class="header sorting">Date Created</th>
+								<th class="header sorting">Date Updated</th>
+							</tr>
+						</thead>
+						<tbody id="enNotebooks">
+
+						</tbody>
+					</table><!-- END admin table -->
+					<div class="table-bottom"><!-- admin table OPTIONS -->
+						<div class="table-actions">
+							<form action="[HOMEURL]/api/settings/update" method="post">
+								<button id="notebook-click" class="btn-small green" type="submit"><span>Update</span></button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="module-box grid_4 omega"><!-- admin module box -->
+				<h2 class="title show_hide">Evernote Integration</h2><!-- admin module title -->
+				<div class="module-box-inner"><!-- admin module spacing -->
+					<div class="user-messages"> <!-- USER messages -->
+						<div id="note-sandbox" class="user-message" [note-sandboxStyle]>
+							<h3>Sandbox</h3>
+							<p>The Evernote Sandbox allows you to test Noteworthy with a test Evernote account. This is useful if you'd like to see whether the software is a good match for what you want to accomplish, or if you just don't trust my software with your real Evernote account.</p>
+						</div>
+						<div id="note-production" class="user-message" [note-productionStyle]>
+							<h3>Production</h3>
+							<p>Production refers to the real Evernote servers. By using the Production servers you will be able to share content from the notebooks you specify online.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="container_16" id="footer-inner-page">
+			<p>&copy; [CopyYear] &middot; [lblPoweredBy] &middot; [lblAllRights] &middot; <a href="#" id="to-top">[lblTop]</a></p>
+		</div>
+		<div class="clear height-fix"></div>
+
+		<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[JS_DIR]/excanvas.js"></script><![endif]-->
+		<script type="text/javascript" src="[JS_DIR]/tabs.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.flot.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.tipsy.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.prettyPhoto.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/markitup/jquery.markitup.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/markitup/sets/default/set.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery-ui-1.9.0.custom.min.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/jquery.tablesorter.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/dateformat.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/common.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/sites.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				getNotebooks( '[ACCESSKEY]' );
+            });
+            
+			jQuery(function($) {
+				$('#akismet-test').click(function() {
+					_canSubmit = false;
+					checkAkismet( '[ACCESSKEY]', $('#siteurl').val(), $('#akismet-id').val() );
+
+					return false;
+				});
+				$('#evernote-test').click(function() {
+					var radios = document.getElementsByName('UseSandbox');
+					var UseSandbox = "Y";
+					_canSubmit = false;
+
+					for (var i = 0; i < radios.length; i++) {
+					    if (radios[i].checked) { UseSandbox = radios[i].value; }
+					}
+
+					checkEvernote( '[ACCESSKEY]', $('#ttoken').val(), UseSandbox );
+
+					return false;
+				});
+				$('#notebook-click').click(function() {
+					var tab = document.getElementById ("notebookTable");
+				    var elems = tab.getElementsByTagName("input");
+				    var len = elems.length;
+				    var guidList = "";
+				
+				    for ( var i = 0; i < len; i++ ) {
+				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
+				    		if ( elems[i].checked == true ) {
+				    			guidList += elems[i].value + '|';
+				    		}
+				    	}
+				    }
+
+				    // Set the Notebooks (Even if Zero are Selected)
+				    setSelectedNotebooks( '[ACCESSKEY]', guidList );
+
+					return false;
+				});
+				$('#checkall').click(function() {
+					var tab = document.getElementById ("notebookTable");
+				    var elems = tab.getElementsByTagName("input");
+				    var chkVal = document.getElementById("checkall").checked;
+				    var len = elems.length;
+
+				    for ( var i = 0; i < len; i++ ) {
+				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
+				    		if ( elems[i].checked != chkVal ) {
+					    		elems[i].checked = chkVal;
+				    		}
+				    	}
+				    }
+
+					return true;
+				});
+			});
+		</script>

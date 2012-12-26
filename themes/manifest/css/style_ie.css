@@ -1,0 +1,55 @@
+/*
+  Manifest Noteworthy Theme: IE Styles and Fixes
+*/
+
+legend{
+	position: relative;
+	left: -7px;
+}
+fieldset{
+	position: relative;
+}
+input[type=submit]{
+	padding: 1px 7px;
+}
+#archives ul li{
+	display: block;
+	float: left;
+	padding-bottom: 7px;
+}
+#archives #date ul li{
+	float: none;
+}
+#footer{
+	margin: -30px auto 0;
+}
+#footer .elsewhere li{
+	padding: 0 5px 0 0;
+	margin: 0 7px 0 0;
+}
+#footer .elsewhere li.last{
+	padding: 0;
+	margin: 0;
+	border-right: none;
+}
+#coreContent #comments li{
+	font-size: 11px;
+}
+
+/* Self Clearing Floats
+-------------------------------------------------------------------- */
+
+#siteWrapper,
+.post,
+.postContent,
+.commentEntry,
+.commentForm,
+#footer .elsewhere,
+#metaContent .metaExtend,
+#mainNav,
+#mainNav ul,
+#archives ul,
+#coreContent .postMeta,
+#recentPosts li{
+	zoom: 1;
+}

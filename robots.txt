@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /files/
+
+User-agent: Google
+Disallow:
