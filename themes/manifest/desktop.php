@@ -5,31 +5,22 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for the Manifest Theme
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once( LIB_DIR . '/content.php' );
 
 class miTheme extends theme_main {
     var $settings;
     var $messages;
-    var $pageData;
     var $content;
     var $perf;
 
     function __construct( $settings ) {
-        $GLOBALS['Perf']['app_s'] = getMicroTime();
         $this->settings = $settings;
 
         // Set the Resource Prefix
-        $this->_setResourcePrefix();
+        $this->settings['resource_prefix'] = 'desktop';
         $this->messages = getLangDefaults( $this->settings['DispLang'] );
-        
-        // Prep the Content
-        $this->content = new Content( $settings, dirname(__FILE__) );
-        
+
         // Load the User-Specified Language Files for this theme
         $LangFile = dirname(__FILE__) . "/lang/" . strtolower($this->settings['DispLang']) . ".php";
 
@@ -48,10 +39,11 @@ class miTheme extends theme_main {
             unset( $Lang );
         }
 
+        // Prep the Content
+        $this->content = new Content( $settings, $this->messages, dirname(__FILE__) );
+
         // Load the Page Data if this is Valid, otherwise redirect
-        if ( $this->_isValidPage() ) {
-            $this->pageData = $this->_collectPageData();
-        } else {
+        if ( !$this->_isValidPage() ) {
             redirectTo($this->settings['HomeURL']);
         }
     }
@@ -75,7 +67,25 @@ class miTheme extends theme_main {
      * Function constructs the header data and returns the formatted HTML
      */
     private function BuildHeaderData() {
-        return readResource( RES_DIR . '/' . $this->settings['resource_prefix'] . '_head.html', $this->pageData );
+        $ReplStr = array( '[HOMEURL]'	  => $this->settings['HomeURL'],
+                      	  '[SITEURL]'	  => $this->settings['URL'],
+                      	  '[HOME_LOC]'    => APP_ROOT,
+                      	  '[APPINFO]'	  => APP_NAME . " | " . APP_VER,
+                      	  '[APP_VER]'	  => APP_VER,
+                      	  '[GENERATOR]'	  => GENERATOR,
+                          '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name']),
+                          '[SITEDESCR]'   => $this->messages['site_descr'],
+                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
+                          '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
+                          '[ERROR_MSG]'   => '',
+                          '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
+                          '[CSS_DIR]'     => CSS_DIR,
+                          '[IMG_DIR]'     => IMG_DIR,
+                          '[JS_DIR]'      => JS_DIR,
+                          '[TOKEN]'       => $this->settings['token']
+                         );
+
+        return readResource( RES_DIR . '/' . $this->settings['resource_prefix'] . '_head.html', $ReplStr );
     }
 
     /**
@@ -85,7 +95,8 @@ class miTheme extends theme_main {
         $ResFile = '/' . $this->settings['resource_prefix'] . '_body.html';
 
         // Collect the Resource Data
-        $rVal = readResource( RES_DIR . $ResFile, $this->pageData );
+        $data = $this->_collectPageData();
+        $rVal = readResource( RES_DIR . $ResFile, $data );
 
         // Return the Body Content
         return $rVal;
@@ -100,20 +111,22 @@ class miTheme extends theme_main {
         $App = round(( $GLOBALS['Perf']['app_f'] - $GLOBALS['Perf']['app_s'] ), $precision);
         $SQL = nullInt( $GLOBALS['Perf']['queries'] );
         $Api = nullInt( $GLOBALS['Perf']['apiHits'] );
+        $Cch = nullInt( $GLOBALS['Perf']['caches'] );
         $Analytics = ( ANALYTICS_ENABLED == 1 ) ? getGoogleAnalyticsCode( GA_ACCOUNT ) : '';
         $CopyYear = date('Y');
         $LangList = ( ENABLE_MULTILANG == 1 ) ? $this->_listLanguages() . " | " : "";
-
+        
         $lblSecond = ( $App == 1 ) ? "Second" : "Seconds";
         $lblCalls  = ( $Api == 1 ) ? "Call"   : "Calls";
         $lblQuery  = ( $SQL == 1 ) ? "Query"  : "Queries";
+        $lblCache  = ( $Cch == 1 ) ? "Object"  : "Objects";
 
-        $ReplStr = array( '[MiSite]'     => ORG_SITE,
+        $ReplStr = array( '[JS_DIR]'     => JS_DIR,
                           '[CopyYear]'   => $CopyYear,
                           '[ANALYTICS]'  => $Analytics,
                           '[HOMEURL]'    => $this->settings['HomeURL'],
                           '[MULTILANG]'  => $LangList,
-                          '[GenTime]'    => "<!-- Page generated in roughly: $App $lblSecond, $Api API $lblCalls, $SQL SQL $lblQuery -->",
+                          '[GenTime]'    => "<!-- Page generated in roughly: $App $lblSecond, $Api API $lblCalls, $SQL SQL $lblQuery, $Cch Cache $lblCache -->",
                          );
         // Add the Language-Specific Items
         foreach( $this->messages as $key=>$val ) {
@@ -135,38 +148,8 @@ class miTheme extends theme_main {
      *   The following code should only be called by the above functions
      ***********************************************************************/
     /**
-     * Function returns the file prefix 
-     * 
-     * Change Log
-     * ----------
-     * 2011.08.14 - Created Function (J2fi)
-     */
-    private function _setResourcePrefix() {
-        $prefix = 'desktop';
-
-        switch( NoNull($this->settings['ulvl']) ) {
-            case 3:
-            case 4:
-            case 9:
-                $prefix = 'test';
-                break;
-
-            default:
-                $prefix = 'desktop';
-        }
-
-        // Set the Prefix Record
-        $this->settings['resource_prefix'] = $prefix;
-    }
-
-    /**
      * Function returns an HTML Formatted String containing Language Options.
-     * 
      * Note: The Current Language will appear as "Selected"
-     * 
-     * Change Log
-     * ----------
-     * 2011.04.26 - Created Function (J2fi)
      */
     private function _listLanguages() {
         $Langs = listThemeLangs();
@@ -195,13 +178,12 @@ class miTheme extends theme_main {
      */
     private function _isValidPage() {
         $rVal = false;
-        $validPg = array('about', 'archives', 'blog', 'sitemap', 'atom', 'rss',
-                         'contact', 'projects', 'services', 'search', 'tags', '');
-        
-        // Append the Valid Years of Content (Yes, This Needs to be Done Better)
-        $validPg[] = "1979";
-        for ( $i = 2006; $i <= date("Y"); $i++ ) {
-            $validPg[] = "$i";
+        $validPg = array('about', 'archives', 'blog', 'search', 'tags', '');
+
+        // Append the Valid Years of Content
+        $years = $this->content->getValidPostYears();
+        if ( is_array($years) ) {
+	        $validPg = array_merge($validPg, $years);
         }
 
         // Determine if the Page Requested is in the Array
@@ -222,28 +204,19 @@ class miTheme extends theme_main {
      * 2012.05.27 - Created Function (J2fi)
      */
     private function _collectPageData() {
-        $ReplStr = array( '[HOME_LOC]'    => APP_ROOT,
-                          '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[SITEURL]'     => $this->settings['URL'],
+        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name'], NoNull($this->messages['site_name'])),
-                          '[SITEDESCR]'   => $this->messages['site_descr'],
-                          '[APPINFO]'     => APP_NAME . " | " . APP_VER,
-                          '[APP_VER]'     => APP_VER,
-                          '[GENERATOR]'   => GENERATOR,
-                          '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
-                          '[SIGNWARN]'    => ( DEBUG_ENABLED == 1 ) ? YNBool( $this->settings['isLoggedIn'] ) ? " [DEBUG]" : " [ERROR]" : "",
-                          '[ERROR_MSG]'   => '',
+                          '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->settings['SiteName']),
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
                           '[CSS_DIR]'     => CSS_DIR,
                           '[IMG_DIR]'     => IMG_DIR,
                           '[JS_DIR]'      => JS_DIR,
-                          
+
                           /* Body Content */
                           '[BLOG_BODY]'   => $this->_getBlogContent( 5 ),
                           '[NAVIGATION]'  => $this->_getNavigationMenu(),
                           '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
                           '[EXTEND_HDR]'  => '',
-                          
                          );
 
         // Read In the Language Strings
@@ -273,10 +246,6 @@ class miTheme extends theme_main {
 
     /**
      * Function Returns the Appropriate Page Title for a Section
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.14 - Created Function (J2fi)
      */
     private function _getPageTitle( $Section ) {
         $rVal = NoNull($this->messages['site_name']);
@@ -284,9 +253,9 @@ class miTheme extends theme_main {
 
         switch ( strtolower($Section) ) {
             case 'blog':
-                $pURL = $this->settings['year']  . $this->settings['month'] . 
-                        $this->settings['day']   . '_' . $this->settings['title'];
-                $rVal = $this->content->getPostTitle( $pURL );
+                $pURL = $this->settings['year']  . '/' .$this->settings['month'] . '/' .
+                        $this->settings['day']   . '/' . $this->settings['title'];
+                $rVal = $this->content->getPageTitle( $pURL );
                 break;
             
             default:
@@ -302,10 +271,6 @@ class miTheme extends theme_main {
 
     /**
      * Function Returns the Additional Resource Requirements for the Requested Page
-     * 
-     * Change Log
-     * ---------- 
-     * 2012.04.14 - Created Function (J2fi)
      */
     private function _getExtendedHeaderInfo() {
         $rVal = '';
@@ -329,10 +294,6 @@ class miTheme extends theme_main {
     /**
      * Function Returns any Extra Content Fields that Need to Appear
      *      in the $ReplStr Array
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _getExtraContent() {
         $rVal = array( '[ARCHIVE-LIST]' => '',
@@ -343,7 +304,7 @@ class miTheme extends theme_main {
         switch ( $this->settings['mpage'] ) {
             case 'archives':
             case 'archive':
-                $rVal['[ARCHIVE-LIST]'] = $this->_getArchivesHTML();
+                //$rVal['[ARCHIVE-LIST]'] = $this->_getArchivesHTML();
                 break;
 
             case 'blog':
@@ -356,15 +317,8 @@ class miTheme extends theme_main {
                 $rVal['[SOCIAL-LINK]'] = readResource( RES_DIR . '/content-blog-social.html', $tArr );
                 break;
 
-            case 'contact':
-                $rVal['[RESULTS]'] = "";
-                if ( NoNull($this->settings['firstName']) ) {
-                    $rVal['[RESULTS]'] = "<p style=\"background-color: #FFFF7E; border: 1px solid #000000; display: block; padding: 3px 5px; width: 95%;\">Thank you for the message, " . NoNull($this->settings['firstName']) . "</p>";
-                }
-                break;
-            
             case 'search':
-                $rVal['[RESULTS]'] = $this->_getSearchHTML();
+                //$rVal['[RESULTS]'] = $this->_getSearchHTML();
                 break;
             
             default:
@@ -401,233 +355,115 @@ class miTheme extends theme_main {
     }
 
     private function _getNavigationMenu() {
+        $pages = array("about"		=> $this->messages['lblAbout'],
+                       "archives"	=> $this->messages['lblArchives'],
+                       "links"		=> $this->messages['lblLink'],
+                       );
         $rVal = "";
+        $i = 1;
 
-        $inCache = $this->content->getContent("navMenu", CACHE_EXPY);
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $pages = array("about"		=> $this->messages['lblAbout'],
-                           "archives"	=> $this->messages['lblArchives'],
-                           "links"		=> $this->messages['lblLink'],
-                           );
-
-            $i = 1;
-            foreach ( $pages as $url=>$title ) {
-                $suffix = ( NoNull($url) == "" ) ? "" : "/$url";
-                $rVal .= "<li class=\"page_item\"><a href=\"" . $this->settings['HomeURL'] . $suffix . "\" title=\"$title\">$title</a></li>";
-                $i++;
-            }
-
-            // Save the Data to Cache
-            $this->content->saveContent($navMenuID, $rVal);
+        foreach ( $pages as $url=>$title ) {
+            $suffix = ( NoNull($url) == "" ) ? "" : "/$url";
+            $rVal .= "<li class=\"page_item page-item\"><a href=\"" . $this->settings['HomeURL'] . $suffix . "\" title=\"$title\">$title</a></li>";
+            $i++;
         }
 
         // Return the Top Navigation Menu
         return $rVal;
     }
+
     /* ********************************************************************* *
      *  Blog Content Component
      * ********************************************************************* */
     private function _getBlogContent( $PostNum ) {
-        $rVal = "";
-        $ReplStr = array( '[HOMEURL]'		=> $this->settings['HomeURL'],
-                          '[POST-AUTHOR]'	=> "",
-                          '[POST-FOOTER]'	=> "",
-                          '[POST-TAG]'		=> "",
-                          '[COMMENTS]'		=> "",
-                          '[GEO-TAG]'		=> "",
-                         );
+    	$data = $this->content->getContent( $PostNum );
+	    $rVal = "";
 
-        // Determine the Content Type
-        if ( nullInt($this->settings['mpage']) == 0 ) {
-            $mPage = NoNull($this->settings['mpage']);
-        } else {
-            $mPage = 'monthly';
-            $this->settings['year'] = nullInt($this->settings['mpage']);
-            $this->settings['month'] = NoNull($this->settings['spage']);
-        }
-
-        // Return Some Lorem Ipsum for Now
-        $rVal = '<div class="post hentry">
-					<h5 class="postDate"><abbr class="published">In The Year of our Lord, 1176</abbr></h5>
-					<div class="postContent">
-						<h3 class="entry-title"><a href="' . $this->settings['HomeURL'] . '/2009/02/lorem-ipsum/" rel="bookmark">Lorem Ipsum Post</a></h3>
-						<h4 class="vcard author">by <span class="fn">jo Mama</span></h4>
-
-						<div class="entry-content">
-							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-						</div>
-					</div>
-
-					<div class="postMeta">
-						<div class="comments">
-							<a href="' . $this->settings['HomeURL'] . '/2009/02/lorem-ipsum/#comments" title="Comment on Lorem Ipsum Post">0 Comments</a>          
-						</div>
-					</div>
-				</div>';
-
-        // Return the HTML Formatted Content
-        return $rVal;
-    }
-    
-    private function _parseBlogPost( $postData ) {
-        $rVal = "";
-        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[DISQUS_ID]'   => $this->settings['disqus_name'],
-                          '[POST-AUTHOR]' => "",  
-                          '[POST-FOOTER]' => "",
-                          '[COMMENTS]'    => "",
-                          '[GEO-TAG]'     => "",
-                         );
-
-        if ( $postData ) {
-            foreach( $postData->data as $key=>$val ) {
-                if ( is_array($val) ) {
-                    foreach( $val as $k=>$v ) {
-                        if ( key_exists($v->TypeCd, $ReplStr) ) {
-                            $ReplStr[ strtoupper("[$v->TypeCd]") ] = $ReplStr[ strtoupper($v->TypeCd) ] . ", " . $v->Value;
-                        } else {
-                            $ReplStr[ strtoupper("[$v->TypeCd]") ] = $v->Value;
-                        }
-                    }
-                } else {
-                    $ReplStr[ strtoupper("[$key]") ] = $val;
-                }
-            }
-
-            // Save the Post Title to the Content Cache
-            $pURL = $this->settings['year']  . $this->settings['month'] . 
-                    $this->settings['day']   . '_' . $this->settings['title'];
-            $this->content->setPostTitle( $pURL, $ReplStr['[TITLE]'] );
-
-            $UTCTime = strtotime($ReplStr['[CREATEDTS]']);
-            $ReplStr['[DATE-UTC]'] = date(DATE_ATOM, $UTCTime );
-            $ReplStr['[DATE-STR]'] = date("F jS Y h:i A", $UTCTime );
-            $ReplStr['[DIV-CLASS]'] = "genesis-feature genesis-feature-1 genesis-feature-odd";
-            if ( NoNull($ReplStr['[POST-AUTHOR]']) == "" ) { $ReplStr['[POST-AUTHOR]'] = "Jason F. Irwin"; }
-            if ( NoNull($ReplStr['[POST-GPS]']) > "" ) {
-                $GeoLoc = explode(",", $ReplStr['[POST-GPS]']);
-                if ( $this->_isValidGeo($ReplStr['[POST-GPS]']) ) {
-                    $GeoLocStr = number_format(nullInt($GeoLoc[0]), 8) . ", " . number_format(nullInt($GeoLoc[1]), 8);
-                    $URL = "<a href=\"" . urlencode("http://maps.google.ca/maps?q=" . $ReplStr['[POST-GPS]'] . "&hl=en&t=m&z=16") . "\" target=\"_blank\">$GeoLocStr</a>";
-                    $ReplStr['[GEO-TAG]'] = "<span class=\"geo\" style=\"display: block;\">" . $this->messages['lblGeoTag'] . ": $URL</span>";
-                }
-            }
-
-            // Ensure the Footnotes Are in the Correct Format
-            if ( $ReplStr['[POST-FOOTER]'] != "" ) { 
-                $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr); 
-            }
-
-            // Ensure the Blog Content is Up to Date
-            $Search = array_keys( $ReplStr );
-            $Replace = array_values( $ReplStr );
-            $Search[]  = "\n";
-            $Replace[] = "<br />";
-            $ReplStr['[CONTENT]'] = str_replace( $Search, $Replace, $ReplStr['[CONTENT]'] );
-
-            // Construct the Comments
-            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
-
-            // Replace the Template Content Accordingly
-            $rVal = readResource( RES_DIR . '/content-blog.html', $ReplStr);
-        }
-
-        // Return the Blog Post Data
-        return $rVal;
-    }
-
-    /**
-     * Function Parses a Page and returns the HTML-Formatted Information
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.22 - Created Function (J2fi)
-     */
-    private function _parsePage( $postData ) {
-        $rVal = "";
-        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[POST-AUTHOR]' => "Jason F. Irwin",
-                          '[POST-FOOTER]' => "",
-                          '[COMMENTS]'    => "",
-                          '[GEO-TAG]'     => "",
-                          '[PAGINATION]'  => "",
-                         );
-
-        if ( $postData ) {
-            $isFirst = true;
-            $isOdd = true;
+	    if ( is_array($data) ) {
+            $RecordTotal = nullInt($data['RecordTotal']);
+            $RecordCount = nullInt($data['RecordCount']);
+            $ResourceFile = NoNull($data['Resource']);
+            $Records = nullInt($data['Records']);
             $i = 1;
-            foreach ($postData->data as $blog=>$entry ) {
-                $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                                  '[POST-FOOTER]' => "",
-                                  '[COMMENTS]'    => "",
-                                  '[DIV-CLASS]'   => "",
-                                  '[GEO-TAG]'     => "",
-                                 );
-                if ( $isFirst ) {
-                    $ReplStr['[DIV-CLASS]'] = "genesis-feature genesis-feature-$i genesis-feature-odd";
-                    $isFirst = false;
 
-                } else {
-                    $EvenOdd = ( $isOdd ) ? "odd" : "even";
-                    $ReplStr['[DIV-CLASS]'] = "genesis-grid genesis-grid-$i genesis-grid-$EvenOdd";
-                }
-                $isOdd = !$isOdd;
-                $i++;
+            foreach ($data as $Key=>$Entry ) {
+            	if ( $Key == $i ) {
+	                $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
+	                                  '[POST-FOOTER]' => "",
+	                                  '[DISQUS_ID]'	  => NoNull($this->settings['disqus_name']),
+	                                  '[COMMENTS]'    => "",
+	                                  '[DIV-CLASS]'   => "",
+	                                 );
+	                foreach ( $Entry as $Item=>$Value ) {
+		                $ReplStr[ $Item ] = $Value;
+	                }
 
-                // Convert the Item from an Object to an Array (If Required)
-                if ( !is_array($entry) ) { $entry = objectToArray( $entry ); }
+	                // Clean up the Content (If Necessary)
+	                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
+		                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
+	                }
 
-                foreach ( $entry as $key=>$val ) {
-                    if ( is_array($val) ) {
-                        foreach ( $val as $ky=>$vl ) {
-                            $TypeCd = "[" . strtoupper( NoNull($ky) ) . "]";
-                            if ( key_exists($TypeCd, $ReplStr) ) {
-                                $ReplStr[ $TypeCd ] .= ", " . NoNull( $vl );
-                            } else {
-                                $ReplStr[ $TypeCd ] = NoNull( $vl );
-                            }
-                        }
-                    } else {
-                        $ReplStr[ strtoupper("[$key]") ] = $val;
-                    }
-                }
+	                // Append the Footnotes (If Necessary)
+		            if ( $ReplStr['[POST-FOOTER]'] ) {
+			            $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr);
+		            }
 
-                // Set the Time and Complete the Replace Array
-                $UTCTime = strtotime($ReplStr['[CREATEDTS]']);
-                $ReplStr['[DATE-UTC]'] = date(DATE_ATOM, $UTCTime );
-                $ReplStr['[DATE-STR]'] = date("F jS Y g:i A", $UTCTime );
+		            // Construct the Comments (If Necessary)
+		            if ( $ReplStr['[DISQUS_ID]'] ) {
+			            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);	            
+		            }
+	                $i++;
 
-                // Ensure the Blog Content is Up to Date
-                $Search = array_keys( $ReplStr );
-                $Replace = array_values( $ReplStr );
-
-                // Grab Just the First Paragraph
-                preg_match("/<p>(.*?)<\/p>/", $ReplStr['[VALUE]'], $paragraphs);
-                $Preview = $paragraphs[1] . 
-                           "<p style=\"font-size: 80%;\"><a href=\"" . $this->settings['HomeURL'] . $ReplStr['[POST-URL]'] . 
-                               "\" title=\"" . $ReplStr['[POST-TITLE]'] . "\">" . $this->messages['lblReadMore'] . "</a></p>";
-                $ReplStr['[CONTENT]'] = str_replace( $Search, $Replace, $Preview );
-                if ( NoNull($ReplStr['[POST-GPS]']) > "" ) {
-                    $GeoLoc = explode(",", $ReplStr['[POST-GPS]']);
-                    $GeoLocStr = number_format(nullInt($GeoLoc[0]), 8) . ", " . number_format(nullInt($GeoLoc[1]), 8);
-                    $URL = "<a href=\"" . urlencode("http://maps.google.ca/maps?q=" . $ReplStr['[POST-GPS]'] . "&hl=en&t=m&z=16") . "\" target=\"_blank\">$GeoLocStr</a>";
-                    $ReplStr['[GEO-TAG]'] = "<span class=\"geo\" style=\"display: block;\">" . $this->messages['lblGeoTag'] . ": $URL</span>";
-                }
-                $ReplStr['[POST-FOOTER]'] = "";
-                
-                // Replace the Template Content Accordingly
-                $rVal .= readResource( RES_DIR . '/content-blog.html', $ReplStr);
+	                // Replace the Template Content Accordingly
+	                $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
+            	}
             }
+
+            // Save Post Count Setting
+            $MaxPages = round($RecordTotal / $PostNum) + 1;
+            if ( $MaxPages <= 0 ) { $MaxPages = 1; }
+            saveSetting( 'core_archives', $this->content->getReadableURI(), $MaxPages );
+
+            // Write the Data to the Cache
+            $this->content->saveCacheHTML( $rVal );
+
+        } else {
+        	// HTML Was Returned, So Show It
+        	if ( $data ) {
+	        	$rVal = $data;
+        	}
         }
 
         // Return the Page Data
         return $rVal;
     }
+    
+    /**
+     *	Function Prepares The Content for Custom Filtering (If Necessary)
+     */
+    private function _prepCustoms( $Content ) {
+        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
+                          '[DIV-CLASS]'   => "",
+
+                          '[ARCHIVE-CLASS-YEAR-MONTH]'	=> "",
+                          '[ARCHIVE-CLASS-MONTH]'		=> "",
+                         );
+        $rVal = $Content;
+
+        $Search = array_keys( $ReplStr );
+        $Replace = array_values( $ReplStr );
+
+        // Perform the Search/Replace Actions
+        $rVal = str_replace( $Search, $Replace, $Content );
+
+        // Return the Content
+        return $rVal;
+    }
+
+
+
+
+
 
     private function _getMonthlyArchives() {
         $rVal = "";
@@ -720,172 +556,8 @@ class miTheme extends theme_main {
         return $rVal;
     }
 
-    /**
-     * Function Returns the Last X Tweets in a List
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.22 - Created Function (J2fi)
-     */
-    private function _getTweets( $Count = 3 ) {
-        $rVal = "";
-        
-        $inCache = $this->content->getContent("tweets_$Count", 60);
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $postData = apiRequest( "content/read", array('Show' => 'tweets', 'Count' => $Count, 'Page' => 1) );
-            if ( $postData ) {
-                foreach( $postData->data as $item ) {
-                    $URL = NoNull($item->URL);
-                    $Tweet = parseTweet($item->Value);
-                    $Time = getTimeSince( $item->CreateUTS );
-    
-                    $rVal .= "<li>$Tweet<span style=\"display: block; font-size: 85%;\"><a href=\"$URL\" rel=\"nofollow\">about $Time ago</a></span></li>";
-                }
 
-                // Save the Data
-                $this->content->saveContent("tweets_$Count", $rVal);
-            }
-        }
 
-        // Return the Tags Listing
-        return $rVal;
-    }
-
-    /**
-     * Function Returns the HTML-formatted Archives Page Content
-     * 
-     * Change Log
-     * ----------
-     * 2012.05.05 - Created Function (J2fi)
-     */
-    private function _getArchivesHTML() {
-        $rVal = "";
-        $Count = 50000;
-
-        $inCache = $this->content->getContent("archives", 3600);
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $postData = apiRequest( "content/summary", array('Show' => 'posts', 'Count' => $Count) );
-            if ( $postData ) {
-                $rVal = tabSpace( 8) . "<div class=\"car-container car-collapse\">\n" .
-                        tabSpace(10) . "[POST_COUNT]\n" .
-                        tabSpace(10) . "<ul class=\"car-list\">\n";
-                $YearMonth = "";
-                $i = 0;
-
-                foreach( $postData->data as $item ) {
-                    $URL = NoNull($item->Value);
-                    $Title = htmlspecialchars(NoNull($item->Title), ENT_QUOTES);
-                    $Date = strtotime( $item->CreateDTS );
-    
-                    // Add the Year/Month Grouping
-                    if ( $YearMonth != date("Ym", $Date) ) {
-                        if ( $YearMonth != "" ) {
-                            $rVal .= tabSpace(14) . "</ul>\n" .
-                                     tabSpace(12) . "</li>\n";
-                        }
-                        $YearMonth = date("Ym", $Date);
-                        $rVal .= tabSpace(12) . "<li>\n" .
-                                 tabSpace(14) . "<span class=\"car-yearmonth\">" . date("F Y", $Date) . "</span>\n" .
-                                 tabSpace(14) . "<ul class=\"car-monthlisting\">\n";
-                    }
-    
-                    // Add the Post to the List
-                    $rVal .= tabSpace(16) . "<li>" . date("d", $Date) . ": <a href=\"" . $this->settings['HomeURL'] . "$URL\">$Title</a></li>\n";
-                    $i++;
-                }
-    
-                // Close off the div
-                $rVal .= tabSpace(14) . "</ul>\n" .
-                         tabSpace(12) . "</li>\n" .
-                         tabSpace(10) . "</ul>\n" .
-                         tabSpace( 8) . "</div>\n";
-                $CountLine = "<p>Here you can view all " . number_format($i) . " posts I&apos;ve published on this site, sorted from newest to oldest.</p>";
-                $rVal = str_replace( '[POST_COUNT]', $CountLine, $rVal );
-                
-                // Save the Data
-                $this->content->saveContent("archives", $rVal);
-            }            
-        }
-        
-        // Return the HTML
-        return $rVal;
-    }
-
-    private function _getSearchHTML() {
-        $rVal = "I Can't Find Anything Like You Asked For...";
-        $SearchStr = NoNull( $this->settings['s'] );
-        $SearchQty = nullInt( $this->settings['count'], 25 );
-        if ( $SearchQty <= 0 ) { $SearchQty = 25; }
-        
-        if ( $SearchStr != "" ) {
-            $postData = apiRequest( "content/search", array('s' => $SearchStr, 'Count' => $SearchQty) );
-            if ( $postData ) {
-                $rVal = "";
-                $i = 0;
-                foreach( $postData->data as $item ) {
-                    $UTCTime = strtotime($item->CreateDTS);
-                    $ReplStr = array( '[TITLE]'     => NoNull($item->Title),
-                                      '[CREATEDTS]' => date("F jS Y g:i A", $UTCTime ),
-                                      '[URL]'       => NoNull($item->URL),
-                                      '[ID]'        => $i,
-                                      '[IMG_DIR]'   => IMG_DIR,
-                                     );
-                    switch ( strtoupper(NoNull($item->TypeCd)) ) {
-                        case 'TWEET':
-                            $ReplStr['[CONTENT]'] = parseTweet($item->Value);
-                            $ReplStr['TITLE'] = strip_tags( $ReplStr['CONTENT'] );
-                            $rVal .= readResource( RES_DIR . '/content-search-tweet.html', $ReplStr );
-                            break;
-
-                        default:
-                            // Get Just the Paragraph containing the Selected Word
-                            $ReplStr['[CONTENT]'] = $this->_getSearchSection( $item->Value, $SearchStr );
-                            $rVal .= readResource( RES_DIR . '/content-search-post.html', $ReplStr );
-                    }
-                    $i++;
-                }
-            }        
-        }
-
-        // Return the Search Results
-        return $rVal;
-    }
-
-    /**
-     * Function Returns Just the Paragraph Containing the String Requested
-     * 
-     * Change Log
-     * ----------
-     * 2012.05.05 - Created Function (J2fi)
-     */
-    private function _getSearchSection( $Content, $Needle ) {
-        $rVal = "";
-        
-        // Split the Content into an Array
-        $Words = explode(" ", strip_tags($Content));
-        
-        // Determine the Location of the Needle
-        $Key = array_search( $Needle, $Words );
-        $Start = (($Key - 10) < 0) ? 0 : ($Key - 10);
-        if ( $Key > 0 ) { $rVal .= "..."; }
-
-        // Construct the String
-        for ( $i = $Start; $i <= ($Start + 20); $i++ ) {
-            if ( $Words[$i] == $Needle ) {
-                $rVal .= "<span class=\"searchresult\">" . $Words[$i] . "</span> ";
-            } else {
-                $rVal .= $Words[$i] . " ";
-            }
-        }
-        if ( count($Words) > $i ) { $rVal .= "..."; }
-
-        // Return the Value
-        return "<p>" . NoNull($rVal) . "</p>";
-    }
 
 }
 ?>
