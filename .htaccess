@@ -1,0 +1,11 @@
+Options +FollowSymlinks
+RewriteEngine On
+
+RewriteRule ^([0-9]+)/([0-9]+)/([0-9]+)/([^/]+)/$ index.php?mpage=blog&year=$1&month=$2&day=$3&title=$4 [L,QSA]
+RewriteRule ^([0-9]+)/([0-9]+)/([0-9]+)/([^/]+)$ index.php?mpage=blog&year=$1&month=$2&day=$3&title=$4 [L,QSA]
+RewriteRule ^api/([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/$ index.php?mpage=api&ppage=$1&spage=$2 [L,QSA]
+RewriteRule ^api/([a-zA-Z0-9]+)/([a-zA-Z0-9]+)$ index.php?mpage=api&ppage=$1&spage=$2 [L,QSA]
+RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/$ index.php?mpage=$1&spage=$2 [L,QSA]
+RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)$ index.php?mpage=$1&spage=$2 [L,QSA]
+RewriteRule ^([a-zA-Z0-9]+)/$ index.php?mpage=$1 [L,QSA]
+RewriteRule ^([a-zA-Z0-9]+)$ index.php?mpage=$1 [L,QSA]

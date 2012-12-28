@@ -54,9 +54,14 @@ class lang_en implements lang_base {
                       'lblUsers'		=> "Users",
                       'lblSettings'		=> "Settings",
                       'lblLogout'		=> "Logout",
-                      
-                      'lblComment'		=> "Leave a Comment",
+
                       'lblTags'			=> "Tagged",
+                      'lblLinks'		=> "Links",
+                      'lblComment'		=> "Leave a Comment",
+                      'lblArchives'		=> "Archives",
+                      'lblShowArchives'	=> "Show Archives",
+                      'lblShowAllPosts' => "Show All [NUM] Posts",
+                      'lblTitleArchive'	=> "[NUM] Posts",
 
                       'lblMonth01'      => "January",
                       'lblMonth02'      => "February",
@@ -70,9 +75,6 @@ class lang_en implements lang_base {
                       'lblMonth10'      => "October",
                       'lblMonth11'      => "November",
                       'lblMonth12'      => "December",
-                      'lblShowArchives'	=> "Show Archives",
-                      'lblShowAllPosts' => "Show All [NUM] Posts",
-                      'lblTitleArchive'	=> "[NUM] Posts",
 
                       'admin_lblLogo'	=> APP_NAME,
                       'admin_strLogo'	=> APP_NAME . " | Sharing Your Ideas With the World",

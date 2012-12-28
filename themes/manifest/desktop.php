@@ -74,7 +74,7 @@ class miTheme extends theme_main {
                       	  '[APP_VER]'	  => APP_VER,
                       	  '[GENERATOR]'	  => GENERATOR,
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name']),
-                          '[SITEDESCR]'   => $this->messages['site_descr'],
+                          '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->messages['site_descr']),
                           '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
                           '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
                           '[ERROR_MSG]'   => '',
@@ -126,6 +126,7 @@ class miTheme extends theme_main {
                           '[ANALYTICS]'  => $Analytics,
                           '[HOMEURL]'    => $this->settings['HomeURL'],
                           '[MULTILANG]'  => $LangList,
+                          '[TAG_LIST]'	 => $this->_getTagListings( 49 ),
                           '[GenTime]'    => "<!-- Page generated in roughly: $App $lblSecond, $Api API $lblCalls, $SQL SQL $lblQuery, $Cch Cache $lblCache -->",
                          );
         // Add the Language-Specific Items
@@ -171,14 +172,10 @@ class miTheme extends theme_main {
      * 
      * Note: This needs to be made a bit more automatic, as it's high
      *       maintenance in the long-term.
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.14 - Created Function (J2fi)
      */
     private function _isValidPage() {
         $rVal = false;
-        $validPg = array('about', 'archives', 'blog', 'search', 'tags', '');
+        $validPg = array('archives', 'links', 'blog', 'search', 'tags', '');
 
         // Append the Valid Years of Content
         $years = $this->content->getValidPostYears();
@@ -198,10 +195,6 @@ class miTheme extends theme_main {
     /**
      * Function Loads the Entire ReplStr Array for Use Throughout the Page and
      *      Returns the Array
-     * 
-     * Change Log
-     * ----------
-     * 2012.05.27 - Created Function (J2fi)
      */
     private function _collectPageData() {
         $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
@@ -248,7 +241,7 @@ class miTheme extends theme_main {
      * Function Returns the Appropriate Page Title for a Section
      */
     private function _getPageTitle( $Section ) {
-        $rVal = NoNull($this->messages['site_name']);
+        $rVal = NoNull($this->settings['SiteName']);
         $rSuffix = "";
 
         switch ( strtolower($Section) ) {
@@ -257,7 +250,7 @@ class miTheme extends theme_main {
                         $this->settings['day']   . '/' . $this->settings['title'];
                 $rVal = $this->content->getPageTitle( $pURL );
                 break;
-            
+
             default:
                 $rSuffix = $this->messages['ttl_' . strtolower(NoNull($this->settings[mpage])) ];
         }
@@ -266,28 +259,6 @@ class miTheme extends theme_main {
         if ( $rSuffix != '' ) { $rVal .= " | $rSuffix"; }
 
         // Return the Page Title
-        return $rVal;
-    }
-
-    /**
-     * Function Returns the Additional Resource Requirements for the Requested Page
-     */
-    private function _getExtendedHeaderInfo() {
-        $rVal = '';
-        
-        switch ( NoNull($this->settings['mpage']) ) {
-            case 'contact':
-                $rVal = tabSpace(4) . "<link rel=\"stylesheet\" href=\"" . CSS_DIR . "/contact.css\" type=\"text/css\" />";
-                break;
-
-            case '':
-                $rVal = tabSpace(4) . "";
-
-            default:
-                $rVal = '';
-        }
-
-        // Return the Extended Header Information
         return $rVal;
     }
 
@@ -332,10 +303,6 @@ class miTheme extends theme_main {
     /**
      * Function Returns the Appropriate .html Content File Required for a
      *      given mPage / sPage Combination.
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.14 - Created Function (J2fi)
      */
     private function _getReqFileName() {
         $rVal = '';
@@ -355,15 +322,14 @@ class miTheme extends theme_main {
     }
 
     private function _getNavigationMenu() {
-        $pages = array("about"		=> $this->messages['lblAbout'],
-                       "archives"	=> $this->messages['lblArchives'],
-                       "links"		=> $this->messages['lblLink'],
+        $pages = array( "archives"	=> $this->messages['lblArchives'],
+                        "links"		=> $this->messages['lblLink'],
                        );
         $rVal = "";
         $i = 1;
 
         foreach ( $pages as $url=>$title ) {
-            $suffix = ( NoNull($url) == "" ) ? "" : "/$url";
+            $suffix = ( NoNull($url) == "" ) ? "" : "/$url/";
             $rVal .= "<li class=\"page_item page-item\"><a href=\"" . $this->settings['HomeURL'] . $suffix . "\" title=\"$title\">$title</a></li>";
             $i++;
         }
@@ -442,8 +408,8 @@ class miTheme extends theme_main {
      *	Function Prepares The Content for Custom Filtering (If Necessary)
      */
     private function _prepCustoms( $Content ) {
-        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[DIV-CLASS]'   => "",
+        $ReplStr = array( '[HOMEURL]'     				=> $this->settings['HomeURL'],
+                          '[DIV-CLASS]'   				=> "",
 
                           '[ARCHIVE-CLASS-YEAR-MONTH]'	=> "",
                           '[ARCHIVE-CLASS-MONTH]'		=> "",
@@ -460,104 +426,46 @@ class miTheme extends theme_main {
         return $rVal;
     }
 
-
-
-
-
-
-    private function _getMonthlyArchives() {
+    /**
+     *	Function Returns a Listing of Tags Sorted in Alphabetical Order
+     */
+    private function _getTagListings( $TagCount = 9999 ) {
+    	$data = $this->content->getTagsList();
+    	$Filter = array();
         $rVal = "";
-        $totalCount = 0;
-        $i = 0;
+        $i = 1;
 
-        $inCache = $this->content->getContent("monthlyArchives", 300);
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $postData = apiRequest( "content/summary", array('Show' => 'monthly') );
-            if ( $postData ) {
-                $rVal = "<ul>";
-                foreach( $postData->data as $item ) {
-                    if ( $i <= 15 ) {
-                        $URL = $this->settings['HomeURL'] . "/" . $item->PostYear . "/" . $item->PostMonth . "/";
-                        $MonthName = $this->messages['lblMonth' . $item->PostMonth];
-                        $Title = "$MonthName (" . nullInt($item->PostCount) . " Posts)";
-                        $Display = "$MonthName " . $item->PostYear;
-                        $rVal .= "<li><a href=\"$URL\" title=\"$Title\">$Display</a></li>";
-                    }
+        if ( is_array($data) ) {
+            foreach( $data as $Tag=>$Posts ) {
+            	if ( $i <= $TagCount ) {
+            		array_push($Filter, $Tag);
+            	}
+                $i++;
+            }
 
-                    $i++;
-                    $totalCount += nullInt($item->PostCount);
-                }
-                if ( $totalCount > 8 ) { $totalCount = $totalCount - 8; }
-                $rVal .= "<li><a href=\"" . $this->settings['HomeURL'] . "/archives/\" title=\"Show All " . number_format($totalCount, 0) . " Posts\">Show All Archives</a></li>";
-                $rVal .= "</ul>";
+            $i = 0;
+            natcasesort($Filter);
+            foreach ( $Filter as $Tag ) {
+	            $URL = $this->settings['HomeURL'] . "/tags/" . urlencode($Tag) . "/";
+	            $Title = nullInt( $data[$Tag] ) . " Posts";
 
-                // Save the Data to Cache
-                $this->content->saveContent("monthlyArchives", $rVal);
-            }            
-        }
+	            if ( $i < 7 ) {
+	            	$i++;
+	            } else {
+	            	$rVal .= "<br />";
+	            	$i = 1;
+	            }
+	            $rVal .= "<li><a href=\"$URL\" title=\"$Title\">$Tag</a></li>";
+            }
 
-        // Return the Monthly Archives Item
-        return $rVal;
-    }
-    
-    private function _getTagListings() {
-        $rVal = "";
-        $inCache = $this->content->getContent("tagListings", 3600);
-        
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $postData = apiRequest( "content/summary", array('Show' => 'tags', 'Count' => 40) );
-            if ( $postData ) {
-                $rVal = "<div class=\"tagcloud\">\n";
-                foreach( $postData->data as $item ) {
-                    $TagName = $item->TagName;
-                    $URL = $this->settings['HomeURL'] . "/tags/" . urlencode($TagName) . "/";
-                    $Title = nullInt($item->Posts) . " Posts";
-                    $rVal .= "<a href=\"$URL\" class='tag-link' title=\"$Title\" style=\"font-size: 8pt;\">$TagName</a>\n";
-                }
-                $rVal .= "</div>";
-
-                // Save the Data to Cache
-                $this->content->saveContent("tagListings", $rVal);            
+            if ( $rVal != "" ) {
+	            $rVal = "<ul class=\"elsewhere\">$rVal</ul>";
             }
         }
-        
+
         // Return the Tags Listing
         return $rVal;
     }
-    
-    private function _getPostsListings( $Count = 10 ) {
-        $rVal = "";
-        $inCache = $this->content->getContent("postListings_$Count", 300);
-
-        if ( $inCache ) {
-            $rVal = $inCache;
-        } else {
-            $postData = apiRequest( "content/summary", array('Show' => 'posts', 'Count' => $Count) );
-            if ( $postData ) {
-                $rVal = "<ul>\n";
-                foreach( $postData->data as $item ) {
-                    $URL = $this->settings['HomeURL'] . $item->Value;
-                    $Title = $item->Title;
-                    
-                    $rVal .= "<li><a href=\"$URL\" title=\"$Title\">$Title</a></li>\n";
-                }
-                $rVal .= "</ul>";
-
-                // Save the Content to Cache
-                $this->content->saveContent( "postListings_$Count", $rVal);
-            }
-        }
-        
-        // Return the Tags Listing
-        return $rVal;
-    }
-
-
-
 
 }
 ?>
