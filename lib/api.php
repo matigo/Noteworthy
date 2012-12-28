@@ -61,12 +61,9 @@ class api extends Midori {
 		    		break;
 		    		
 		    	case 'settings':
-		    		switch( NoNull($this->settings['spage']) ) {
-			    		case 'update':
-			    			print_r( $this->settings );
-			    			die();
-			    			break;
-		    		}
+		    		require_once( LIB_DIR . '/settings.php' );
+		    		$conf = new Settings( $this->settings );
+		    		$rVal = $conf->update();
 		    		break;
 		    	
 		    	case 'users':

@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for the Admin Theme
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once( LIB_DIR . '/content.php' );
 
@@ -182,10 +178,6 @@ class miTheme extends theme_main {
     /**
      * Function Loads the Entire ReplStr Array for Use Throughout the Page and
      *      Returns the Array
-     * 
-     * Change Log
-     * ----------
-     * 2012.05.27 - Created Function (J2fi)
      */
     private function _collectPageData() {
     	$PostCount = (!is_numeric( $this->content->getReadableURI() )) ? 5 : 9;

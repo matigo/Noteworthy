@@ -4,11 +4,7 @@
  * @author Jason F. Irwin
  * @copyright 2012
  * 
- * Class contains the Label Strings for use in Noteworthy
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
+ * Class contains the English Label Strings for use in Noteworthy
  */
 
 class lang_en implements lang_base {
@@ -54,6 +50,21 @@ class lang_en implements lang_base {
                       'lblUsers'		=> "Users",
                       'lblSettings'		=> "Settings",
                       'lblLogout'		=> "Logout",
+                      
+                      'lblDebugMode'	=> "Debug Mode",
+                      'lblEnabled'		=> "Enabled",
+                      'lblDisabled'		=> "Disabled",
+                      'lblSaveChanges'	=> "Save Changes",
+                      'lblTest'			=> "Test",
+                      
+                      'lblDataSets'		=> "Data Storage Settings",
+                      'lblDataType'		=> "Data Storage Type",
+                      'lblDBServ'		=> "Database Server",
+                      'lblDBName'		=> "Database Name",
+                      'lblDBUser'		=> "Database Login",
+                      'lblDBPass'		=> "Database Password",
+                      'lblDBMySQL'		=> "MySQL Database",
+                      'lblDBNone'		=> "No Database",
 
                       'lblTags'			=> "Tagged",
                       'lblLinks'		=> "Links",

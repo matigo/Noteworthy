@@ -1,26 +1,3 @@
-		<div class="container_16" id="top"><!-- page top with logotype and login options-->
-			<div id="logo"><span>[admin_lblLogo]</span></div>
-			<div id="logout">
-				<img class="grav_default" src="[IMG_DIR]/grav_default.jpeg" alt="Welcome">[lblWelcome]<a class="welcome-link" href="#">Silly Puppy</a>
-				<img src="[IMG_DIR]/icons/lock_large_locked.png" alt="Logout"> <a href="index.html">[lblLogout]</a>
-			</div>
-		</div>
-
-		<div id="nav-container"><!-- main navigation -->
-			<div class="container_16 sticky" id="navigation"><!-- main navigation -->
-				<ul class="nav-list" id="main-nav">
-					[NAVIGATION]
-				</ul>
-				<div class="search"><!-- page search -->
-					<form action="#" method="GET">
-						<input type="text" value="" />
-						<button class="silver" type="submit"><span>[lblSearch]</span></button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="clear"></div>
-
 		<div class="container_16 admin-panel background"><!-- main panel container -->
 			<div class="module-box grid_16 alpha"><!-- admin module box -->
 				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2><!-- admin module title -->
@@ -82,14 +59,15 @@
 							<div class="legend">Spam Filtering</div>
 							<label for="akismet-id">Akismet Key</label>
 							<input type="text" value="[AkismetKey]" id="akismet-id" name="akismet-id" style="float: left;" />
-							<button id="akismet-test" class="btn-small silver" style="margin-top: -2px;"><span>Test</span></button>
+							<button id="akismet-test" class="btn-small silver" style="margin-top: -2px;"><span>[lblTest]</span></button>
 							<div id="akismet-err" class="validation-message"></div>
 						</div>
 						
 						<hr />
 						
 						<input type='hidden' name='accessKey' value='[ACCESSKEY]' />
-						<button class="btn-small silver" type="submit"><span>Save Changes</span></button>
+						<input type='hidden' name='dataset' value='sites' />
+						<button class="btn-small silver" type="submit"><span>[lblSaveChanges]</span></button>
 					</form><!-- END form elements -->
 				</div>
 			</div>

@@ -1,241 +1,64 @@
-		<div class="container_16" id="top"><!-- page top with logotype and login options-->
-			<div id="logo"><span>[admin_lblLogo]</span></div>
-			<div id="logout">
-				<img class="grav_default" src="[IMG_DIR]/grav_default.jpeg" alt="Welcome">[lblWelcome]<a class="welcome-link" href="#">Silly Puppy</a>
-				<img src="[IMG_DIR]/icons/lock_large_locked.png" alt="Logout"> <a href="index.html">[lblLogout]</a>
-			</div>
-		</div>
-
-		<div id="nav-container"><!-- main navigation -->
-			<div class="container_16 sticky" id="navigation"><!-- main navigation -->
-				<ul class="nav-list" id="main-nav">
-					[NAVIGATION]
-				</ul>
-				<div class="search"><!-- page search -->
-					<form action="#" method="GET">
-						<input type="text" value="" />
-						<button class="silver" type="submit"><span>[lblSearch]</span></button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="clear"></div>
-
 		<div class="container_16 admin-panel background"><!-- main panel container -->
 			<div class="module-box grid_16 alpha"><!-- admin module box -->
-				<h2 class="title show_hide"> <span class="close-icon"></span>System Settings</h2><!-- admin module title -->
+				<h2 class="title show_hide">[lblDataSets] <span class="close-icon"></span></h2><!-- admin module title -->
 				<div class="module-box-inner"><!-- admin module spacing -->
-					<h3 class="add-new"><a href="#"><img src="[IMG_DIR]/icons/add_small.png" alt="Add new">Add new</a></h3>
-					<h3 class="table-options"><a href="#"><img src="[IMG_DIR]/icons/sprocket_dark.png" alt="Table Options">Options</a></h3>
-					<table id="dataTable" class="pages-table tablesorter"> <!-- START admin table -->
-						<thead> <!-- admin table header -->
-							<tr>
-								<td><input type="checkbox" class="checkall" value="1" /></td>
-								<th class="header sorting">Title</th>
-								<th class="header sorting">Status</th>
-								<th class="header sorting">Date created</th>
-								<th class="header sorting">Author</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr><!-- table row -->
-								<td><input type="checkbox" value="1" /></td>
-								<td><a href="#">Sed dictum nisi sodales</a></td>
-								<td>Draft</td>
-								<td>26th June 2011</td>
-								<td>First, Lastname</td>
-								<td class="table-icons">
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
-								</td>
-							</tr>
-							<tr><!-- table row -->
-								<td><input type="checkbox" value="1" /></td>
-								<td><a href="#">Duis iaculis velit auctor magna ornare</a></td>
-								<td>Published</td>
-								<td>25th June 2011</td>
-								<td>First, Lastname</td>
-								<td class="table-icons">
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
-								</td>
-							</tr>
-							<tr><!-- table row -->
-								<td><input type="checkbox" value="1" /></td>
-								<td><a href="#">Pellentesque erat sapien</a></td>
-								<td>Draft</td>
-								<td>23th June 2011</td>
-								<td>First, Lastname</td>
-								<td class="table-icons">
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
-								</td>
-							</tr>
-							<tr><!-- table row -->
-								<td><input type="checkbox" value="1" /></td>
-								<td><a href="#">Vestibulum ante ipsum primis in faucibus</a></td>
-								<td>Published</td>
-								<td>22th June 2011</td>
-								<td>First, Lastname</td>
-								<td class="table-icons">
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
-								</td>
-							</tr>
-							<tr><!-- table row -->
-								<td><input type="checkbox" value="1" /></td>
-								<td><a href="#">Mauris commodo sapien ac nibh</a></td>
-								<td>Published</td>
-								<td>21th June 2011</td>
-								<td>First, Lastname</td>
-								<td class="table-icons">
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/pencil.png" alt="Edit this item"></a>
-									<a href="#"><img class="table-icon" src="[IMG_DIR]/icons/remove.png" alt="Delete this item"></a>
-								</td>
-							</tr>
-						</tbody>
-					</table><!-- END admin table -->
-					<div class="table-bottom"><!-- admin table OPTIONS -->
-						<div class="table-actions">
-							<form action="#" method="post">
-								<select class="action" tabindex="-1"><!-- admin table ACTIONS -->
-									<option>Actions</option>
-									<option>Delete</option>
-									<option>Edit</option>
-								</select>
-								<button class="silver" type="submit"><span>apply</span></button>
-							</form>
-						</div>
-						<div class="pagination"><!-- admin table PAGINATION -->
-							<a href="#" class="left-arr">&larr;</a>
-							<a href="#">1</a>
-							<a href="#">2</a>
-							<a class="active" href="#">3</a>
-							<a href="#">4</a>
-							<a href="#">5</a>
-							<a href="#">6</a>
-							<a href="#">7</a>
-							<a href="#" class="right-arr">&rarr;</a>
-						</div>
-					</div>
-					<div class="clear"></div>
-				</div>
-			</div>
-			<div class="module-box grid_16 alpha"><!-- admin module box -->
-				<h2 class="title show_hide">Form styles <span class="close-icon"></span></h2><!-- admin module title -->
-				<div class="module-box-inner"><!-- admin module spacing -->
-					<form action="#" method="post"><!-- START form elements -->
-						<div><!-- inputs -->
-							<label for="value-0">Input <i>small</i></label>
-							<input class="input-small" type="text" value="" id="value-0" />
-							<div class="validation-message">
-								<p>* Validation error message.</p>
-							</div>
-						</div>
+					<form action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
 						<div>
-							<label for="value-1">Input <i>normal</i></label>
-							<input type="text" value="" id="value-1" />
-							<div class="validation-message">
-								<p>* Validation error message.</p>
-							</div>
-						</div>
-						<div>
-							<label for="value-1a">Input <i>medium</i></label>
-							<input class="input-medium" type="text" value="" id="value-1a" />
-						</div>
-						<div>
-							<label for="value-1b">Input <i>large</i></label>
-							<input class="input-large" type="text" value="" id="value-1b" />
-						</div>
-						<div><!-- select boxes -->
-							<label for="value-2">Selectbox</label>
+							<label for="cmbStoreType">[lblDataType]</label>
 							<div>
-								<select id="value-2" tabindex="-1">
-									<option value="opt1">Option 1</option>
-									<option value="opt2">Option 2</option>
-									<option value="opt3">Option 3</option>
-									<option value="opt4">Option 4</option>
-									<option value="opt5">Option 5</option>
+								<select id="cmbStoreType" tabindex="-1">
+									<option value="1">[lblDBMySQL]</option>
+									<option value="2">[lblDBNone]</option>
 								</select>
 							</div>
 						</div>
-						<div><!-- file upload -->
-							<label for="value-3">File upload</label>
-							<div><input id="value-3" type="file" /></div>
+
+						<div id="MySQL">
+							<div>
+								<label for="txtDBServ">[lblDBServ]</label>
+								<input type="text" value="" id="txtDBServ" name="txtDBServ" />
+							</div>
+							<div>
+								<label for="txtDBName">[lblDBName]</label>
+								<input type="text" value="" id="txtDBName" name="txtDBName" />
+							</div>
+							<div>
+								<label for="txtDBUser">[lblDBUser]</label>
+								<input type="text" value="" id="txtDBUser" name="txtDBUser" />
+							</div>
+							<div>
+								<label for="txtDBPass">[lblDBPass]</label>
+								<input type="text" value="" id="txtDBPass" name="txtDBPass" />
+							</div>
 						</div>
-						<div class="clearfix"><!-- UI date picker -->
-							<div class="legend">Date picker</div>
-							<div class="inline"><label class="small-label">Start date:</label> <input class="input-date date-icn" type="text" id="datepicker" /></div>
-							<div class="inline"><label class="small-label">End date:</label> <input class="input-date date-icn" type="text" id="datepicker2" /></div>
+
+						<hr />
+
+						<div>
+							<label for="cmbStoreType">[lblDebugMode]</label>
+							<div>
+								<select id="cmbStoreType" tabindex="0">
+									<option value="0" selected="0">[lblDisabled]</option>
+									<option value="1">[lblEnabled]</option>
+								</select>
+							</div>
 						</div>
-						<div><!-- WYSWYG editor -->
-							<label for="markItUp">Textarea with WYSWYG editor</label>
-							<textarea id="markItUp" cols="45" rows="8"></textarea>
-						</div>
-						<hr class="brake-white">
-						<div><!-- checkboxes -->
-							<div class="legend">Checkbox</div>
-							<input id="ckboxon" type="checkbox" class="checkbox" checked="checked" name="ckbox" /> <label class="float-label" for="ckboxon">Checkbox on</label>
-							<input id="ckboxoff" type="checkbox" class="checkbox" name="ckbox" /> <label class="float-label" for="ckboxoff">Checkbox off</label>
-						</div>
-						<hr class="brake-white">
-						<div><!-- radio buttons -->
-							<div class="legend">Radiobutton</div>
-							<input id="radioon" type="radio" class="radio" checked="checked" name="question" value="on" /> <label class="float-label" for="radioon">Radiobutton on</label>
-							<input id="radiooff" type="radio" class="radio" name="question" value="off" /> <label class="float-label" for="radiooff">Radiobutton off</label>
-						</div>
-						<hr class="brake-white">
-						<div class="buttons"><!-- buttons -->
-							<div class="legend">Button styles</div>
-							<button class="btn-small silver" type="submit"><span>Button silver</span></button>
-							<button class="btn-small black" type="submit"><span>Button black</span></button>
-							<button class="btn-small blue" type="submit"><span>Button blue</span></button>
-							<button class="btn-small green" type="submit"><span>Button green</span></button>
-							<button class="btn-small orange" type="submit"><span>Button orange</span></button>
-							<button class="btn-small red" type="submit"><span>Button red</span></button>
-							<div class="legend">Button sizes</div>
-							<button class="btn-small silver" type="submit"><span>Button small</span></button>
-							<button class="btn-medium silver" type="submit"><span>Button medium</span></button>
-							<button class="btn-large silver" type="submit"><span>Button large</span></button>
-						</div>
+
+						<input type='hidden' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' name='dataset' value='settings' />
+						<button class="btn-small silver" type="submit"><span>[lblSaveChanges]</span></button>
 					</form><!-- END form elements -->
 				</div>
 			</div>
 			<div class="clear"></div>
 			<div class="module-box grid_8 alpha">
-				<h2 class="title show_hide">1/2 module <span class="close-icon"></span></h2>
+				<h2 class="title show_hide">Databases <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
 					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
 				</div>
 			</div>
 			<div class="module-box grid_8 omega">
-				<h2 class="title show_hide">1/2 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="clear"></div>
-			<div class="module-box grid_4 alpha">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="module-box grid_4">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="module-box grid_4">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="module-box grid_4 omega">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
+				<h2 class="title show_hide">Debug <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
 					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
 				</div>
