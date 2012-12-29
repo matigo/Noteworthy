@@ -199,6 +199,7 @@ class miTheme extends theme_main {
     private function _collectPageData() {
         $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name'], NoNull($this->messages['site_name'])),
+                          '[SITENAME]'    => NoNull($this->settings['SiteName'], $this->messages['SiteName']),
                           '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->settings['SiteName']),
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
                           '[CSS_DIR]'     => CSS_DIR,

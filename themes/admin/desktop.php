@@ -320,6 +320,18 @@ class miTheme extends theme_main {
                 $rVal['[note-sandboxStyle]'] = ($UseSandbox == 'N') ? 'style="display: none;"' : '';
                 $rVal['[note-productionStyle]'] = ($UseSandbox == 'Y') ? 'style="display: none;"' : '';
                 break;
+            
+            case 'settings':
+            	$rVal['[DT_SQL]'] = ( DB_TYPE == 1 ) ? " selected" : "";
+            	$rVal['[DT_NWS]'] = ( DB_TYPE == 2 ) ? " selected" : "";
+                $rVal['[DO_SQL]'] = ( DB_TYPE == 1 ) ? "" : ' style="display: none;"';
+                $rVal['[DBSERV]'] = ( DB_TYPE == 1 ) ? NoNull(DB_SERV) : "";
+                $rVal['[DBNAME]'] = ( DB_TYPE == 1 ) ? NoNull(DB_MAIN) : "";
+                $rVal['[DBUSER]'] = ( DB_TYPE == 1 ) ? NoNull(DB_USER) : "";
+                $rVal['[DBPASS]'] = ( DB_TYPE == 1 ) ? NoNull(DB_PASS) : "";
+                $rVal['[DEBUG0]'] = ( DEBUG_ENABLED == 0 ) ? " selected" : "";
+                $rVal['[DEBUG1]'] = ( DEBUG_ENABLED == 1 ) ? " selected" : "";
+                break;
 
             default:
                 
@@ -364,13 +376,15 @@ class miTheme extends theme_main {
             $pages = array('dashboard'	=> array('icon' 	=> "icon-home",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblDashboard'] ),
+            			   'about'		=> array('icon' 	=> "icon-user",
+            									 'current'	=> "N",
+            									 'label'	=> $this->messages['lblAbout'] ),
+            			   'links'		=> array('icon' 	=> "icon-pencil",
+            									 'current'	=> "N",
+            									 'label'	=> $this->messages['lblLinks'] ),
             			   'sites'		=> array('icon' 	=> "icon-pencil",
             									 'current'	=> "N",
-            									 'label'	=> $this->messages['lblSites'],
-            									 'subs'		=> array('0' => $this->messages['lblDefault']) ),
-            			   'users'		=> array('icon' 	=> "icon-user",
-            									 'current'	=> "N",
-            									 'label'	=> $this->messages['lblUsers'] ),
+            									 'label'	=> $this->messages['lblSites'] ),
             			   'settings'	=> array('icon' 	=> "icon-cogs",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblSettings'] ),

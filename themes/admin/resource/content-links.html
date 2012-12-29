@@ -52,11 +52,11 @@
 					<table id="postTable" class="pages-table tablesorter"> <!-- START admin table -->
 						<thead> <!-- admin table header -->
 							<tr>
-								<th class="header">[lblID]</th>
-								<th class="header">[lblTitle]</th>
-								<th class="header">[lblPostDTS]</th>
-								<th class="header">[lblUpdateDTS]</th>
-								<th class="header">[lblMetas]</th>
+								<th class="header">ID</th>
+								<th class="header">Title</th>
+								<th class="header">Created</th>
+								<th class="header">Updated</th>
+								<th class="header">Metas</th>
 								<th></th>
 							</tr>
 						</thead>
@@ -271,66 +271,3 @@
 		<script type="text/javascript" src="[JS_DIR]/jquery-ui-1.9.0.custom.min.js"></script>
 		<script type="text/javascript" src="[JS_DIR]/dateformat.js"></script>
 		<script type="text/javascript" src="[JS_DIR]/common.js"></script>
-		<script type="text/javascript" src="[JS_DIR]/landing.js"></script>
-		<script type="text/javascript">
-			$(function(){
-				getPostsList( '[ACCESSKEY]' );
-            });
-            
-			jQuery(function($) {
-				$('#akismet-test').click(function() {
-					_canSubmit = false;
-					checkAkismet( '[ACCESSKEY]', $('#siteurl').val(), $('#akismet-id').val() );
-
-					return false;
-				});
-				$('#evernote-test').click(function() {
-					var radios = document.getElementsByName('UseSandbox');
-					var UseSandbox = "Y";
-					_canSubmit = false;
-
-					for (var i = 0; i < radios.length; i++) {
-					    if (radios[i].checked) { UseSandbox = radios[i].value; }
-					}
-
-					checkEvernote( '[ACCESSKEY]', $('#ttoken').val(), UseSandbox );
-
-					return false;
-				});
-				$('#notebook-click').click(function() {
-					var tab = document.getElementById ("notebookTable");
-				    var elems = tab.getElementsByTagName("input");
-				    var len = elems.length;
-				    var guidList = "";
-				
-				    for ( var i = 0; i < len; i++ ) {
-				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
-				    		if ( elems[i].checked == true ) {
-				    			guidList += elems[i].value + '|';
-				    		}
-				    	}
-				    }
-
-				    // Set the Notebooks (Even if Zero are Selected)
-				    setSelectedNotebooks( '[ACCESSKEY]', guidList );
-
-					return false;
-				});
-				$('#checkall').click(function() {
-					var tab = document.getElementById ("notebookTable");
-				    var elems = tab.getElementsByTagName("input");
-				    var chkVal = document.getElementById("checkall").checked;
-				    var len = elems.length;
-
-				    for ( var i = 0; i < len; i++ ) {
-				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
-				    		if ( elems[i].checked != chkVal ) {
-					    		elems[i].checked = chkVal;
-				    		}
-				    	}
-				    }
-
-					return true;
-				});
-			});
-		</script>

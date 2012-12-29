@@ -596,25 +596,6 @@ require_once(LIB_DIR . '/globals.php');
     }
 
     /**
-     * Function returns an array containing TimeZone Information
-     * 
-     * Change Log
-     * ----------
-     * 2011.04.26 - Created Function (J2fi)
-     */
-    function listTimeZones() {
-        $rVal = array();
-        $sqlStr = "SELECT tz.`id`, tz.`Code`, tz.`Offset`, CONCAT(tz.`Descr`, ' (GMT', tz.`Offset`, ')') as `Descr`
-                     FROM `Midori`.`TimeZone` tz
-                    WHERE tz.`isVisible` = 'Y'
-                    ORDER BY tz.`SortOrder`, tz.`OffNum`";
-        $rVal = doSQLQuery( $sqlStr );
-
-        // Return the Result Values
-        return $rVal;
-    }
-
-    /**
      * Function scrubs a string to ensure it's safe to use in a URL
      * 
      * Change Log

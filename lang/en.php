@@ -31,6 +31,8 @@ class lang_en implements lang_base {
                       'und_const'       => "This Page is Under Construction",
                       'deprecated'      => "This Page has been Deprecated.<br>\n Please Contact Support if you need this site restored.",
                       'serverError'     => "A critical error has occurred. We're terribly sorry for this and are working on a fix.",
+                      
+                      'SiteName'		=> "A New Noteworthy Site",
 
                       'footer_msg'      => "Powered by " . APP_NAME,
                       'all_rights'      => "All Rights Reserved",
@@ -47,7 +49,8 @@ class lang_en implements lang_base {
                       'lblDashboard'	=> "Dashboard",
                       'lblSites'		=> "Sites",
                       'lblDefault'		=> "Default",
-                      'lblUsers'		=> "Users",
+                      'lblAbout'		=> "About",
+                      'lblLinks'		=> "Links",
                       'lblSettings'		=> "Settings",
                       'lblLogout'		=> "Logout",
                       
@@ -56,6 +59,12 @@ class lang_en implements lang_base {
                       'lblDisabled'		=> "Disabled",
                       'lblSaveChanges'	=> "Save Changes",
                       'lblTest'			=> "Test",
+                      
+                      'lblID'			=> "ID",
+                      'lblTitle'		=> "Title",
+                      'lblPostDTS'		=> "Post Date",
+                      'lblPostDTS'		=> "Updated",
+                      'lblMetas'		=> "Metas",
                       
                       'lblDataSets'		=> "Data Storage Settings",
                       'lblDataType'		=> "Data Storage Type",
@@ -86,6 +95,10 @@ class lang_en implements lang_base {
                       'lblMonth10'      => "October",
                       'lblMonth11'      => "November",
                       'lblMonth12'      => "December",
+                      
+                      'lblSetUpdGood'	=> "Successfully Updated Settings",
+                      'lblSetUpdErr001'	=> "Invalid MySQL Settings",
+                      'lblSetUpdErr002'	=> "Could Not Save Configuration Data",
 
                       'admin_lblLogo'	=> APP_NAME,
                       'admin_strLogo'	=> APP_NAME . " | Sharing Your Ideas With the World",

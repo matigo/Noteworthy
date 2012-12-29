@@ -14,9 +14,11 @@ require_once( LIB_DIR . '/functions.php');
 
 class api extends Midori {
     var $settings;
+    var $messages;
 
     function __construct( $settings ) {
         $this->settings = $settings;
+        $this->messages = getLangDefaults( $this->settings['DispLang'] );
     }
 
     /** ********************************************************************** *
@@ -53,6 +55,22 @@ class api extends Midori {
 			    			$akismet = new Akismet($siteURL, $apiKey);
 			    			$rVal = array( "isGood" => BoolYN($akismet->isKeyValid()) );
 							break;
+		    		}
+		    		break;
+		    	
+		    	case 'content':
+		    		require_once( LIB_DIR . '/content.php' );
+			    	$content = new Content( $settings, $this->messages, dirname(__FILE__) );
+		    		$rVal = array('isGood' => "N" );
+
+		    		switch ( NoNull($this->settings['spage']) ) {
+			    		case 'listPosts':
+			    			$rVal['posts'] = $content->getCompletePostsList();
+			    			$rVal['isGood'] = "Y";
+			    			break;
+			    		
+			    		default:
+			    			// Do Nothing
 		    		}
 		    		break;
 

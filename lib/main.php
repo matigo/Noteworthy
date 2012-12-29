@@ -4,13 +4,12 @@
  * @author Jason F. Irwin
  * @copyright 2012
  * 
- * Class contains the rules and methods called for Noteworthy
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
+ * Class contains the rules and methods called for the Noteworthy Application
  */
 require_once(THEME_DIR . '/themes.php');
+if ( file_exists(CONF_DIR . '/config-db.php') ) {
+	require_once(CONF_DIR . '/config-db.php');
+}
 require_once(CONF_DIR . '/config.php');
 require_once(LANG_DIR . '/langs.php');
 require_once(LIB_DIR . '/cookies.php');

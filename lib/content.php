@@ -87,6 +87,10 @@ class Content extends Midori {
     function getReadableURI() {
 	    return $this->_getReadableURI();
     }
+    
+    function getCompletePostsList() {
+	    return $this->_getCompletePostsList();
+    }
 
     function saveCacheHTML( $HTML, $FileName = "", $UseCurrentID = false ) {
 	    $CacheFile = ( $FileName == "" ) ? $this->_getReadableURI() : $FileName;
@@ -96,6 +100,42 @@ class Content extends Midori {
     /***********************************************************************
      *  Private Functions
      ***********************************************************************/
+    private function _getCompletePostsList() {
+	    $ReqURL = sqlScrub( $this->settings['ReqURI'] );
+	    $RecordTotal = $RecordCount = $Records = 1;
+	    $Results = 25;
+	    $rVal = false;
+
+	    switch ( DB_TYPE ) {
+		    case 1:
+		    	// MySQL
+		    	$PageNo = (nullInt($this->settings['Page'], 1) - 1) * $Results;
+		    	$sqlStr = $this->_getAppropriateSQLQuery( '', 'WITHGAPS', $PageNo, $Results );
+		    	$data = doSQLQuery( $sqlStr );
+		    	if ( is_array($data) ) {
+		    		$rVal = array();
+			    	foreach( $data as $Key=>$Row ) {
+			    		$Row['MetaRecords'] = intval($Row['MetaRecords']);
+			    		$Row['CreateDTS'] = intval($Row['CreateDTS']);
+			    		$Row['UpdateDTS'] = intval($Row['UpdateDTS']);
+				    	$rVal[ $Key ] = $Row;
+			    	}
+		    	}
+		    	break;
+		    
+		    case 2:
+		    	// This Hasn't Been Coded, Yet
+		    	break;
+		    
+		    default:
+		    	// Do Nothing (API Code May Go Here ... API of an API?)
+		}
+
+		// Return the Results
+		return $rVal;
+    }
+
+
     private function _getReadableURI() {
     	$rVal = "";
 
@@ -389,7 +429,9 @@ class Content extends Midori {
 	    		break;
 	    	
 	    	case 'WITHGAPS':
-	    		$rVal = "SELECT c.`id`, c.`guid`, c.`Title`, c.`CreateDTS`, c.`EntryDTS`," .
+	    		$rVal = "SELECT c.`id`, c.`guid`, c.`Title`," .
+	    					  " UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`," .
+	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`," .
 	    					  " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-URL') as `PostURL`," .
 	    					  " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
 	    				"  FROM `Content` c" .

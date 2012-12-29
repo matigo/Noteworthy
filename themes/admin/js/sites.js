@@ -44,7 +44,6 @@ function parseResult( data ) {
 	return result;
 }
 
-
 function getAPIPath() {
 	var url = $(location).attr('href').replace($(location).attr('pathname'),'');
 	var rVal = url;

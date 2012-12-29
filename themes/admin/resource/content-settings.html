@@ -2,51 +2,52 @@
 			<div class="module-box grid_16 alpha"><!-- admin module box -->
 				<h2 class="title show_hide">[lblDataSets] <span class="close-icon"></span></h2><!-- admin module title -->
 				<div class="module-box-inner"><!-- admin module spacing -->
-					<form action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
+					<form name="primary" action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
+						<div id="return-msg" style="padding: 5px 50px 10px;"></div>
 						<div>
 							<label for="cmbStoreType">[lblDataType]</label>
 							<div>
-								<select id="cmbStoreType" tabindex="-1">
-									<option value="1">[lblDBMySQL]</option>
-									<option value="2">[lblDBNone]</option>
+								<select id="cmbStoreType" name="cmbStoreType" tabindex="0" onchange="toggleMySQL()" >
+									<option value="1"[DT_SQL]>[lblDBMySQL]</option>
+									<option value="2"[DT_NWS]>[lblDBNone]</option>
 								</select>
 							</div>
 						</div>
 
-						<div id="MySQL">
+						<div id="MySQL"[DO_SQL]>
 							<div>
 								<label for="txtDBServ">[lblDBServ]</label>
-								<input type="text" value="" id="txtDBServ" name="txtDBServ" />
+								<input type="text" value="[DBSERV]" id="txtDBServ" name="txtDBServ" tabindex="1" />
 							</div>
 							<div>
 								<label for="txtDBName">[lblDBName]</label>
-								<input type="text" value="" id="txtDBName" name="txtDBName" />
+								<input type="text" value="[DBNAME]" id="txtDBName" name="txtDBName" tabindex="2" />
 							</div>
 							<div>
 								<label for="txtDBUser">[lblDBUser]</label>
-								<input type="text" value="" id="txtDBUser" name="txtDBUser" />
+								<input type="text" value="[DBUSER]" id="txtDBUser" name="txtDBUser" tabindex="3" />
 							</div>
 							<div>
 								<label for="txtDBPass">[lblDBPass]</label>
-								<input type="text" value="" id="txtDBPass" name="txtDBPass" />
+								<input type="text" value="[DBPASS]" id="txtDBPass" name="txtDBPass" tabindex="4" />
 							</div>
 						</div>
 
 						<hr />
 
 						<div>
-							<label for="cmbStoreType">[lblDebugMode]</label>
+							<label for="cmbDebugMode">[lblDebugMode]</label>
 							<div>
-								<select id="cmbStoreType" tabindex="0">
-									<option value="0" selected="0">[lblDisabled]</option>
-									<option value="1">[lblEnabled]</option>
+								<select id="cmbDebugMode" name="cmbDebugMode" tabindex="5">
+									<option value="0"[DEBUG0]>[lblDisabled]</option>
+									<option value="1"[DEBUG1]>[lblEnabled]</option>
 								</select>
 							</div>
 						</div>
 
-						<input type='hidden' name='accessKey' value='[ACCESSKEY]' />
-						<input type='hidden' name='dataset' value='settings' />
-						<button class="btn-small silver" type="submit"><span>[lblSaveChanges]</span></button>
+						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' id='dataset' name='dataset' value='settings' />
+						<button id="save-settings" name="save-settings" class="btn-small silver" type="submit" tabindex="6"><span>[lblSaveChanges]</span></button>
 					</form><!-- END form elements -->
 				</div>
 			</div>
@@ -80,5 +81,27 @@
 		<script type="text/javascript" src="[JS_DIR]/markitup/sets/default/set.js"></script>
 		<script type="text/javascript" src="[JS_DIR]/jquery-ui-1.9.0.custom.min.js"></script>
 		<script type="text/javascript" src="[JS_DIR]/jquery.tablesorter.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/dateformat.js"></script>
 		<script type="text/javascript" src="[JS_DIR]/common.js"></script>
-		<script type="text/javascript" src="[JS_DIR]/plot-init.js"></script>
+		<script type="text/javascript" src="[JS_DIR]/settings.js"></script>
+		<script type="text/javascript">
+			function toggleMySQL() {
+				var e = document.getElementById("cmbStoreType");
+				var storeType = e.options[e.selectedIndex].value;
+				
+				if ( storeType == "1" ) {
+					document.getElementById("MySQL").style.display = 'block';
+				} else {
+					document.getElementById("MySQL").style.display = 'none';
+				}
+			}
+
+			jQuery(function($) {
+				$('#save-settings').click(function() {
+					_canSubmit = false;
+					performUpdates();
+
+					return false;
+				});
+			});
+		</script>
