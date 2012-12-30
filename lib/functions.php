@@ -637,6 +637,30 @@ require_once(LIB_DIR . '/globals.php');
     }
 
     /**
+     *	Function Returns a Gravatar URL for a Given Email Address
+     *	Note: Code based on source from https://en.gravatar.com/site/implement/images/php/
+     */
+    function getGravatarURL( $emailAddr, $size = 80, $default = 'mm', $rating = 'g', $img = false, $atts = array() ) {
+    	$rVal = "";
+    	
+    	if ( NoNull($emailAddr) != "" ) {
+	    	$rVal = "http://www.gravatar.com/avatar/" . md5( strtolower( NoNull($emailAddr) ) ) .
+	    			"?s=$size&d=$default&r=$rating";
+
+		    if ( $img ) {
+		        $rVal = '<img src="' . $rVal . '"';
+		
+		        foreach ( $atts as $key => $val )
+		            $rVal .= ' ' . $key . '="' . $val . '"';
+		        $rVal .= ' />';
+		    }	    	
+    	}
+
+    	// Return the URL
+    	return $rVal;
+    }
+
+    /**
      * Function parses the HTTP Header to extract just the Response code
      * 
      * Change Log

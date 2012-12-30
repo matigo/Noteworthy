@@ -21,18 +21,14 @@ class Content extends Midori {
         $this->settings['ThemeLoc'] = $ThemeLoc;
         $this->settings['LastContentID'] = $this->_getLastContentID();
         $this->messages = $Messages;
-
-        // Send any Messages if they Exist
-        //$sendMsg = $this->_sendMessage();
-        //writeNote( "_sendMessage Response: $sendMsg" );
     }
 
     /***********************************************************************
      *  Public Functions
      ***********************************************************************/
-    function getContent( $Results = 25 ) {
+    function getContent( $Results = 25, $doOverride = false ) {
     	$rVal = $this->_readCachedHTML( $this->_getReadableURI() );
-    	if ( !$rVal ) { $rVal = $this->_getContent( $Results ); }
+    	if ( !$rVal ) { $rVal = $this->_getContent( $Results, $doOverride ); }
 
     	// Return the Content
         return $rVal;
@@ -40,6 +36,16 @@ class Content extends Midori {
 
     function getPageTitle( $PostURL = "" ) {
         return $this->_getPageTitle( $PostURL );
+    }
+    
+    function getRawArchives( $Results = 9999 ) {
+    	$CacheFile = 'archives_raw_' . $Results;
+    	$rVal = $this->_readCachedHTML( $CacheFile );
+    	if ( !$rVal ) {
+    		$rVal = $this->_getRawArchives( $Results );
+    		$this->_saveCachedHTML( $CacheFile, $rVal );
+    	}
+	    return $rVal;
     }
 
     function getMonthlyArchives() {
@@ -101,34 +107,48 @@ class Content extends Midori {
      *  Private Functions
      ***********************************************************************/
     private function _getCompletePostsList() {
-	    $ReqURL = sqlScrub( $this->settings['ReqURI'] );
-	    $RecordTotal = $RecordCount = $Records = 1;
+	    $RecordTotal = 0;
 	    $Results = 25;
+	    $PageNo = nullInt($this->settings['Page'], 1);
 	    $rVal = false;
 
 	    switch ( DB_TYPE ) {
 		    case 1:
 		    	// MySQL
-		    	$PageNo = (nullInt($this->settings['Page'], 1) - 1) * $Results;
-		    	$sqlStr = $this->_getAppropriateSQLQuery( '', 'WITHGAPS', $PageNo, $Results );
+		    	$StartNo = ($PageNo - 1) * $Results;
+		    	$sqlStr = $this->_getAppropriateSQLQuery( '', 'WITHGAPS-COUNT' );
+		    	$meta = doSQLQuery( $sqlStr );
+		    	if ( is_array($meta) ) {
+			    	foreach( $meta as $Key=>$Row ) {
+				    	$RecordTotal = nullInt( $Row['Records'] );
+			    	}
+		    	}
+
+		    	// Collect the Records
+		    	$sqlStr = $this->_getAppropriateSQLQuery( '', 'WITHGAPS', $StartNo, $Results );
 		    	$data = doSQLQuery( $sqlStr );
 		    	if ( is_array($data) ) {
 		    		$rVal = array();
 			    	foreach( $data as $Key=>$Row ) {
 			    		$Row['MetaRecords'] = intval($Row['MetaRecords']);
+			    		$Row['PostLength'] = intval($Row['PostLength']);
 			    		$Row['CreateDTS'] = intval($Row['CreateDTS']);
 			    		$Row['UpdateDTS'] = intval($Row['UpdateDTS']);
+			    		$Row['id'] = intval($Row['id']);
+			    		$Row['RecordTotal'] = intval($RecordTotal);
+			    		$Row['PageNo'] = intval($PageNo);
+			    		$Row['Results'] = intval($Results);
 				    	$rVal[ $Key ] = $Row;
 			    	}
 		    	}
 		    	break;
-		    
+
 		    case 2:
 		    	// This Hasn't Been Coded, Yet
 		    	break;
-		    
+
 		    default:
-		    	// Do Nothing (API Code May Go Here ... API of an API?)
+		    	// Do Nothing (Yet)
 		}
 
 		// Return the Results
@@ -158,41 +178,6 @@ class Content extends Midori {
 
 	    // Return the Readable URI
 	    return $rVal;
-    }
-
-    /**
-     * Function Checks If a Message Needs to be Sent, and Does so.
-     * 
-     * Change Log
-     * ----------
-     * 2012.05.08 - Jason F. Irwin (J2fi)
-     */
-    private function _sendMessage() {
-        $rVal = false;
-        $emailAddr = NoNull($this->settings['emailAddr']);
-        $firstName = NoNull($this->settings['firstName']);
-        $lastName = NoNull($this->settings['lastName']);
-        $message = NoNull($this->settings['commentText']);
-
-        // Do We Have the Bare Minimum?
-        if ( $emailAddr == "" ) { return $rVal; }
-        if ( $firstName == "" ) { return $rVal; }
-        if ( $message == "" ) { return $rVal; }
-
-        $sendData = array( "inptEmail"   => $emailAddr,
-                           "inptName"    => NoNull("$firstName $lastName"),
-                           "subject"     => "Message From",
-                           "inptMessage" => $message
-                          );
-
-        // If We're This Far, Send the Message
-        $result = apiRequest('message/send', $sendData);
-        if ( $result ) {
-            $rVal = true;
-        }
-
-        // Return the Response
-        return $rVal;
     }
 
     private function _getPageTitle( $PostURL = "" ) {
@@ -231,7 +216,7 @@ class Content extends Midori {
 		    	$rslt = doSQLQuery( $sqlStr );
 		    	if ( is_array($rslt) ) {
 			    	foreach ( $rslt as $Key=>$Row ) {
-			    		$rVal[ $Items ] = array( "Year"	=> $Row['DTYear'],
+			    		$rVal[ $Items ] = array( "Year"		=> $Row['DTYear'],
 					    					     "Month"	=> $Row['DTMonth'],
 					    					     "Posts"	=> $Row['PostCount']
 					    					     );
@@ -245,6 +230,31 @@ class Content extends Midori {
 	    }
 	    
 	    // Return the Array
+	    return $rVal;
+    }
+    
+    private function _getRawArchives( $Results ) {
+	    $rVal = "";
+	    $i = 0;
+
+	    $sqlStr = $this->_getAppropriateSQLQuery( '/' );
+	    $rslt = doSQLQuery( $sqlStr );
+	    if ( is_array($rslt) ) {
+		    foreach ( $rslt as $Key=>$Row ) {
+		    	if ( $i < $Results ) {
+		    		$DateStr = date("F jS, Y", $Row['ENTRY-UNIX']);
+		    		$PostURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $Row['POST-URL']);
+			    	$rVal .= "<li><a href=\"$PostURL\" rel=\"bookmark\">" . NoNull($Row['TITLE']) . "</a>" .
+							   "<div class=\"postDate\">" . 
+							     "<abbr class=\"published\" title=\"" . NoNull($Row['POST-GUID']) . "\">$DateStr</abbr>" .
+							   "</div>" .
+							 "</li>";
+			    	$i++;
+		    	}
+		    }
+	    }
+
+	    // Return the HTML Results
 	    return $rVal;
     }
     
@@ -299,14 +309,10 @@ class Content extends Midori {
     /**
      * Function Returns a List of Tags and the Number of Posts Associated with each
      *	IF - IncludeAll is True, then Tags with 0 Posts are Returned
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.08 - Jason F. Irwin (J2fi)
      */
     private function _getTagsList( $IncludeAll = false ) {
     	$MaxEntryTS = $this->_getLastContentID();
-	    $rVal = $this->_collectCachedTagsList( $MaxEntryTS );
+	    $rVal = false;
 
 	    if ( !$rVal ) {
 		    switch ( DB_TYPE ) {
@@ -332,7 +338,7 @@ class Content extends Midori {
 				    }
 
 				    // Save the Data to the Cache
-				    $this->_recordCachedTagsList( $rVal, $MaxEntryTS );
+				    //$this->_recordCachedTagsList( $rVal, $MaxEntryTS );
 			    	break;
 
 			    case 2:
@@ -347,55 +353,12 @@ class Content extends Midori {
 	    // Return the Tags List
 	    return $rVal;
     }
-    
-    /**
-     * Function Reads the Cached Tag List into Memory and Returns it
-     *	IF - Cached Data is too old, then FALSE is Returned
-     */
-    private function _collectCachedTagsList( $LastCreateTS = 0 ) {
-	    $CacheFile = $this->settings['ContentDIR'] . "/cache/tags.static";
-	    $rVal = false;
 
-	    if ( file_exists($CacheFile) ) {
-	    	$data = utf8_decode( file_get_contents($CacheFile) );
-	    	$data = unserialize( $data );
-
-	    	// Ensure the Values Match
-	    	if ( $rVal['lastCreateTS'] == $LastCreateTS ) {
-		    	$rVal = $data;
-	    	}
-        }
-        
-        // Return the Data (if Applicable)
-        return $rVal;
-    }
-    
-    private function _recordCachedTagsList( $data, $LastCreateTS ) {
-	    $CacheFile = $this->settings['ContentDIR'] . "/cache/tags.static";
-	    $rVal = false;
-	    
-	    // Check to see if the Settings File Exists or Not
-	    if ( checkDIRExists( $this->settings['ContentDIR'] . "/cache" ) ) {
-		    $tags = unserialize($data);
-
-		    // Write the File to the Cache Folder
-		    $fh = fopen($CacheFile, 'w');
-		    fwrite($fh, serialize($tags));
-		    fclose($fh);
-		    
-		    // Set the Happy Return Boolean
-		    return $rVal;
-	    }
-	    
-	    // Return the Boolean Response
-	    return $rVal;
-	}
-	
 	/**
 	 *	Function Determines What Type of Query is Required based on the Request URL and
 	 *		well ... returns the proper Query statement.
 	 */
-	private function _getAppropriateSQLQuery( $ReqURL, $QType = "POSTS", $PageNo = 0, $Results = 25 ) {
+	private function _getAppropriateSQLQuery( $ReqURL, $QType = "POSTS", $PageNo = 0, $Results = 25, $doOverride = false ) {
 		$Segments = explode('/', $ReqURL);
 		$TypeFilter = "POST-URL";
 		$PostFilter = '%' . $ReqURL . '%';
@@ -405,8 +368,14 @@ class Content extends Midori {
 			case 'archives':
 			case 'archive':
 				$PageNo = 0;
-				$Results = 9999;
+				$Results = ( $doOverride ) ? ($Results * 2) : 9999;
 				$PostFilter = '%';
+				break;
+			
+			case 'search':
+				$QType = "SEARCH";
+				$Results = 25;
+				$PostFilter = '%' . sqlScrub($this->settings['s']) . '%';
 				break;
 			
 			case 'tags':
@@ -425,17 +394,38 @@ class Content extends Midori {
 	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c, `Meta` m" .
 	    				" WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
 	    				"   and c.`TypeCd` = 'POST' and m.`TypeCd` = '$TypeFilter'" .
-	    				"   and c.`CreateDTS` <= Now() and m.`Value` LIKE '%$PostFilter%'";
+	    				"   and c.`CreateDTS` <= Now() and m.`Value` LIKE '$PostFilter'";
 	    		break;
 	    	
 	    	case 'WITHGAPS':
 	    		$rVal = "SELECT c.`id`, c.`guid`, c.`Title`," .
 	    					  " UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`," .
 	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`," .
+	    					  " LENGTH(c.`Value`) as `PostLength`," .
 	    					  " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-URL') as `PostURL`," .
 	    					  " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
 	    				"  FROM `Content` c" .
 	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
+	    				" ORDER BY c.`CreateDTS` DESC" .
+	    				" LIMIT $PageNo, $Results;";
+	    		break;
+
+	    	case 'WITHGAPS-COUNT':
+	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c" .
+	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'";
+	    		break;
+	    	
+	    	case 'SEARCH':
+	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`," .
+		    				  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`," .
+		    				  " UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
+		    				  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`," .
+		    				  " substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) as `CONTENT`," .
+		    				  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-URL') as `POST-URL`," .
+		    				  " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-AUTHOR') as `POST-AUTHOR`" .
+	    				"  FROM `Content` c" .
+	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` IN ('POST', 'TWEET')" .
+	    				"   and c.`Value` LIKE '$PostFilter'" .
 	    				" ORDER BY c.`CreateDTS` DESC" .
 	    				" LIMIT $PageNo, $Results;";
 	    		break;
@@ -460,17 +450,33 @@ class Content extends Midori {
 		return $rVal;
 	}
 
+	/**
+	 *	Function Returns the Type of Content Result We Have
+	 */
+	private function _determineContentType( $rslt ) {
+		if ( count($rslt) == 1 ) {
+			$rVal = 'blog';
+		} else {
+			$rVal = 'search';
+			if ( $this->_isLanding() ) {
+				$rVal = 'blog';
+			}
+			if ( $this->_isArchive() ) {
+				$rVal = 'archives';
+			}
+		}
+
+		// Return the Content Type
+		return $rVal;
+	}
+
     /**
      * Function Checks if a URL is Good and Performs the Following Activities:
      *	IF - URL is Good -> Returns Content (Cached or Fresh)
      *		 URL is Incomplete (1 Result) -> Forwarded to Best-Matching URL
      *		 URL is Incomplete (2+ Results) -> Show List of Possible Matches
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.08 - Jason F. Irwin (J2fi)
      */
-    private function _getContent( $Results = 25 ) {
+    private function _getContent( $Results = 25, $doOverride = false ) {
 	    $ReqURL = sqlScrub( $this->settings['ReqURI'] );
 	    $MaxEntryTS = $this->_getLastContentID();
 	    $RecordTotal = $RecordCount = $Records = 1;
@@ -482,14 +488,14 @@ class Content extends Midori {
 		    case 1:
 		    	// MySQL
 		    	$PageNo = (nullInt($this->settings['Page'], 1) - 1) * $Results;
-		    	$sqlStr = $this->_getAppropriateSQLQuery( $ReqURL, '', $PageNo, $Results );
+		    	$sqlStr = $this->_getAppropriateSQLQuery( $ReqURL, '', $PageNo, $Results, $doOverride );
 		    	$rslt = doSQLQuery( $sqlStr );
 		    	if ( is_array($rslt) ) {
 		    		if ( count($rslt) == 1 ) {
 	    				// One Result Found
 	    				$Resource = 'content-blog.html';
 
-	    				// Check to see if the Cached Content needs to be Updated or Not
+				    	// Check to see if the Cached Content needs to be Updated or Not
 	    				// -- This is done by ensuring the EntryDTS is Older than the cached
 	    				//	  file. As comments are controlled by Disqus, the cache should
 	    				//	  always be newer than the EntryDTS value.
@@ -539,16 +545,29 @@ class Content extends Midori {
 
 				    		// Construct the Content <ul>
 				    		foreach ( $rslt as $Key=>$Row ) {
-				    			$timestamp = nullInt($Row['DATE-UNIX']);
-				    			if ( $rMon != "[lblMonth" . date('m', $timestamp) . "] " . date('Y', $timestamp) ) {
-					    			$rMon = "[lblMonth" . date('m', $timestamp) . "] " . date('Y', $timestamp);
-					    			if ( $rBody != "" ) { $rBody .= "</li></ul>\r\n"; }
-					    			$rBody .= '<li><span class="[ARCHIVE-CLASS-YEAR-MONTH]">' . $rMon . '</span>' . "\r\n" .
-					    					  '<ul class="[ARCHIVE-CLASS-MONTH]">' . "\r\n";
+				    			if ( $doOverride ) {
+						    		$DateStr = date("F jS, Y", $Row['DATE-UNIX']);
+							    	$rBody .= "<li><a href=\"" . $Row['POST-URL'] . "\" rel=\"bookmark\">" . NoNull($Row['TITLE']) . "</a>" .
+											    "<div class=\"postDate\">" . 
+											      "<abbr class=\"published\" title=\"" . NoNull($Row['POST-GUID']) . "\">$DateStr</abbr>" .
+											    "</div>" .
+											  "</li>";
+
+				    			} else {
+					    			$timestamp = nullInt($Row['DATE-UNIX']);
+					    			if ( $rMon != "[lblMonth" . date('m', $timestamp) . "] " . date('Y', $timestamp) ) {
+						    			$rMon = "[lblMonth" . date('m', $timestamp) . "] " . date('Y', $timestamp);
+						    			if ( $rBody != "" ) { $rBody .= "</li></ul>\r\n"; }
+						    			$rBody .= '<li><span class="[ARCHIVE-CLASS-YEAR-MONTH]">' . $rMon . '</span>' . "\r\n" .
+						    					  '<ul class="[ARCHIVE-CLASS-MONTH]">' . "\r\n";
+					    			}
+						    		$rBody .= '<li>' . date('d', $timestamp) . ': <a href="' . $Row['POST-URL'] . '" title="' . $Row['TITLE'] . '">' . $Row['TITLE'] . '</a></li>' . "\r\n";
 				    			}
-					    		$rBody .= '<li>' . date('d', $timestamp) . ': <a href="' . $Row['POST-URL'] .  '" title="' . $Row['TITLE'] . '">' . $Row['TITLE'] . '</a></li>' . "\r\n";
 				    		}
-				    		if ( $rBody != "" ) { $rBody .= "</li></ul>\r\n"; }
+				    		// Close off the Non-Overridden (Default) List
+				    		if ( !$doOverride ) {
+					    		if ( $rBody != "" ) { $rBody .= "</li></ul>\r\n"; }					    		
+				    		}
 
 				    		// Write the Content to the Return Array
 				    		$rVal[1]['[ARCHIVE-LIST]'] = $rBody;
@@ -563,7 +582,7 @@ class Content extends Midori {
 				    		// Collect the PostMeta
 				    		$PostMeta = array();
 				    		$sqlStr = "SELECT m.`id`, m.`ContentID`, m.`TypeCd`, m.`Value` FROM `Meta` m" .
-				    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
+				    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-FOOTER', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
 				    				  "   and m.`ContentID` IN ($PostIDs)" .
 				    				  " ORDER BY m.`ContentID`, m.`TypeCd`, m.`Value`";
 				    		$meta = doSQLQuery( $sqlStr );
@@ -876,19 +895,10 @@ class Content extends Midori {
      *  Caching Functions
      ***********************************************************************/
     private function _buildCacheFileName( $FileName ) {
-	    $rVal = $FileName;
-    	$suffix = "";
-
-	    if ( is_numeric($FileName) ) {
-		    $suffix = ( nullInt( $this->settings['Page'], 1) > 1 ) ? "_" . $this->settings['Page'] : "";
-	    }
-
-	    if ( endsWith($suffix, '_') ) {
-		    $suffix = substr($suffix, 0, strlen($suffix) - 1);
-	    }
+	    $rVal = $FileName . '.cache';
 
 	    // Return the Cache FileName
-	    return $rVal . $suffix . '.cache';
+	    return str_replace('_.', '.', $rVal);
     }
      /**
       *	Function Reads the Cached HTML Data and Returns It if LastContentID
@@ -896,44 +906,51 @@ class Content extends Midori {
       *
       */
      private function _readCachedHTML( $FileName, $UseCurrentID = false ) {
-     	 $LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
-     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
-	     $CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
 	     $rVal = false;
+     	
+		// Do Not Save Search Results
+		if ( $this->settings['mpage'] != "search" ) {
+			$LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
+			$CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
+			$CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
 
-	    if ( file_exists($CacheFile) ) {
-	    	$GLOBALS['Perf']['caches']++;
-	    	$Raw = file_get_contents( $CacheFile, "r");
-	    	$data = unserialize( $Raw );
-	    	
-	    	if ( $LastContentID == $this->settings['LastContentID'] ) {
-		    	$rVal = $data['HTML'];
-	    	}
-        }
-        
-        // Return the HTML (if Applicable)
-        return $rVal;
+			if ( file_exists($CacheFile) ) {
+				$GLOBALS['Perf']['caches']++;
+				$Raw = file_get_contents( $CacheFile, "r");
+				$data = unserialize( $Raw );
+
+				if ( intval($LastContentID) == intval($data['LastContentID']) ) {
+					$rVal = $data['HTML'];
+				}
+			}
+		}
+
+		// Return the HTML (if Applicable)
+		return $rVal;
      }
 
      private function _saveCachedHTML( $FileName, $HTML, $UseCurrentID = false ) {
-     	 $LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
-     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
-	     $CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
-	     $data = array( "LastContentID" => $LastContentID,
-	     				"HTML"			=> $HTML
-	     			   );
 	     $rVal = false;
 
-	     // Check to see if the HTML Folder Exists or Not, and Write the Cache
-	     if ( checkDIRExists( $CacheDIR ) ) {
-		     // Write the File to the Cache Folder
-		     $fh = fopen($CacheFile, 'w');
-		     fwrite($fh, serialize($data));
-		     fclose($fh);
+	     if ( $this->settings['mpage'] != "search" ) {
+	     	 $LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
+	     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
+		     $CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
+		     $data = array( "LastContentID" => $LastContentID,
+		     				"HTML"			=> $HTML
+		     			   );
 
-		     // Set the Happy Return Boolean
-		     $rVal = true;
-		 }
+		     // Check to see if the HTML Folder Exists or Not, and Write the Cache
+		     if ( checkDIRExists( $CacheDIR ) ) {
+			     // Write the File to the Cache Folder
+			     $fh = fopen($CacheFile, 'w');
+			     fwrite($fh, serialize($data));
+			     fclose($fh);
+	
+			     // Set the Happy Return Boolean
+			     $rVal = true;
+			 }
+	     }
 
 		 // Return the Boolean Response
 		 return $rVal;

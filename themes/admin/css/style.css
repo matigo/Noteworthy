@@ -115,7 +115,7 @@ hr {
 		text-decoration: none;
 		text-shadow: 0 1px rgba(255, 255, 255, .75);
 		cursor: pointer;
-		margin-bottom: 20px;
+		margin-bottom: 5px;
 		line-height: normal;
 		padding: 8px 10px;
 		font-family: 'PT Sans', sans-serif
@@ -152,6 +152,7 @@ hr {
     padding: 0;
 	}
 	
+	.btn-tiny {font-size: 10px!important}
 	.btn-small {font-size:14px!important}
 	.btn-medium {font-size:22px!important}
 	.btn-large {font-size:29px!important}

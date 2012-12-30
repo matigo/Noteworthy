@@ -1,11 +1,21 @@
-		<div class="post hentry">
-		    <h1 class="entry-title">[lblArchives]</h1>
-		    <div class="postContent">
-                <div class="car-container car-collapse">
-                    <p>Here you can view every post published on this site, sorted from newest to oldest.</p>
-                    <ul class="entry-content">
-[ARCHIVE-LIST]
-                    </ul>
-                </div>
-			</div><!-- end .entry-content -->
-		</div><!-- end .postclass -->
+		<div id="archives" class="single hentry">  
+			<h2 class="entry-title">[lblArchives]</h2>
+			<h3>Recent Articles</h3>
+			<ul id="recentPosts">
+				[ARCHIVE-LIST]
+			</ul>
+
+			<div id="date">
+				<h3>Months</h3>
+				<ul>
+					[MONTHLY-LIST]
+				</ul>
+			</div>
+
+			<div id="cattags">
+				<h3>Tags</h3>
+				<ul class='wp-tag-cloud'>
+					[TAG-LIST]
+				</ul>
+			</div>
+		</div>

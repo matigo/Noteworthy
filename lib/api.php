@@ -60,7 +60,7 @@ class api extends Midori {
 		    	
 		    	case 'content':
 		    		require_once( LIB_DIR . '/content.php' );
-			    	$content = new Content( $settings, $this->messages, dirname(__FILE__) );
+			    	$content = new Content( $this->settings, $this->messages, dirname(__FILE__) );
 		    		$rVal = array('isGood' => "N" );
 
 		    		switch ( NoNull($this->settings['spage']) ) {

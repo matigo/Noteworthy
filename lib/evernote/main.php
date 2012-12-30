@@ -56,10 +56,6 @@ class evernote {
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
 		if ( $this->_canProceed() ) {
 		    switch ( NoNull($this->settings['spage']) ) {
-		    	case 'dump':
-		    		$data = $this->settings;
-		    		break;
-
 		    	case 'listNotebooks':
 		    		$data = $this->_getNotebooks();
 		    		break;
@@ -82,6 +78,10 @@ class evernote {
 
 		    	case 'performUpdate':
 		    		$data = $this->_performUpdate();
+		    		break;
+		    		
+		    	case 'refreshNote':
+		    		$data = $this->_refreshNote();
 		    		break;
 
 		    	case 'rebuildFlatFiles':
@@ -614,6 +614,89 @@ class evernote {
 	}
 	
 	/**
+	 *	Function Refreshes a Note in the DataStore
+	 */
+	private function _refreshNote( $ReadOnly = false ) {
+		$NoteGUID = sqlScrub($this->settings['guid']);
+		$rVal = false;
+		
+		// Don't Do Anything if the GUID is Invalid
+		if ( $NoteGUID == "" || strlen($NoteGUID) != 36 ) {
+			writeNote( "Invalid GUID: $NoteGUID" );
+			return $rVal;
+			exit;
+		}
+		
+		// Swap the Return Value to an Array if Necessary
+		if ( $ReadOnly ) { $rVal = array(); }
+
+		try {
+			$noteStoreShard = $this->_getNoteStoreShard();
+			$NoteCUD = 'guid|0.0.0';
+			$isOK = false;
+
+	        if ( $noteStoreShard != '' ) {
+                $settingKey = 'core_notes' . $this->settings['EVERNOTE_POINTER'];
+
+		        // Prepare the NoteStore
+		        if ( !$this->_prepNoteStore() ) {
+		        	writeNote( "NoteStore Not Prepared" );
+			        return $rVal;
+		        }
+
+		        // Collect the Resource (With Data and With Attributes)
+		        $note = $this->noteStore->getNote($this->settings['DEVELOPER_TOKEN'], $NoteGUID, true, true, false, false);
+            	$NoteCUD = NoNull($note->notebookGuid) . '|' . nullInt($note->created) / 1000 . '.' .
+            			   nullInt($note->updated) / 1000 . '.' . nullInt($note->deleted) / 1000;
+
+            	if ( $ReadOnly ) {
+                	$thisNote = array( "guid"		  => NoNull($note->guid),
+                					   "title"		  => NoNull($note->title),
+                					   "created" 	  => $note->created / 1000,
+                					   "updated" 	  => $note->updated / 1000,
+                					   "notebookGUID" => $note->notebookGuid,
+                					   "author" 	  => NoNull($note->attributes->author, $this->settings['DEFAULT_AUTHOR']),
+                					   "NoteCUD" 	  => $NoteCUD,
+                					  );
+                	$rVal = $thisNote;
+
+            	} else {
+                	// Update the Note
+                	if ( $this->_recordNote($note, $NoteCUD) ) {
+                		$sqlStr = "SELECT c.`id`, c.`guid`, c.`Title`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`," .
+                					    " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`, LENGTH(c.`Value`) as `PostLength`," .
+                					    " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-URL') as `PostURL`," .
+                					    " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
+                				  "  FROM `Content` c" .
+                				  " WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
+                				  "   and c.`guid` = '$NoteGUID';";
+                		$rVal = doSQLQuery( $sqlStr );
+                	}
+            	}
+	        }
+
+		} catch (TTransportException $e) {
+			writeNote( "Error Collecting Notes: " . $e->getMessage() );
+			$this->errors[] = formatErrorMessage( 'main.php', "_refreshNote() | Error Obtaining Notes: " . $e->getMessage() );
+		} catch (EDAMUserException $e) {
+			writeNote( "Error Obtaining Notes: [EDAM - User] " . $e->getMessage() );
+			$this->errors[] = formatErrorMessage( 'main.php', "_refreshNote() | Error Obtaining Notes: [EDAM - User] " . $e->getMessage() );
+		} catch (EDAMSystemException $e) {
+			writeNote( "Error Obtaining Notes: [EDAM - System] " . $e->getMessage() );
+			$this->errors[] = formatErrorMessage( 'main.php', "_refreshNote() | Error Obtaining Notes: [EDAM - System] " . $e->getMessage() );
+		} catch (EDAMNotFoundException $e) {
+			writeNote( "Error Obtaining Notes: [EDAM - NotFound] " . $e->getMessage() );
+			$this->errors[] = formatErrorMessage( 'main.php', "_refreshNote() | Error Obtaining Notes: [EDAM - NotFound] " . $e->getMessage() );
+		} catch (Exception $e) {
+			writeNote( "Error Obtaining Notes: [General] " . $e->getMessage() );
+			$this->errors[] = formatErrorMessage( 'main.php', "_refreshNote() | Error Obtaining Notes: [General] " . $e->getMessage() );
+		}
+
+		// Return the Boolean or Array
+		return $rVal;
+	}
+	
+	/**
 	 * Function Collects the Notes from Evernote if they match the Specific NotebookGUID
 	 *
 	 * Note: ReadOnly = {TRUE} will return an array of notes (Name, GUID, CreateDTS, UpdateDTS)
@@ -770,7 +853,7 @@ class evernote {
 	 */
 	private function _recordNote( $NoteObj, $NoteCUD ) {
 		$rVal = false;
-		
+
 		try {
 		    // Adapt the Note Object Into a Consistent Object
 			$attribs = array();
@@ -827,14 +910,14 @@ class evernote {
                     if ( $dbID > 0 ) {
                         $sqlStr = "INSERT INTO `Meta` (`ContentID`, `ParentID`, `guid`, `TypeCd`, `Value`, `Hash`) " .
                                   "VALUES";
-                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-AUTHOR', '" . $data['author'] . "', '" . md5($data['author']) . "')," .
+                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-AUTHOR', '" . sqlScrub($data['author']) . "', '" . md5($data['author']) . "')," .
                         		  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "')," .
-                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-URL'   , '" . $data['url'] . "', '" . md5($data['url']) . "'),";
+                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-URL', '" . $data['url'] . "', '" . md5($data['url']) . "'),";
                         if ( $data['contentLength'] > 0 ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-LENGTH', '" . $data['contentLength'] . "', '" . md5($cLen) . "'),";
                         }
                         if ( $data['footnotes'] != '' ) {
-                            $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-FOOTER', '" . $data['footnotes'] . "', '" . md5($data['footnotes']) . "'),";
+                            $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-FOOTER', '" . sqlScrub($data['footnotes']) . "', '" . md5($data['footnotes']) . "'),";
                         }
                         if ( $data['attributes']['longitude'] != '' ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-GPS-LNG', '" . $data['attributes']['longitude'] . "', '" . md5($data['attributes']['longitude']) . "'),";
@@ -849,13 +932,13 @@ class evernote {
                         // Add the Post Tags
                         if ( is_array( $data['tagGuids']) ) {
                             foreach ( $data['tagGuids'] as $Key=>$Name ) {
-                                $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-TAG', '$Name', '" . md5($Name) . "'),";
+                                $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-TAG', '" . sqlScrub($Name) . "', '" . md5($Name) . "'),";
                             }
                         }
 
                         if ( $sqlVal != "" ) {
                             $sqlVal = substr($sqlVal, 0, strlen($sqlVal) - 1);
-                            doSQLQuery( $sqlStr . $sqlVal);
+                            doSQLQuery( $sqlStr . $sqlVal );
                         }
 
     					// Set a Happy Boolean

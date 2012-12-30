@@ -64,7 +64,7 @@
 						</tbody>
 					</table><!-- END admin table -->
 					<div class="table-bottom">
-						<div class="pagination">
+						<div id="paginate" class="pagination">
 							<a href="#" class="left-arr">&larr;</a>
 							<a href="#">1</a>
 							<a href="#">2</a>
@@ -274,7 +274,8 @@
 		<script type="text/javascript" src="[JS_DIR]/landing.js"></script>
 		<script type="text/javascript">
 			$(function(){
-				getPostsList( '[ACCESSKEY]' );
+				window.accessKey = "[ACCESSKEY]";
+				getPostsList( 1 );
             });
             
 			jQuery(function($) {

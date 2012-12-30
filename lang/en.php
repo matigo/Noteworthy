@@ -63,7 +63,7 @@ class lang_en implements lang_base {
                       'lblID'			=> "ID",
                       'lblTitle'		=> "Title",
                       'lblPostDTS'		=> "Post Date",
-                      'lblPostDTS'		=> "Updated",
+                      'lblUpdateDTS'	=> "Updated",
                       'lblMetas'		=> "Metas",
                       
                       'lblDataSets'		=> "Data Storage Settings",
@@ -76,12 +76,15 @@ class lang_en implements lang_base {
                       'lblDBNone'		=> "No Database",
 
                       'lblTags'			=> "Tagged",
+                      'lblPublished'	=> "Published On",
                       'lblLinks'		=> "Links",
                       'lblComment'		=> "Leave a Comment",
                       'lblArchives'		=> "Archives",
                       'lblShowArchives'	=> "Show Archives",
                       'lblShowAllPosts' => "Show All [NUM] Posts",
                       'lblTitleArchive'	=> "[NUM] Posts",
+
+                      'lblSearchResult'	=> "Search Results",
 
                       'lblMonth01'      => "January",
                       'lblMonth02'      => "February",
@@ -95,6 +98,7 @@ class lang_en implements lang_base {
                       'lblMonth10'      => "October",
                       'lblMonth11'      => "November",
                       'lblMonth12'      => "December",
+                      'lblYearSuffix'	=> "",
                       
                       'lblSetUpdGood'	=> "Successfully Updated Settings",
                       'lblSetUpdErr001'	=> "Invalid MySQL Settings",

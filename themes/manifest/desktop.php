@@ -126,7 +126,6 @@ class miTheme extends theme_main {
                           '[ANALYTICS]'  => $Analytics,
                           '[HOMEURL]'    => $this->settings['HomeURL'],
                           '[MULTILANG]'  => $LangList,
-                          '[TAG_LIST]'	 => $this->_getTagListings( 49 ),
                           '[GenTime]'    => "<!-- Page generated in roughly: $App $lblSecond, $Api API $lblCalls, $SQL SQL $lblQuery, $Cch Cache $lblCache -->",
                          );
         // Add the Language-Specific Items
@@ -276,7 +275,8 @@ class miTheme extends theme_main {
         switch ( $this->settings['mpage'] ) {
             case 'archives':
             case 'archive':
-                //$rVal['[ARCHIVE-LIST]'] = $this->_getArchivesHTML();
+                $rVal['[MONTHLY-LIST]'] = $this->_getMonthListings();
+                $rVal['[TAG-LIST]'] = $this->_getTagListings( 45 );
                 break;
 
             case 'blog':
@@ -343,7 +343,7 @@ class miTheme extends theme_main {
      *  Blog Content Component
      * ********************************************************************* */
     private function _getBlogContent( $PostNum ) {
-    	$data = $this->content->getContent( $PostNum );
+    	$data = $this->content->getContent( $PostNum, true );
 	    $rVal = "";
 
 	    if ( is_array($data) ) {
@@ -353,37 +353,66 @@ class miTheme extends theme_main {
             $Records = nullInt($data['Records']);
             $i = 1;
 
-            foreach ($data as $Key=>$Entry ) {
-            	if ( $Key == $i ) {
-	                $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-	                                  '[POST-FOOTER]' => "",
-	                                  '[DISQUS_ID]'	  => NoNull($this->settings['disqus_name']),
-	                                  '[COMMENTS]'    => "",
-	                                  '[DIV-CLASS]'   => "",
-	                                 );
-	                foreach ( $Entry as $Item=>$Value ) {
-		                $ReplStr[ $Item ] = $Value;
-	                }
+            if ( intval($data['RecordCount']) > 0 ) {
+	            foreach ($data as $Key=>$Entry ) {
+	            	if ( $Key == $i ) {
+		                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
+		                                  '[POST-FOOTER]'   => "",
+		                                  '[DISQUS_ID]'	    => NoNull($this->settings['disqus_name']),
+		                                  '[COMMENTS]'      => "",
+		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
+		                                  '[DIV-CLASS]'     => "",
+		                                 );
+		                foreach ( $Entry as $Item=>$Value ) {
+			                $ReplStr[ $Item ] = $Value;
+		                }
+		                
+		                if ( $this->settings['mpage'] != 'search' ) {
+			                // Clean up the Content (If Necessary)
+			                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
+				                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
+			                }
+		
+			                // Append the Footnotes (If Necessary)
+				            if ( $ReplStr['[POST-FOOTER]'] ) {
+					            $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr);
+				            }
+		
+				            // Construct the Comments (If Necessary)
+				            if ( $ReplStr['[DISQUS_ID]'] ) {
+					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);	            
+				            }
+				            
+				            // Replace the Template Content Accordingly
+				            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
+	
+		                } else {
+		                	if ( $ReplStr['[POST-URL]'] != "" ) {
+				                $rVal .= readResource( RES_DIR . '/content-search-post.html', $ReplStr);		                	
+		                	}
+		                }
+		                $i++;
+	            	}
+	            }
+            } else {
+                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
+                                  '[POST-FOOTER]'   => "",
+                                  '[DISQUS_ID]'	    => NoNull($this->settings['disqus_name']),
+                                  '[COMMENTS]'      => "",
+                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
+                                  '[SEARCH-RESULT]' => "<div class=\"post hentry\"><div class=\"postContent\">" .
+													   "<p>No Results Found</p>" .
+													   "</div></div>",
+                                  '[DIV-CLASS]'     => "",
+                                 );
+            }
 
-	                // Clean up the Content (If Necessary)
-	                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
-		                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
-	                }
-
-	                // Append the Footnotes (If Necessary)
-		            if ( $ReplStr['[POST-FOOTER]'] ) {
-			            $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr);
-		            }
-
-		            // Construct the Comments (If Necessary)
-		            if ( $ReplStr['[DISQUS_ID]'] ) {
-			            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);	            
-		            }
-	                $i++;
-
-	                // Replace the Template Content Accordingly
-	                $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
-            	}
+            if ( $this->settings['mpage'] == 'search' ) {
+	            // Replace the Search Template Content Accordingly
+	            if ( $rVal != "" ) {
+		            $ReplStr['[SEARCH-RESULT]'] = NoNull($rVal);
+	            }
+	            $rVal = readResource( RES_DIR . "/$ResourceFile", $ReplStr);
             }
 
             // Save Post Count Setting
@@ -434,6 +463,7 @@ class miTheme extends theme_main {
     	$data = $this->content->getTagsList();
     	$Filter = array();
         $rVal = "";
+        $max = 0;
         $i = 1;
 
         if ( is_array($data) ) {
@@ -441,31 +471,42 @@ class miTheme extends theme_main {
             	if ( $i <= $TagCount ) {
             		array_push($Filter, $Tag);
             	}
+            	if ( intval($Posts) > $max ) { $max = intval($Posts); }
                 $i++;
             }
 
             $i = 0;
             natcasesort($Filter);
             foreach ( $Filter as $Tag ) {
+            	$FontSize = intval(50 * (intval($data[$Tag]) / $max));
 	            $URL = $this->settings['HomeURL'] . "/tags/" . urlencode($Tag) . "/";
 	            $Title = nullInt( $data[$Tag] ) . " Posts";
-
-	            if ( $i < 7 ) {
-	            	$i++;
-	            } else {
-	            	$rVal .= "<br />";
-	            	$i = 1;
-	            }
-	            $rVal .= "<li><a href=\"$URL\" title=\"$Title\">$Tag</a></li>";
-            }
-
-            if ( $rVal != "" ) {
-	            $rVal = "<ul class=\"elsewhere\">$rVal</ul>";
+	            
+	            $rVal .= "<li><a href=\"$URL\" class=\"tag-link\" title=\"$Title\" style=\"font-size: " . ($FontSize + 10) . "pt;\">$Tag</a></li>";
             }
         }
 
         // Return the Tags Listing
         return $rVal;
+    }
+    
+    private function _getMonthListings( $GetAll = false ) {
+	    $data = $this->content->getMonthlyArchives();
+	    $rVal = "";
+
+	    if ( is_array($data) ) {
+	    	foreach( $data as $Key=>$Row ) {
+	    		$Posts = nullInt($Row['Posts']);
+	    		$Title = $this->messages['lblMonth' . $Row['Month']];
+	    		$Year = $Row['Year'] . $this->messages['lblYearSuffix'];
+	    		$URL = $this->settings['HomeURL'] . '/' . $Row['Year'] . '/' . $Row['Month'] . '/';
+	    		
+		    	$rVal .= "<li><a href=\"$URL\" title=\"$Title $Year\">$Title $Year</a>&nbsp;($Posts)</li>";
+	    	}
+	    }
+	    
+	    // Return the List of Months
+	    return $rVal;
     }
 
 }

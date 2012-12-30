@@ -201,6 +201,10 @@ class miTheme extends theme_main {
                           '[CSS_DIR]'     => CSS_DIR,
                           '[IMG_DIR]'     => IMG_DIR,
                           '[JS_DIR]'      => JS_DIR,
+                          
+                          /* User Data */
+                          '[GRAVATAR]'	  => getGravatarURL( 'jason@j2fi.net' ),
+                          '[ABOUTLNK]'	  => $this->settings['mpage'] . '/about/',
 
                           /* Body Content */
                           '[NAVIGATION]'  => $this->_getNavigationMenu(),
@@ -391,7 +395,7 @@ class miTheme extends theme_main {
             			   );
 
             foreach ( $pages as $url=>$dtl ) {
-            	$FullURL = $this->settings['HomeURL'] . '/' . $this->settings['mpage'] . '/' . $url;
+            	$FullURL = $this->settings['HomeURL'] . '/' . $this->settings['mpage'] . "/$url/";
             	$SubList = '';
             	$isCurrent = '';
             	if ( array_key_exists('subs', $dtl) ) {
