@@ -62,7 +62,17 @@ class Midori {
                 // Return the Properly Formatted Result
                 return $this->_formatResult($Rsp, $html_out, $FormatType);
                 break;
-            
+
+            case 'rss':
+            	$FormatType = 'xml';
+            	require_once( LIB_DIR . '/content.php' );
+            	$rss = new Content( $this->Settings, '', '' );
+            	$xml = $rss->getRSS();
+
+            	// Return the Properly Formatted Result
+            	return $xml;
+            	break;
+
             case 'admin':
             	$ThemeLocation = 'admin';
 

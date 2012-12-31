@@ -226,6 +226,7 @@ class cookies extends Midori {
     private function _checkURL( $mPage, $pPage, $sPage ) {
         $rVal = array();
         $filters = array( 'api',
+        				  'rss',
                           'post'
                          );
 
@@ -238,6 +239,13 @@ class cookies extends Midori {
                 switch ( $mPage ) {
                     case 'api':
                         $rVal = array( 'DispPg' => 'api',
+                                       'mpage'  => $pPage,
+                                       'spage'  => $sPage
+                                      );
+                        break;
+
+                    case 'rss':
+                        $rVal = array( 'DispPg' => 'rss',
                                        'mpage'  => $pPage,
                                        'spage'  => $sPage
                                       );

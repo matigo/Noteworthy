@@ -389,6 +389,53 @@ require_once(LIB_DIR . '/globals.php');
     }
 
     /**
+     *	Function Generates an XML Element
+     */
+	function generateXML( $tag_in, $value_in = "", $attribute_in = "" ){
+		$rVal = "";
+		$attributes_out = "";
+		if (is_array($attribute_in)){
+			if (count($attribute_in) != 0){
+				foreach($attribute_in as $k=>$v) {
+					$attributes_out .= " ".$k."=\"".$v."\"";
+				}
+			}
+		}
+		
+		// Return the XML Tag
+		return "<".$tag_in."".$attributes_out.((trim($value_in) == "") ? "/>" : ">".$value_in."</".$tag_in.">" );
+	}
+
+    /**
+     *
+     */
+	function arrayToXML( $array_in ) {
+		$rVal = "";
+		$attributes = array();
+
+		foreach($array_in as $k=>$v) {
+			if ($k[0] == "@"){
+				// attribute...
+				$attributes[str_replace("@","",$k)] = $v;
+			} else {
+				if (is_array($v)){
+					$rVal .= generateXML($k,arrayToXML($v),$attributes);
+					$attributes = array();
+				} else if (is_bool($v)) {
+					$rVal .= generateXML($k,(($v==true)? "true" : "false"),$attributes);
+					$attributes = array();
+				} else {
+					$rVal .= generateXML($k,$v,$attributes);
+					$attributes = array();
+				}
+			}
+		}
+
+		// Return the XML
+		return $rVal;
+	}   
+
+    /**
      * Function Returns the Amount of Time that has passed since $UnixTime
      * 
      * Change Log

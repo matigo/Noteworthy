@@ -20,7 +20,12 @@ class Content extends Midori {
         $this->settings = $Settings;
         $this->settings['ThemeLoc'] = $ThemeLoc;
         $this->settings['LastContentID'] = $this->_getLastContentID();
-        $this->messages = $Messages;
+        
+        if ( is_array($Messages) ) {
+	        $this->messages = $Messages;
+        } else {
+	        $this->messages = getLangDefaults( $this->settings['DispLang'] );
+        }
     }
 
     /***********************************************************************
@@ -96,6 +101,16 @@ class Content extends Midori {
     
     function getCompletePostsList() {
 	    return $this->_getCompletePostsList();
+    }
+
+    function getRSS() {
+    	$CacheFile = 'rss';
+    	$rVal = $this->_readCachedHTML( $CacheFile );
+    	if ( !$rVal ) {
+    		$rVal = $this->_getRSS();
+    		$this->_saveCachedHTML( $CacheFile, $rVal );
+    	}
+	    return $rVal;
     }
 
     function saveCacheHTML( $HTML, $FileName = "", $UseCurrentID = false ) {
@@ -414,7 +429,25 @@ class Content extends Midori {
 	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c" .
 	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'";
 	    		break;
-	    	
+
+	    	case 'RSS':
+	    		$ContentStr = "c.`Value`";
+	    		if ( YNBool($this->settings['RSSExcerpt']) ) {
+		    		$ContentStr = "substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3)";
+	    		}
+	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, m.`Value` as `POST-URL`," .
+	    					  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`, UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
+	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`, $ContentStr as `CONTENT`," .
+	    					  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-AUTHOR') as `POST-AUTHOR`," .
+	    					  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-FOOTER') as `POST-FOOTER`" .
+	    				"  FROM `Content` c, `Meta` m" .
+	    				" WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
+	    				"   and c.`TypeCd` = 'POST' and m.`TypeCd` = 'POST-URL'" .
+	    				"   and c.`CreateDTS` <= Now()" .
+	    				" ORDER BY c.`CreateDTS` DESC" .
+	    				" LIMIT 0, $Results";
+	    		break;
+
 	    	case 'SEARCH':
 	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`," .
 		    				  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`," .
@@ -888,6 +921,110 @@ class Content extends Midori {
 	    }
 	    
 	    // Return the ID
+	    return $rVal;
+    }
+
+    /***********************************************************************
+     *  RSS Functions
+     ***********************************************************************/
+    private function _getRSS() {
+	    $Template = $this->_buildRSSTemplate();
+	    $ReplStr = array('[RSSID]'		 => "abcdef0123456789",
+	    				 '[ENTRIES]'	 => "",
+	    				 '[APPNAME]'	 => APP_NAME,
+	    				 '[APPVER]'		 => APP_VER,
+	    				 '[LAST-UPDATE]' => date("c"),
+	    				 );
+	    $LastUpdate = 0;
+	    $rVal = "";
+
+	    // Copy the Strings to the Replacement Array
+	    foreach( $this->messages as $Key=>$Val ) {
+		    $ReplStr['[' . strtoupper($Key) . ']'] = $Val;
+	    }
+	    foreach( $this->settings as $Key=>$Val ) {
+		    $ReplStr['[' . strtoupper($Key) . ']'] = $Val;
+	    }
+	    $ReplStr['[COPYRIGHT]'] .= " " . date("Y");
+
+	    $sqlStr = $this->_getAppropriateSQLQuery( '', 'RSS' );
+	    $data = doSQLQuery( $sqlStr );
+	    if ( is_array($data) ) {
+		    foreach( $data as $Key=>$Post ) {
+		    	if ( $LastUpdate < intval($Post['UPDATE-UNIX']) ) { $LastUpdate = intval($Post['UPDATE-UNIX']); }
+			    $ReplStr['[ENTRIES]'] .= $this->_buildRSSEntry( $Post );
+		    }
+	    }
+	    $ReplStr['[LAST-UPDATE]'] = date("c", $LastUpdate);
+
+	    // Replace the Values
+        if ( count($ReplStr) > 0 ) {
+            $Search = array_keys( $ReplStr );
+            $Replace = array_values( $ReplStr );
+
+            // Perform the Search/Replace Actions
+            $rVal = str_replace( $Search, $Replace, $Template );
+        }
+
+	    // Return the RSS Feed
+	    return $rVal;
+    }
+
+    /**
+     *	
+     */
+    private function _buildRSSTemplate() {
+	    $rVal = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" .
+	    		"<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:georss=\"http://www.georss.org/georss\">\r\n" .
+	    		tabSpace(1) . "<title type=\"text\">[SITENAME]</title>\r\n" .
+	    		tabSpace(1) . "<subtitle type=\"html\">[SITEDESCR]</subtitle>\r\n" .
+	    		tabSpace(1) . "<updated>[LAST-UPDATE]</updated>\r\n" .
+	    		tabSpace(1) . "<id>[RSSID]</id>\r\n" .
+	    		tabSpace(1) . "<link rel=\"alternate\" type=\"text/html\" hreflang=\"[DISPLANG]\" href=\"[HOMEURL]\"/>\r\n" .
+	    		tabSpace(1) . "<link rel=\"self\" type=\"application/atom+xml\" href=\"[HOMEURL]/atom/\"/>\r\n" .
+	    		tabSpace(1) . "<rights>[COPYRIGHT]</rights>\r\n" .
+	    		tabSpace(1) . "<generator uri=\"[HOMEURL]\" version=\"[APPVER]\">[APPNAME]</generator>\r\n" .
+	    					  "[ENTRIES]" .
+	    		"</feed>";
+
+	    // Return the RSS Prefix
+	    return $rVal;
+    }
+    
+    private function _buildRSSEntry( $PostData ) {
+	    $rVal = "";
+
+	    if ( is_array($PostData) ) {
+	    	$DispLang = NoNull($this->settings['DispLang'], 'EN');
+	    	$UpdateDT = date("c", intval($PostData['UPDATE-UNIX']));
+	    	$PublshDT = date("c", intval($PostData['DATE-UNIX']));
+	    	$PostURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $PostData['POST-URL']);
+	    	$Content = NoNull($PostData['CONTENT']);
+	    	if ( NoNull($PostData['POST-FOOTER']) != "" ) {
+		    	$Content .= "<hr />" . NoNull($PostData['POST-FOOTER']);
+	    	}
+	    	if ( NoNull($this->settings['RSSCopyright']) != "" ) {
+		    	$Content .= "<hr />" . NoNull($this->settings['RSSCopyright']);
+	    	}
+		    $rVal = tabSpace(1) . "<entry>\r\n" .
+		    		tabSpace(2) . "<title>" . NoNull($PostData['TITLE']) . "</title>\r\n" .
+		    		tabSpace(2) . "<link href=\"$PostURL\"/>\r\n" .
+		    		tabSpace(2) . "<id>urn:uuid:" . NoNull($PostData['POST-GUID']) . "</id>\r\n" .
+		    		tabSpace(2) . "<updated>$UpdateDT</updated>\r\n" .
+		    		tabSpace(2) . "<published>$PublshDT</published>\r\n" .
+		    		tabSpace(2) . "<author>\r\n" .
+		    		tabSpace(3) . "<name>" . NoNull($PostData['POST-AUTHOR']) . "</name>\r\n" .
+		    		tabSpace(3) . "<uri>" . $this->settings['HomeURL'] . "/</uri>\r\n" .
+		    		tabSpace(2) . "</author>\r\n" .
+		    		tabSpace(2) . "<content type=\"xhtml\" xml:lang=\"$DispLang\" xml:base=\"" . $this->settings['HomeURL'] . "/\">\r\n" .
+		    		tabSpace(3) . "<div xmlns=\"http://www.w3.org/1999/xhtml\">\r\n" .
+		    		tabSpace(4) . "$Content\r\n" .
+		    		tabSpace(3) . "</div>\r\n" .
+		    		tabSpace(2) . "</content>\r\n" .
+		    		tabSpace(1) . "</entry>\r\n";
+	    }
+
+	    // Return the Entry
 	    return $rVal;
     }
 
