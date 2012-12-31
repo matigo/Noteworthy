@@ -467,6 +467,8 @@ input[type=submit]:focus{
 .hentry img{
   margin: 0 auto;
   border: 1px solid #ccc;
+  height: auto;
+  width: 100%;
 }
 .share a{
   display: inline-block;

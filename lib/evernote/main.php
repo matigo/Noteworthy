@@ -1369,7 +1369,7 @@ class evernote {
 
 	    //Construct the Body Elements Line by Line
         foreach(preg_split("/(\r?\n)/", $Content) as $line) {
-            if ( NoNull(strip_tags($line)) ) {
+            if ( NoNull(strip_tags($line, "<en-media>")) ) {
 		        // Wipe Out the Style Formatting
 		        $pattern = "/style=\"(.*?)\"/si";
 		        preg_match($pattern, $line, $matches);
@@ -1405,7 +1405,7 @@ class evernote {
                 $rVal .= ( NoNull($line) != "" ) ? NoNull($line) : "";
             }
         }
-        
+
 		// Clean Up the Content One Last Time
 		$i = 0;
 		while ( $i < $ScrubMax ) {
@@ -1430,7 +1430,7 @@ class evernote {
 
         // Ensure all Resource Files are Downloaded
         while ( $haveRes ) {
-	        preg_match($pattern, $Content, $matches);
+	        preg_match($pattern, $rVal, $matches);
 
 	        if ( count($matches) > 0 ) {
 	            preg_match("/hash=\"(.*?)\"/si", $matches[1], $hashes);

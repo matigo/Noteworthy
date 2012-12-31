@@ -539,7 +539,7 @@ class Content extends Midori {
 					        $sqlStr = "SELECT `Value` FROM `Content` WHERE `id` = $PostIDs";
 					        $meta = doSQLQuery( $sqlStr );
 				    		if ( is_array($meta) ) {
-				    			$rslt[0]['CONTENT'] = NoNull( $meta[0]['Value'] );
+				    			$rslt[0]['CONTENT'] = $this->_cleanContent( $meta[0]['Value'] );
 				    		}
 				    		if ( $rslt[0]['POST-AUTHOR'] == "" ) {
 					    		$rslt[0]['POST-AUTHOR'] = NoNull($this->settings['DEFAULT-POST-AUTHOR']);
@@ -666,6 +666,28 @@ class Content extends Midori {
     }
 
     /**
+     *	Function Ensures all Necessary Replacable Data Exists
+     */
+    private function _cleanContent( $Content ) {
+	    $ReplStr = array('[MEDIA_URL]'	=> $this->settings['HomeURL'] . '/content/default',
+	    				 '[HOMEURL]'	=> $this->settings['HomeURL'],
+	    				 );
+	    $rVal = $Content;
+
+	    // Replace the Values
+        if ( count($ReplStr) > 0 ) {
+            $Search = array_keys( $ReplStr );
+            $Replace = array_values( $ReplStr );
+
+            // Perform the Search/Replace Actions
+            $rVal = str_replace( $Search, $Replace, $Content );
+        }
+
+        // Return the Cleaned Content
+        return $rVal;
+    }
+
+    /**
      * Function returns a Boolean Response stating whether we are on the landing page
      *		or not.
      */
@@ -737,19 +759,23 @@ class Content extends Midori {
 	    // Record the PostContent to the Array
 	    foreach ( $PostContent as $Key=>$Val ) {
 	    	switch ( $Key ) {
+	    		case 'CONTENT':
+	    			$rVal['[CONTENT]'] = $this->_cleanContent( $PostContent['CONTENT'] );
+	    			break;
+
 		    	case 'POST-URL':
 		    		$rVal[ "[$Key]" ] = str_replace("[HOMEURL]", $this->settings['HomeURL'], $Val);
 		    		break;
 		    	
 		    	case 'DATE-UNIX':
-					$rVal['[DATE-UTC]'] = date("Y-m-d", $PostContent['DATE-UNIX'] ) . "T" . date("G:i", $PostContent['DATE-UNIX'] ) . "+9:00";
+					$rVal['[DATE-UTC]'] = date("c", $PostContent['DATE-UNIX'] );
 					$rVal['[DATE-STR]'] = date("F j, Y", $PostContent['DATE-UNIX'] );
 					$rVal['[DATE-TMSTR]'] = date("g:i A", $PostContent['DATE-UNIX']);
 		    		$rVal[ "[$Key]" ] = NoNull( $Val );
 					break;
 
 				case 'UPDATE-UNIX':
-					$rVal['[UPDATE-UTC]'] = date("Y-m-d", $PostContent['UPDATE-UNIX'] ) . "T" . date("G:i", $PostContent['UPDATE-UNIX'] ) . "+9:00";
+					$rVal['[UPDATE-UTC]'] = date("c", $PostContent['UPDATE-UNIX'] );
 					$rVal['[UPDATE-STR]'] = date("F j, Y", $PostContent['UPDATE-UNIX'] );
 					$rVal['[UPDATE-TMSTR]'] = date("g:i A", $PostContent['UPDATE-UNIX']);
 		    		$rVal[ "[$Key]" ] = NoNull( $Val );
@@ -929,7 +955,8 @@ class Content extends Midori {
      ***********************************************************************/
     private function _getRSS() {
 	    $Template = $this->_buildRSSTemplate();
-	    $ReplStr = array('[RSSID]'		 => "abcdef0123456789",
+	    $ReplStr = array('[MEDIA_URL]'	 => $this->settings['HomeURL'] . '/content/default',
+	    				 '[RSSID]'		 => "abcdef0123456789",
 	    				 '[ENTRIES]'	 => "",
 	    				 '[APPNAME]'	 => APP_NAME,
 	    				 '[APPVER]'		 => APP_VER,
