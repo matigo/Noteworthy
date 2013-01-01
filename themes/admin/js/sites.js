@@ -10,8 +10,8 @@ function checkAkismet( apiKey, siteURL, akismetKey ) {
 
     // Set the Parameters
     params['accessKey'] = apiKey;
-    params['siteurl'] = siteURL;
-    params['akismet-id'] = akismetKey;
+    params['txtHomeURL'] = siteURL;
+    params['txtAkismetKey'] = akismetKey;
 
     $.ajax({
         url: apiPath + method,
@@ -50,8 +50,67 @@ function getAPIPath() {
 	if ( url.indexOf('?') > 1 ) {
 		rVal = url.substring(0, url.indexOf('?'));
 	}
+	rVal = rVal.replace("#", "");
 
 	return rVal + '/api/';
+}
+
+function performUpdates() {
+    var params = new Object();
+    var method = 'settings/update';
+    var apiPath = getAPIPath();
+    var _dispDiv = '<div class="sys-message sys-info"><p>Updating the Cache Files. This May Take a Few Minutes.</p></div>';
+
+    // Set the Parameters
+    for( i = 0; i < document.primary.elements.length; i++ ) {
+    	if ( document.primary.elements[i].id != "" ) {
+	    	params[ document.primary.elements[i].id ] = document.primary.elements[i].value;
+    	}
+	}
+	// Ensure 'doComments' is Properly Set
+	params[ 'raComments' ] = findSelectionValue( 'doComments' );
+	document.getElementById("return-msg").innerHTML = _dispDiv;
+
+    $.ajax({
+        url: apiPath + method,
+        data: params,
+        success: function( data ) {
+            parseUpdateResult( data.data );
+            _canSubmit = true;
+        },
+        error: function (xhr, ajaxOptions, thrownError){
+            alert(xhr.status + ' | ' + thrownError);
+            _canSubmit = true;
+        },
+        dataType: "json"
+    });
+}
+
+function findSelectionValue( field ) {
+    var test = document.getElementsByName(field);
+    var sizes = test.length;
+    for (i=0; i < sizes; i++) {
+            if (test[i].checked==true) {
+            return test[i].value;
+        }
+    }
+}
+
+function parseUpdateResult( data ) {
+	var result = false;
+	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
+
+	if ( data.isGood == 'Y' ) {
+		result = true;
+		_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
+	} else {
+		_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+	}
+	_dispDiv = _dispDiv.replace("[MESSAGE]", data.Message);
+	document.getElementById("return-msg").innerHTML = _dispDiv;
+
+    // Return the Parsed Result Message
+	return result;
 }
 
 function displayDisqusDiv(doComments) {
@@ -60,6 +119,7 @@ function displayDisqusDiv(doComments) {
     } else {
         document.getElementById("disqussed").style.display = 'none';
     }
+    document.getElementsByName("commEnabled").value = doComments;
 }
 
 function displayServerNote( radioID ) {

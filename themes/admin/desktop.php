@@ -315,6 +315,13 @@ class miTheme extends theme_main {
 
         switch ( $this->settings['spage'] ) {
             case 'sites':
+            	// Website Settings
+            	$rVal['[raNoCommentChk]'] = ( $this->settings['doComments'] == 'N' ) ? 'checked="checked"' : '';
+            	$rVal['[raGoCommentChk]'] = ( $this->settings['doComments'] == 'Y' ) ? 'checked="checked"' : '';
+            	$rVal['[dVis]'] = ( $this->settings['doComments'] == 'Y' ) ? 'block' : 'none';
+            	$rVal['[ThemeList]'] = $this->_buildThemeList();
+
+            	// Evernote Settings
             	$UseSandbox = NoNull($this->setting['sandbox'], readSetting( 'core', 'UseSandbox' ));
             	if ( $UseSandbox != 'N' ) { $UseSandbox = 'Y'; }
             	
@@ -343,6 +350,22 @@ class miTheme extends theme_main {
 
         // Return the Extra Content Data
         return $rVal;
+    }
+
+    /**
+     *	Function Constructs a List of Themes (Excluding the Admin, of course)
+     */
+    private function _buildThemeList() {
+	    $rVal = "";
+	    
+	    $data = getThemeList();
+	    foreach ( $data as $Key=>$Name ) {
+	    	$isCurrent = ( $this->settings['Location'] == $Key ) ? " selected" : "";
+		    $rVal .= "<option value=\"$Key\"$isCurrent>$Name</option>";
+	    }
+
+	    // Return the HTML Structure
+	    return $rVal;
     }
 
     /**

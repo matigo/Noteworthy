@@ -16,24 +16,7 @@ class Settings extends Midori {
     function __construct( $settings ) {
         $this->settings = $settings;
         $this->errors = array();
-        
-        // Load the User-Specified Language Files for this theme
-        $LangFile = dirname(__FILE__) . "/lang/" . strtolower($this->settings['DispLang']) . ".php";
-
-        if ( file_exists($LangFile) ){
-            require_once( $LangFile );
-            $LangClass = 'theme_' . strtolower( $this->settings['DispLang'] );
-            $Lang = new $LangClass();
-
-            // Append the List of Strings to the End of the Messages Array
-            //      and replace any existing ones that may need the update
-            foreach( $Lang->getStrings() as $Key=>$Val ) {
-                $this->messages[ $Key ] = $Val;
-            }
-
-            // Kill the Class
-            unset( $Lang );
-        }
+        $this->messages = getLangDefaults( $this->settings['DispLang'] );
     }
 
     /***********************************************************************
@@ -47,48 +30,67 @@ class Settings extends Midori {
 	    $rVal = array( 'isGood'	 => false,
 	    			   'Message' => '[lblUnkErr]',
 	    			  );
+	    $isGood = false;
 	    $Errs = "";
 
 	    switch ( NoNull($this->settings['dataset']) ) {
 	    	case 'settings':
 	    		// Update the Database and Debug Settings
 		    	$isGood = $this->_createDBFile();
-		    	$rVal['isGood'] = BoolYN( $isGood );
-
-		    	if ( $isGood ) {
-			    	$rVal['Message'] = NoNull($this->messages['lblSetUpdGood'], "Successfully Updated Settings");
-		    	} else {
-		    		foreach ( $this->errors as $Key=>$Msg ) {
-		    			if ( $Errs != "" ) { $Errs .= "<br />\r\n"; }
-			    		$Errs .= $Msg;
-		    		}
-			    	$rVal['Message'] = $Errs;
-		    	}
 	    		break;
 	    	
 	    	case 'dashboard':
+	    		// Update Some of the Dashboard Settings (?)
 	    		break;
 
 	    	case 'evernote':
 	    		// Update the Evernote Data (If Necessary)
 	    		break;
 
+	    	case 'lists':
+	    		// Update Some of the List Data
+	    		break;
+
+	    	case 'about':
+	    		// Update the 'About Me' Data
+	    		break;
+
 		    case 'sites':
 		    	// Update the Main Site Data
+		    	$isGood = $this->_saveSiteData();
 		    	break;
 
 		    default:
 		    	// Do Nothing
 	    }
 
+	    // Set the Return Message
+    	if ( $isGood ) {
+    		$rVal['isGood'] = BoolYN( $isGood );
+	    	$rVal['Message'] = NoNull($this->messages['lblSetUpdGood'], "Successfully Updated Settings");
+    	} else {
+    		foreach ( $this->errors as $Key=>$Msg ) {
+    			if ( $Errs != "" ) { $Errs .= "<br />\r\n"; }
+	    		$Errs .= $Msg;
+    		}
+	    	$rVal['Message'] = $Errs;
+    	}
+
 	    // Return a Boolean Response
 	    return $rVal;
     }
 
     /***********************************************************************
+     *
+     *
      *  Private Functions
+     *
+     *
      ***********************************************************************/
 
+    /***********************************************************************
+     *  Database
+     ***********************************************************************/
     /**
      *	Function Records the Database Values if there are differences and returns
      *		a Boolean response
@@ -112,7 +114,7 @@ class Settings extends Midori {
 
 	    // Record the Data
 	    if ( $DBIsOK ) {
-		    $rVal = $this->_saveConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug );
+		    $rVal = $this->_saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug );
 		    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr002'], "Could Not Save Configuration Data"); }
 	    }
 
@@ -120,7 +122,9 @@ class Settings extends Midori {
 	    return $rVal;
     }
 
-
+    /**
+     *	Function Tests the SQL Login Data passed and Returns a Boolean Response
+     */
     private function _testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass ) {
 	    $rVal = false;
 	    $r = 0;
@@ -174,7 +178,7 @@ class Settings extends Midori {
     /**
      * Function Saves a Setting with a Specific Token to the Temp Directory
      */
-    private function _saveConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug) {
+    private function _saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug) {
     	// Perform some VERY basic Validation here
     	if ( $isDebug < 0 || $isDebug > 1 ) { $isDebug = 0; }
     	if ( $DBType < 1 || $DBType > 2 ) { $DBType = 2; }
@@ -209,6 +213,54 @@ class Settings extends Midori {
 	    // Return a Happy Boolean
 	    return true;
     }
+
+    /***********************************************************************
+     *  Sites
+     ***********************************************************************/
+    /**
+     *	Function Records Site Data to the appropriate Configuration File
+     */
+    private function _saveSiteData() {
+    	$isDefault = ($this->settings['chkisDefault'] == "on") ? 'Y' : 'N';
+    	$SiteID = nullInt( $this->settings['SiteID'] );
+    	$RebuildCache = ( $this->settings['txtLocation'] != $this->settings['Location'] ) ? true : false;
+    	$CacheToken = "Site_$SiteID";
+	    $rVal = false;
+
+	    $data = array('require_key'		=> 'Y',
+
+		              'Location'        => $this->settings['txtLocation'],
+		              'isDefault'       => $isDefault,
+
+		              'SiteName'		=> $this->settings['txtSiteName'],
+		              'SiteDescr'		=> $this->settings['txtSiteDescr'],
+		              'SiteSEOTags'		=> $this->settings['txtSiteSEO'],
+
+		              'doComments'		=> $this->settings['raComments'],
+		              'DisqusID'     	=> $this->settings['txtDisqusID'],
+		              'AkismetKey'		=> $this->settings['txtAkismetKey'],
+
+		              'EN_ENABLED'		=> 'Y',
+		              );
+
+		// Record the Data Accordingly
+		foreach ( $data as $Key=>$Val ) {
+			saveSetting( $CacheToken, $Key, $Val );
+		}
+
+		if ( $RebuildCache ) {
+			$rVal = scrubDIR( $this->settings['ContentDIR'] . '/cache' );
+			$HomeURL = $this->settings['HomeURL'];
+			$Pages = array( "/", "/archives/", "/rss/" );
+			foreach ( $Pages as $Page ) {
+				$cache = fopen($HomeURL . $Page, "r");
+			}
+		}
+
+		// Return a Happy Boolean
+		return true;
+    }
+
 }
 
 ?>

@@ -84,10 +84,6 @@ class evernote {
 		    		$data = $this->_refreshNote();
 		    		break;
 
-		    	case 'rebuildFlatFiles':
-		    		$data = "This Hasn't Yet Been Coded";
-		    		break;
-
 		    	case 'testToken':
 		    		$data = $this->_testToken();
 		    		break;
@@ -727,7 +723,7 @@ class evernote {
 
 		        // Prepare the Search Filter
 		        $searchFilter = new \EDAM\NoteStore\NoteFilter();
-                $searchFilter->ascending = true;
+                $searchFilter->ascending = false;
                 $searchFilter->order = evernoteNoteSortOrder::UPDATE_SEQUENCE_NUMBER;
 
                 $Offset = 0;
@@ -746,6 +742,7 @@ class evernote {
                     			   nullInt($note->created) / 1000 . '.' .
                     			   nullInt($note->updated) / 1000 . '.' .
                     			   nullInt($note->deleted) / 1000;
+                    	$NoteCUD = md5($NoteCUD);
                     	$i++;
 
                     	if ( $ReadOnly ) {
@@ -801,19 +798,17 @@ class evernote {
 	 */
 	private function _isNewNote( $NoteGUID, $NoteCUD ) {
 		$rVal = true;
-		$CurrentCUD = "guid|0.0.0";
+		$CurrentCUD = "";
 
 		switch ( DB_TYPE ) {
 			case 1:
 				// MySQL
 				if ( !is_array($this->tmp) ) {
 					$this->tmp = array();
-					$sqlStr = "SELECT c.`id`, c.`guid`, " . 
-									 "CONCAT(m.`Value`, '|', UNIX_TIMESTAMP(`CreateDTS`), '.', UNIX_TIMESTAMP(`UpdateDTS`), '.', IFNULL(`DeleteDTS`, 0)) as `NoteCUD`" .
-							  "  FROM `Content` c, `Meta` m" .
+					$sqlStr = "SELECT c.`id`, c.`guid`, m.`Value` as `NoteCUD` FROM `Content` c, `Meta` m" .
 							  " WHERE m.`ContentID` = c.`id` and c.`TypeCd` = 'POST'" .
-							  "   and m.`TypeCd` = 'POST-NBGUID' and c.`isReplaced` = 'N'" .
-							  " ORDER BY c.`CreateDTS`;";
+							  "   and m.`TypeCd` = 'POST-NCUD' and c.`isReplaced` = 'N'" .
+							  " ORDER BY c.`CreateDTS`";
 					$rslt = doSQLQuery( $sqlStr );
 					if ( is_array($rslt) ) {
 	                    foreach ( $rslt as $Key=>$Row ) {
@@ -824,6 +819,7 @@ class evernote {
 
 				if ( array_key_exists($NoteGUID, $this->tmp) ) {
 					$CurrentCUD = $this->tmp[ $NoteGUID ];
+					print_r( "_isNewNote( $NoteGUID, $NoteCUD ) || CurrentCUD: $CurrentCUD || " );
 				}
 				break;
 
@@ -841,6 +837,7 @@ class evernote {
 		if ( $CurrentCUD == $NoteCUD ) {
 			$rVal = false;
 		}
+		print_r( "CUD Match: " . BoolYN($rVal) . "\r\n" );
 
 		// Return Whether The Note is New or Not
 		return $rVal;
@@ -912,6 +909,7 @@ class evernote {
                                   "VALUES";
                         $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-AUTHOR', '" . sqlScrub($data['author']) . "', '" . md5($data['author']) . "')," .
                         		  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "')," .
+                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NCUD', '" . $NoteCUD . "', '" . md5($NoteCUD) . "')," .
                                   " ($dbID, NULL, '" . $data['guid'] . "', 'POST-URL', '" . $data['url'] . "', '" . md5($data['url']) . "'),";
                         if ( $data['contentLength'] > 0 ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-LENGTH', '" . $data['contentLength'] . "', '" . md5($cLen) . "'),";

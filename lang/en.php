@@ -42,6 +42,7 @@ class lang_en implements lang_base {
                       'lang_cd'         => "EN",
 
                       'rss_copyright'   => "",
+                      'lblDisqusEnJS'	=> "Please enable JavaScript to view the <a href=\"http://disqus.com/?ref_noscript\">comments powered by Disqus.",
                       
                       'lblPoweredBy'	=> "Powered by Noteworthy",
                       'lblAllRights'	=> "All Rights Reserved",

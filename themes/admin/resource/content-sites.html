@@ -2,10 +2,10 @@
 			<div class="module-box grid_16 alpha"><!-- admin module box -->
 				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2><!-- admin module title -->
 				<div class="module-box-inner"><!-- admin module spacing -->
-					<form action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
+					<form name="primary" action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
 						<div>
-							<label for="txtSiteURL">Site URL</label>
-							<input type="text" value="[HOMEURL]" id="txtSiteURL" name="txtSiteURL" />
+							<label for="txtHomeURL">Site URL</label>
+							<input type="text" value="[HOMEURL]" id="txtHomeURL" name="txtHomeURL" />
 						</div>
 						<div>
 							<label for="txtSiteName">Site Name</label>
@@ -20,21 +20,17 @@
 							<input class="input-medium" type="text" value="[SiteSEOTags]" id="txtSiteSEO" name="txtSiteSEO" maxlength="240" />
 						</div>
 						<div>
-							<input id="chkIsDefault" type="checkbox" class="checkbox" checked="checked" name="chkIsDefault" /> <label class="float-label" for="chkIsDefault">Default Landing Site</label><span style="margin-left: 10px;"><i>(Redirects people going to invalid domains or sub-domains to this site)</i></span>
+							<input id="chkisDefault" type="checkbox" class="checkbox" checked="checked" name="chkisDefault" /> <label class="float-label" for="chkIsDefault">Default Landing Site</label><span style="margin-left: 10px;"><i>(Redirects people going to invalid domains or sub-domains to this site)</i></span>
 						</div>
 
 						<hr />
 						
 						<div><!-- Theme Selection -->
 							<div class="legend">Syling</div>
-							<label for="cmbTheme">Choose Your Theme</label>
+							<label for="txtLocation">Choose Your Theme</label>
 							<div>
-								<select id="cmbTheme" name="cmbTheme" tabindex="-1">
-									<option value="dematigo">Dematigo</option>
-									<option value="eight-thirty">Eight Thirty</option>
-									<option value="fresh">Fresh</option>
-									<option value="manifest" selected="4">Manifest</option>
-									<option value="nojiko">Nojiko</option>
+								<select id="txtLocation" name="txtLocation" tabindex="-1">
+									[ThemeList]
 								</select>
 							</div>
 						</div>
@@ -43,11 +39,11 @@
 
 						<div><!-- Comment Usage -->
 							<div class="legend">Comments</div>
-							<input id="raNoComment" type="radio" class="radio" checked="checked" name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">Comments Off</label>
-							<input id="raGoComment" type="radio" class="radio" name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">Comments On</label>
-							<div id="disqussed" style="display: none;">
-								<label for="disqus-id">Disqus ID</label>
-								<input type="text" value="[DisqusID]" id="disqus-id" name="disqus-id"/>
+							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">Comments Off</label>
+							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">Comments On</label>
+							<div id="disqussed" style="display: [dVis];">
+								<label for="txtDisqusID">Disqus ID</label>
+								<input type="text" value="[DisqusID]" id="txtDisqusID" name="txtDisqusID"/>
 							</div>
 							<div id="disqus-err" class="validation-message"></div>
 						</div>
@@ -57,17 +53,19 @@
 
 						<div>
 							<div class="legend">Spam Filtering</div>
-							<label for="akismet-id">Akismet Key</label>
-							<input type="text" value="[AkismetKey]" id="akismet-id" name="akismet-id" style="float: left;" />
+							<label for="txtAkismetKey">Akismet Key</label>
+							<input type="text" value="[AkismetKey]" id="txtAkismetKey" name="txtAkismetKey" style="float: left;" />
 							<button id="akismet-test" class="btn-small silver" style="margin-top: -2px;"><span>[lblTest]</span></button>
 							<div id="akismet-err" class="validation-message"></div>
 						</div>
 						
 						<hr />
-						
-						<input type='hidden' name='accessKey' value='[ACCESSKEY]' />
-						<input type='hidden' name='dataset' value='sites' />
-						<button class="btn-small silver" type="submit"><span>[lblSaveChanges]</span></button>
+
+						<div id="return-msg" style="padding: 5px 50px 10px;"></div>
+						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' id='SiteID' name='SiteID' value='0' />
+						<input type='hidden' id='dataset' name='dataset' value='sites' />
+						<button id="save-sites" name="save-sites" class="btn-small silver" type="submit"><span>[lblSaveChanges]</span></button>
 					</form><!-- END form elements -->
 				</div>
 			</div>
@@ -151,6 +149,12 @@
 				$('#akismet-test').click(function() {
 					_canSubmit = false;
 					checkAkismet( '[ACCESSKEY]', $('#siteurl').val(), $('#akismet-id').val() );
+
+					return false;
+				});
+				$('#save-sites').click(function() {
+					_canSubmit = false;
+					performUpdates();
 
 					return false;
 				});

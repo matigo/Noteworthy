@@ -48,8 +48,8 @@ class api extends Midori {
 		    		switch( NoNull($this->settings['spage']) ) {
 			    		case 'validate':
 			    			require_once( LIB_DIR . '/akismet.php' );
-			    			$siteURL = NoNull($this->settings['siteurl']);
-			    			$apiKey = NoNull($this->settings['akismet-id']);
+			    			$siteURL = NoNull($this->settings['txtHomeURL']);
+			    			$apiKey = NoNull($this->settings['txtAkismetKey']);
 
 			    			writeNote( "Checking Akismet Key - URL: $siteURL | Akismet Key: $apiKey" );
 			    			$akismet = new Akismet($siteURL, $apiKey);

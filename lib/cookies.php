@@ -227,6 +227,7 @@ class cookies extends Midori {
         $rVal = array();
         $filters = array( 'api',
         				  'rss',
+        				  'cron',
                           'post'
                          );
 
@@ -241,6 +242,13 @@ class cookies extends Midori {
                         $rVal = array( 'DispPg' => 'api',
                                        'mpage'  => $pPage,
                                        'spage'  => $sPage
+                                      );
+                        break;
+
+                    case 'cron':
+                        $rVal = array( 'DispPg' => 'cron',
+                                       'mpage'  => '',
+                                       'spage'  => ''
                                       );
                         break;
 

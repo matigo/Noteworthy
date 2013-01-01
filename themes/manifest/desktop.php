@@ -268,10 +268,10 @@ class miTheme extends theme_main {
      */
     private function _getExtraContent() {
         $rVal = array( '[ARCHIVE-LIST]' => '',
+        			   '[COMMENTS]'		=> '',
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
                       );
-
         switch ( $this->settings['mpage'] ) {
             case 'archives':
             case 'archive':
@@ -286,7 +286,13 @@ class miTheme extends theme_main {
                                                $this->settings['day']   . "/" . 
                                                $this->settings['title'] . "/",
                               );
+                foreach ( $this->messages as $Key=>$Val ) {
+	                $tArr[ "[$Key]" ] = $Val;
+                }
                 $rVal['[SOCIAL-LINK]'] = readResource( RES_DIR . '/content-blog-social.html', $tArr );
+                if ( $this->settings['DisqusID'] != "" ) {
+	                $rVal['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $tArr );
+                }
                 break;
 
             case 'search':
@@ -358,7 +364,7 @@ class miTheme extends theme_main {
 	            	if ( $Key == $i ) {
 		                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
 		                                  '[POST-FOOTER]'   => "",
-		                                  '[DISQUS_ID]'	    => NoNull($this->settings['disqus_name']),
+		                                  '[DISQUS_ID]'	    => NoNull($this->settings['DisqusID']),
 		                                  '[COMMENTS]'      => "",
 		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
 		                                  '[DIV-CLASS]'     => "",
@@ -366,7 +372,13 @@ class miTheme extends theme_main {
 		                foreach ( $Entry as $Item=>$Value ) {
 			                $ReplStr[ $Item ] = $Value;
 		                }
-		                
+		                foreach ( $this->messages as $Key=>$Msg ) {
+			                $ReplStr[ "[$Key]" ] = $Msg;
+		                }
+		                if ( intval($data['RecordCount']) == 1 ) {
+			                $ReplStr['[DISQUS_ID]'] = "j2fi";
+		                }
+
 		                if ( $this->settings['mpage'] != 'search' ) {
 			                // Clean up the Content (If Necessary)
 			                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
@@ -379,8 +391,8 @@ class miTheme extends theme_main {
 				            }
 		
 				            // Construct the Comments (If Necessary)
-				            if ( $ReplStr['[DISQUS_ID]'] ) {
-					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);	            
+				            if ( $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
+					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
 				            }
 				            
 				            // Replace the Template Content Accordingly
@@ -397,7 +409,7 @@ class miTheme extends theme_main {
             } else {
                 $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
                                   '[POST-FOOTER]'   => "",
-                                  '[DISQUS_ID]'	    => NoNull($this->settings['disqus_name']),
+                                  '[DISQUS_ID]'	    => NoNull($this->settings['DisqusID']),
                                   '[COMMENTS]'      => "",
                                   '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
                                   '[SEARCH-RESULT]' => "<div class=\"post hentry\"><div class=\"postContent\">" .

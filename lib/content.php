@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for Content Data
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once(LIB_DIR . '/functions.php');
 
@@ -388,7 +384,7 @@ class Content extends Midori {
 				break;
 			
 			case 'search':
-				$QType = "SEARCH";
+				$QType = ($QType == 'RECORDCOUNT') ? $QType : "SEARCH";
 				$Results = 25;
 				$PostFilter = '%' . sqlScrub($this->settings['s']) . '%';
 				break;
@@ -409,7 +405,7 @@ class Content extends Midori {
 	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c, `Meta` m" .
 	    				" WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
 	    				"   and c.`TypeCd` = 'POST' and m.`TypeCd` = '$TypeFilter'" .
-	    				"   and c.`CreateDTS` <= Now() and m.`Value` LIKE '$PostFilter'";
+	    				"   and c.`CreateDTS` <= Now() and c.`Value` LIKE '$PostFilter'";
 	    		break;
 	    	
 	    	case 'WITHGAPS':
@@ -615,7 +611,7 @@ class Content extends Midori {
 				    		// Collect the PostMeta
 				    		$PostMeta = array();
 				    		$sqlStr = "SELECT m.`id`, m.`ContentID`, m.`TypeCd`, m.`Value` FROM `Meta` m" .
-				    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-FOOTER', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
+				    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
 				    				  "   and m.`ContentID` IN ($PostIDs)" .
 				    				  " ORDER BY m.`ContentID`, m.`TypeCd`, m.`Value`";
 				    		$meta = doSQLQuery( $sqlStr );
@@ -956,7 +952,7 @@ class Content extends Midori {
     private function _getRSS() {
 	    $Template = $this->_buildRSSTemplate();
 	    $ReplStr = array('[MEDIA_URL]'	 => $this->settings['HomeURL'] . '/content/default',
-	    				 '[RSSID]'		 => "abcdef0123456789",
+	    				 '[RSSID]'		 => getRSSIDString( nullInt($this->settings['SiteID']) ),
 	    				 '[ENTRIES]'	 => "",
 	    				 '[APPNAME]'	 => APP_NAME,
 	    				 '[APPVER]'		 => APP_VER,
@@ -1026,7 +1022,7 @@ class Content extends Midori {
 	    	$UpdateDT = date("c", intval($PostData['UPDATE-UNIX']));
 	    	$PublshDT = date("c", intval($PostData['DATE-UNIX']));
 	    	$PostURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $PostData['POST-URL']);
-	    	$Content = NoNull($PostData['CONTENT']);
+	    	$Content = $this->_cleanContent($PostData['CONTENT']);
 	    	if ( NoNull($PostData['POST-FOOTER']) != "" ) {
 		    	$Content .= "<hr />" . NoNull($PostData['POST-FOOTER']);
 	    	}
@@ -1075,7 +1071,7 @@ class Content extends Midori {
 		// Do Not Save Search Results
 		if ( $this->settings['mpage'] != "search" ) {
 			$LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
-			$CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
+			$CacheDIR = $this->settings['ContentDIR'] . "/cache";
 			$CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
 
 			if ( file_exists($CacheFile) ) {
@@ -1098,7 +1094,7 @@ class Content extends Midori {
 
 	     if ( $this->settings['mpage'] != "search" ) {
 	     	 $LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
-	     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache/html";
+	     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache";
 		     $CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
 		     $data = array( "LastContentID" => $LastContentID,
 		     				"HTML"			=> $HTML

@@ -28,7 +28,7 @@ class Midori {
         unset( $sets );
 
         if ( $this->_checkFolders() ) {
-	        $this->Site = _getSiteDetails();
+	        $this->Site = getSiteDetails();
         }
 
         // Add the Site Details to the General Settings
@@ -71,6 +71,12 @@ class Midori {
 
             	// Return the Properly Formatted Result
             	return $xml;
+            	break;
+            	
+            case 'cron':
+            	require_once( LIB_DIR . '/cron.php' );
+            	$cron = new Cron( $this->Settings );
+            	$cron->performFunctions();
             	break;
 
             case 'admin':
