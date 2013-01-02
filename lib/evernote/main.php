@@ -819,7 +819,6 @@ class evernote {
 
 				if ( array_key_exists($NoteGUID, $this->tmp) ) {
 					$CurrentCUD = $this->tmp[ $NoteGUID ];
-					print_r( "_isNewNote( $NoteGUID, $NoteCUD ) || CurrentCUD: $CurrentCUD || " );
 				}
 				break;
 
@@ -837,7 +836,6 @@ class evernote {
 		if ( $CurrentCUD == $NoteCUD ) {
 			$rVal = false;
 		}
-		print_r( "CUD Match: " . BoolYN($rVal) . "\r\n" );
 
 		// Return Whether The Note is New or Not
 		return $rVal;

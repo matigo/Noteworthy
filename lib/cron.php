@@ -28,33 +28,25 @@ class Cron {
 
 	    if ( $this->_canDoUpdate() ) {
 	    	$rVal = array();
-	    	
-	    	print_r( "Starting Update!\r\n" );
 
 		    // Update the Twitter Feed (Done Every 5 Minutes)
 		    $TwitName = readSetting('core', 'TwitUserName');
 		    if ( $TwitName != "" ) {
-	    		print_r( "Performing Twitter Update\r\n" );
 			    require_once( LIB_DIR . '/twitter.php' );
 			    $twt = new Twitter();
 			    $rVal['LastTweet'] = $twt->doUpdate();
 			    unset( $twt );
-			    print_r( "Twitter Update Complete.\r\n" );
 		    }
 
 		    // Update the Evernote Posts (If Necessary)
 		    if ( $this->_canUpdateService("Evernote") ) {
-		    	print_r( "Performing Evernote Update\r\n" );
 				require_once( LIB_DIR . '/evernote/main.php' );
 				$eNote = new evernote( $this->settings );
 				$rVal = $eNote->performAction();
-				print_r( "Evernote Update Complete\r\n" );
 		    }
 
 		    // Update the Long-Loading Pages
-		    print_r( "Updating Flat Files\r\n" );
 		    $this->_updateFlatFiles();
-		    print_r( "Flat Files Updated.\r\n" );
 
 		    // Mark the Process as Complete!
 		    $this->_markCronDone();
@@ -126,7 +118,6 @@ class Cron {
 
 	    // Cycle Through the Pages
 	    foreach( $Pages as $Page ) {
-	    	print_r( "Updated: $Page \r\n" );
 		    $tmp = file_get_contents($Page);
 	    }
     }
