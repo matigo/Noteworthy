@@ -30,7 +30,7 @@ class Cron {
 	    	$rVal = array();
 
 		    // Update the Twitter Feed (Done Every 5 Minutes)
-		    $TwitName = readSetting('core', 'TwitUserName');
+		    $TwitName = $this->settings['TwitName'];
 		    if ( $TwitName != "" ) {
 			    require_once( LIB_DIR . '/twitter.php' );
 			    $twt = new Twitter();

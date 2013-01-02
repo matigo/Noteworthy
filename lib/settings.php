@@ -38,7 +38,12 @@ class Settings extends Midori {
 	    		// Update the Database and Debug Settings
 		    	$isGood = $this->_createDBFile();
 	    		break;
-	    	
+
+	    	case 'createdb':
+	    		// Create the Database
+	    		$isGood = $this->_createDBTables();
+	    		break;
+
 	    	case 'dashboard':
 	    		// Update Some of the Dashboard Settings (?)
 	    		break;
@@ -214,6 +219,63 @@ class Settings extends Midori {
 	    return true;
     }
 
+    /**
+     *	Create the Tables
+     *	Note: $doTruncate will (of course) first Truncate the Tables if they Exist
+     */
+    private function _createDBTables( $doTruncate = false ) {
+    	$Actions = $this->_readSQLInstallScript( $doTruncate );
+    	$DBName = DB_MAIN;
+	    $rVal = false;
+
+	    if ( $DBName != "" && is_array($Actions) ) {
+		    foreach ( $Actions as $Key=>$sqlStr ) {
+		    	$sqlDo = str_replace( "[DBNAME]", $DBName, $sqlStr );
+			    doSQLExecute($sqlDo);
+		    }
+	    }
+
+	    // Return the Success Value
+	    return $rVal;
+    }
+
+    /**
+     *	Read the SQL install.php file into an array
+     */
+    private function _readSQLInstallScript( $doTruncate = false ) {
+    	$SQLFile = BASE_DIR . "/sql/install.sql";
+	    $rVal = array();
+	    $i = 0;
+
+	    // Add the Table Truncation Lines (if Requested)
+	    if ( $doTruncate ) {
+		    $trunks = array( 'Type', 'Meta', 'Content', 'SysParm' );
+		    foreach ( $trunks as $tbl ) {
+			    $rVal[$i] = "TRUNCATE TABLE IF EXISTS `[DBNAME]`.`$tbl`;";
+			    $i++;
+		    }
+	    }
+
+	    // Add the Main Table Definitions & Populations
+    	if ( file_exists($SQLFile) ) {
+	    	$lines = file($SQLFile);
+
+	    	foreach ( $lines as $line ) {
+	    		$rVal[$i] .= $line;
+
+	    		// If there is a Semi-Colon, The Line is Complete
+	    		if ( strpos($line, ';') ) { $i++; }
+	    	}
+
+    	} else {
+    		$rVal = false;
+	    	$this->error[] = "SQL Installation File Missing!";
+    	}
+
+    	// Return the Array of SQL Strings
+    	return $rVal;
+    }
+
     /***********************************************************************
      *  Sites
      ***********************************************************************/
@@ -239,6 +301,8 @@ class Settings extends Midori {
 		              'doComments'		=> $this->settings['raComments'],
 		              'DisqusID'     	=> $this->settings['txtDisqusID'],
 		              'AkismetKey'		=> $this->settings['txtAkismetKey'],
+		              'doTwitter'		=> $this->settings['raTwitter'],
+		              'TwitName'		=> $this->settings['txtTwitName'],
 
 		              'EN_ENABLED'		=> 'Y',
 		              );

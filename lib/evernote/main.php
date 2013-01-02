@@ -642,8 +642,11 @@ class evernote {
 
 		        // Collect the Resource (With Data and With Attributes)
 		        $note = $this->noteStore->getNote($this->settings['DEVELOPER_TOKEN'], $NoteGUID, true, true, false, false);
-            	$NoteCUD = NoNull($note->notebookGuid) . '|' . nullInt($note->created) / 1000 . '.' .
-            			   nullInt($note->updated) / 1000 . '.' . nullInt($note->deleted) / 1000;
+            	$NoteCUD = NoNull($note->notebookGuid) . '|' .
+            			   nullInt($note->created) / 1000 . '.' .
+            			   nullInt($note->updated) / 1000 . '.' .
+            			   nullInt($note->deleted) / 1000;
+            	$NoteCUD = md5($NoteCUD);
 
             	if ( $ReadOnly ) {
                 	$thisNote = array( "guid"		  => NoNull($note->guid),

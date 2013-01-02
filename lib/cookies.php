@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for Cookie Handling in Noteworhty
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once( LIB_DIR . '/functions.php');
 
@@ -22,10 +18,6 @@ class cookies extends Midori {
     /**
      * Function Collects the Cookies, GET, and POST information and returns an array
      *      containing all of the values the Application will require.
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     function _getCookies() {
         $rVal = array();
@@ -79,7 +71,7 @@ class cookies extends Midori {
         }
 
         // Determine if the Admin Screen Should be Displayed
-        if ( $this->_doShowAdmin(NoNull($rVal['mpage'])) ) {
+        if ( $this->_doShowAdmin(NoNull($rVal['mpage']), $rVal['token']) ) {
         	$rVal['DispPg'] = 'admin';
         }
 
@@ -92,10 +84,6 @@ class cookies extends Midori {
 
     /**
      * Function Checks to See if the Token Value is Valid
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function isValidToken( $Token = '' ) {
         $rVal = false;
@@ -103,7 +91,7 @@ class cookies extends Midori {
         if ( NoNull($Token) != '' ) {
 	        require_once( LIB_DIR . '/user.php' );
 	        $user = new User( $Token );
-	        
+
 	        $rVal = $user->isLoggedIn();
 	        unset( $user );
         }
@@ -114,10 +102,6 @@ class cookies extends Midori {
 
     /**
      * Function Returns a Token without the Preceeding Pound
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function cleanToken( $Token ) {
         return NoNull(str_replace( "#", "", $Token ));
@@ -125,10 +109,6 @@ class cookies extends Midori {
 
     /**
      * Function Reads the Request URI and Returns the Contents in an Array
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function checkForMissingData() {
         $rVal = array();
@@ -146,11 +126,6 @@ class cookies extends Midori {
 
     /**
      * Function Returns the Default Cookie Values
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
-     * 
      */
     private function _getCookieDefaults() {
         if ( ENABLE_MULTILANG == 1 ) {
@@ -197,17 +172,19 @@ class cookies extends Midori {
     /**
      * Function determines whether the Administration Panel should be displayed
      *		based on the mPage value passed and the level of security
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
-    private function _doShowAdmin( $mPage ) {
-	    $rVal = false;
+    private function _doShowAdmin( $mPage, $token = "" ) {
+	    $UserAccessID = readSetting($token, 'UserAccessID');
 	    $accessID = alphaToInt( $mPage );
+	    $rVal = false;
 
-	    // Perform the Checks
-	    if ( strtolower($mPage) == 'adminn' ) {
+	    // If there is no system in place, create one
+	    if ( strtolower($mPage) == 'install' ) {
+		    $rVal = checkInstallRequired();
+	    }
+
+	    // If the UserAccessID Matches the Access ID Passed, Grant Access
+	    if ( $UserAccessID == $accessID && $accessID != "" ) {
 		    $rVal = true;
 	    }
 
@@ -218,10 +195,6 @@ class cookies extends Midori {
     /**
      * Function Checks the mPage and sPage values and prepares the cookies
      *      accordingly
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _checkURL( $mPage, $pPage, $sPage ) {
         $rVal = array();
@@ -271,10 +244,6 @@ class cookies extends Midori {
 
     /**
      * Function Saves the Cookies to the Browser's Cache (If Cookies Enabled)
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function _saveCookies( $cookieVals ) {
         foreach( $cookieVals as $key=>$val ) {
@@ -288,10 +257,6 @@ class cookies extends Midori {
      * Function returns the Expiration Timestamp for a given Cookie item.
      *  Note: "Immortal" items have a 2 week life span. Everything else
      *        relies on the COOKIE_EXPY value in /conf/config.php
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _getCookieLifeSpan( $item ) {
         date_default_timezone_set( 'Asia/Tokyo' );
@@ -314,10 +279,6 @@ class cookies extends Midori {
     /**
      * Function returns a boolean signifying whether the Cookie should
      *      be saved to the browser
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _validCookie( $item ) {
         $include = array('token', 'dispFormat', 'DispLang', 'invite', 'addr');

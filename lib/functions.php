@@ -126,6 +126,34 @@ require_once(LIB_DIR . '/globals.php');
     }
 
     /**
+     *	Function Confirms if an Installation is Complete and Returns a Boolean Response
+     */
+    function checkInstallRequired() {
+    	$Excludes = array( 'config.php' );
+	    $rVal = true;
+	    $i = 0;
+
+	    // If Files (other than config.php) exist, we don't need an installation
+	    /* Note: This may be an incomplete check. Examining the Cache Folder may be
+	     *		 more accurate than the system settings. If Media folders exist,
+	     *		 then there is already an installation.
+	     */
+		if ($handle = opendir( THEME_DIR )) {
+			while (false !== ($entry = readdir($handle))) {
+				if ($entry != "." && $entry != "..") {
+					if ( !in_array($entry, $Excludes) ) { $i++; }
+				}
+			}
+			closedir($handle);
+
+			if ( $i > 0 ) { $rVal = false; }
+		}
+
+	    // Return the Boolean
+	    return $rVal;
+    }
+
+    /**
      * Function returns a requested Number of spaces
      *  Example: tabSpace(1)
      *  Returns: "  "

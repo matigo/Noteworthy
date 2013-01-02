@@ -1,5 +1,5 @@
 		<div class="container_16 admin-panel background"><!-- main panel container -->
-			<div class="module-box grid_16 alpha"><!-- admin module box -->
+			<div class="module-box grid_12 alpha"><!-- admin module box -->
 				<h2 class="title show_hide">[lblDataSets] <span class="close-icon"></span></h2><!-- admin module title -->
 				<div class="module-box-inner"><!-- admin module spacing -->
 					<form name="primary" action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
@@ -51,7 +51,14 @@
 					</form><!-- END form elements -->
 				</div>
 			</div>
+			<div class="module-box grid_4 alpha">
+				<h2 class="title show_hide">Information <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					<p>Noteworthy will be able to work with three different data stores in the future; MySQL, a collection of text files, and an API server. That said, the application only supports MySQL fully at the moment. You can try "No Database" at your own risk as it has not been verified.</p>
+				</div>
+			</div>
 			<div class="clear"></div>
+
 			<div class="module-box grid_8 alpha">
 				<h2 class="title show_hide">Databases <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
@@ -96,10 +103,28 @@
 				}
 			}
 
+			function toggleTwitter() {
+				var e = document.getElementById("cmbTwitterUse");
+				var twit = e.options[e.selectedIndex].value;
+				
+				if ( twit == "1" ) {
+					document.getElementById("twitter").style.display = 'block';
+				} else {
+					document.getElementById("twitter").style.display = 'none';
+				}
+			}
+
 			jQuery(function($) {
 				$('#save-settings').click(function() {
 					_canSubmit = false;
 					performUpdates();
+
+					return false;
+				});
+				
+				$('#save-twit').click(function() {
+					_canSubmit = false;
+					performUpdateTwit();
 
 					return false;
 				});

@@ -75,6 +75,12 @@ class lang_en implements lang_base {
                       'lblDBPass'		=> "Database Password",
                       'lblDBMySQL'		=> "MySQL Database",
                       'lblDBNone'		=> "No Database",
+                      
+                      'lblTwitter'		=> "Tweet Importing",
+                      'lblTwitterUse'	=> "Twitter Archives",
+                      'lblTwitName'		=> "Your Twitter Name",
+                      'lblTwitDescr'	=> "Importing Tweets",
+                      'lblTwitReason'	=> "By importing your Twitter Timeline, you'll have a local copy of your Tweets which can be used in the search queries. The first time you activate this feature, your past Tweets (up to 3,000 of them) will be read into the database.",
 
                       'lblTags'			=> "Tagged",
                       'lblPublished'	=> "Published On",
@@ -104,6 +110,7 @@ class lang_en implements lang_base {
                       'lblSetUpdGood'	=> "Successfully Updated Settings",
                       'lblSetUpdErr001'	=> "Invalid MySQL Settings",
                       'lblSetUpdErr002'	=> "Could Not Save Configuration Data",
+                      'lblSetUpdErr003'	=> "Database Already Exists",
 
                       'admin_lblLogo'	=> APP_NAME,
                       'admin_strLogo'	=> APP_NAME . " | Sharing Your Ideas With the World",

@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for User Data
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once(LIB_DIR . '/functions.php');
 

@@ -316,10 +316,18 @@ class miTheme extends theme_main {
         switch ( $this->settings['spage'] ) {
             case 'sites':
             	// Website Settings
-            	$rVal['[raNoCommentChk]'] = ( $this->settings['doComments'] == 'N' ) ? 'checked="checked"' : '';
-            	$rVal['[raGoCommentChk]'] = ( $this->settings['doComments'] == 'Y' ) ? 'checked="checked"' : '';
-            	$rVal['[dVis]'] = ( $this->settings['doComments'] == 'Y' ) ? 'block' : 'none';
+            	$doComments = YNBool( $this->settings['doComments'] );
+            	$rVal['[raNoCommentChk]'] = ( !$doComments ) ? 'checked="checked"' : '';
+            	$rVal['[raGoCommentChk]'] = (  $doComments ) ? 'checked="checked"' : '';
+            	$rVal['[dVis]'] = ( $doComments ) ? 'block' : 'none';
             	$rVal['[ThemeList]'] = $this->_buildThemeList();
+            	
+            	// Twitter Settings
+            	$doTwitter = YNBool( $this->settings['doTwitter'] );
+            	$rVal['[raNoTweetChk]'] = ( !$doTwitter ) ? 'checked="checked"' : '';
+            	$rVal['[raDoTweetChk]'] = (  $doTwitter ) ? 'checked="checked"' : '';
+            	$rVal['[tVis]'] = ( $doTwitter ) ? 'block' : 'none';
+            	$rVal['[TwitName]'] = NoNull($this->settings['twitName']);
 
             	// Evernote Settings
             	$UseSandbox = NoNull($this->setting['sandbox'], readSetting( 'core', 'UseSandbox' ));

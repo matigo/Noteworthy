@@ -39,13 +39,27 @@
 
 						<div><!-- Comment Usage -->
 							<div class="legend">Comments</div>
-							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">Comments Off</label>
-							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">Comments On</label>
+							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">[lblDisabled]</label>
+							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">[lblEnabled]</label>
 							<div id="disqussed" style="display: [dVis];">
 								<label for="txtDisqusID">Disqus ID</label>
 								<input type="text" value="[DisqusID]" id="txtDisqusID" name="txtDisqusID"/>
 							</div>
 							<div id="disqus-err" class="validation-message"></div>
+						</div>
+						<br />
+
+						<hr />
+
+						<div><!-- Twitter Usage -->
+							<div class="legend">[lblTwitterUse]</div>
+							<input id="raNoTwitter" type="radio" class="radio" [raNoTweetChk] name="doTwitter" value="N" onclick="displayTweetDiv(this.value);" /> <label class="float-label" for="raNoTwitter">[lblDisabled]</label>
+							<input id="raDoTwitter" type="radio" class="radio" [raDoTweetChk] name="doTwitter" value="Y" onclick="displayTweetDiv(this.value);" /> <label class="float-label" for="raDoTwitter">[lblEnabled]</label>
+							<div id="twitname" style="display: [tVis];">
+								<label for="txtTwitName">[lblTwitName]</label>
+								<input type="text" value="[TwitName]" id="txtTwitName" name="txtTwitName"/>
+							</div>
+							<div id="twit-err" class="validation-message"></div>
 						</div>
 						<br />
 

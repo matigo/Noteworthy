@@ -69,6 +69,7 @@ function performUpdates() {
 	}
 	// Ensure 'doComments' is Properly Set
 	params[ 'raComments' ] = findSelectionValue( 'doComments' );
+	params[ 'raTwitter' ] = findSelectionValue( 'doTwitter' );
 	document.getElementById("return-msg").innerHTML = _dispDiv;
 
     $.ajax({
@@ -119,7 +120,14 @@ function displayDisqusDiv(doComments) {
     } else {
         document.getElementById("disqussed").style.display = 'none';
     }
-    document.getElementsByName("commEnabled").value = doComments;
+}
+
+function displayTweetDiv(doTweets) {
+    if (doTweets == "Y") {
+        document.getElementById("twitname").style.display = 'block';
+    } else {
+        document.getElementById("twitname").style.display = 'none';
+    }
 }
 
 function displayServerNote( radioID ) {
