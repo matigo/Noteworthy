@@ -22,8 +22,7 @@ define('LIB_DIR', BASE_DIR . '/lib');
 define('TMP_DIR', BASE_DIR . '/tmp');
 require_once(LIB_DIR . '/main.php');
 
-$eBits = ini_get('error_reporting');
-error_reporting($eBits ^ E_NOTICE);
+error_reporting(E_ERROR | E_PARSE);
 mb_internal_encoding("UTF-8");
 
 // Set the default time zone
