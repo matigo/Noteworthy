@@ -339,7 +339,7 @@ class evernote {
 		try {
 			// Prepare the UserStore
 	        if ( $this->_prepUserStore() ) {
-		        $rVal = $userStore->getUser( $DevToken );
+		        $rVal = $this->userStore->getUser( $DevToken );
 	        }
 
 		} catch (TTransportException $e) {

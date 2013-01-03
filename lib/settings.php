@@ -39,6 +39,11 @@ class Settings extends Midori {
 		    	$isGood = $this->_createDBFile();
 	    		break;
 
+	    	case 'email':
+	    		// Update the Email Settings
+	    		$isGood = $this->_saveEmailConfig();
+	    		break;
+
 	    	case 'createdb':
 	    		// Create the Database
 	    		$isGood = $this->_createDBTables();
@@ -104,7 +109,7 @@ class Settings extends Midori {
 	    $rVal = false;
 	    
 	    $DBType = nullInt( $this->settings['cmbStoreType'] );
-	    $DBIsOK = true;
+	    $DBInfo = array();
 	    $DBServ = NoNull( $this->settings['txtDBServ'], DB_SERV );
 	    $DBName = NoNull( $this->settings['txtDBName'], DB_NAME );
 	    $DBUser = NoNull( $this->settings['txtDBUser'], DB_USER );
@@ -113,14 +118,20 @@ class Settings extends Midori {
 
 	    // Validate the MySQL Login (If Necessary)
 	    if ( $DBType == 1 ) {
-		    $DBIsOK = $this->_testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass );
-		    if ( !$DBIsOK ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr001'], "Invalid MySQL Settings"); }
+		    $DBInfo = $this->_testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass );
+		    if ( !$DBInfo['LoginOK'] ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr001'], "Invalid MySQL Settings"); }
 	    }
 
 	    // Record the Data
-	    if ( $DBIsOK ) {
+	    if ( $DBInfo['LoginOK'] ) {
 		    $rVal = $this->_saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug );
 		    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr002'], "Could Not Save Configuration Data"); }
+	    }
+
+	    // Create the Tables if Necessary
+	    if ( !$DBInfo['TableOK'] ) {
+		    $rVal = $this->_createDBTables();
+		    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr004'], "Could Not Populate Database"); }
 	    }
 
 	    // Return a Boolean Response
@@ -131,7 +142,9 @@ class Settings extends Midori {
      *	Function Tests the SQL Login Data passed and Returns a Boolean Response
      */
     private function _testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass ) {
-	    $rVal = false;
+    	$rVal = array( 'LoginOK' => false,
+    				   'TableOK' => false,
+    				  );
 	    $r = 0;
 
 	    if ( $DBServ == "" || $DBName == "" || $DBUser == "" || $DBPass == "" ) {
@@ -146,6 +159,9 @@ class Settings extends Midori {
         $result = mysql_query($sqlStr);
 
         if ( $result ) {
+        	// Mark the Login as OK
+        	$rVal['LoginOK'] = true;
+
             // Read the Result into an Array
             $ColName = "Tables_in_$DBName";
             while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -158,8 +174,10 @@ class Settings extends Midori {
             mysql_close( $db );
         }
 
-        // Ensure the Database has 3 Valid Tables
-        if ( $r == 3 ) { $rVal = true; }
+        // Ensure the Database has 4 Valid Tables
+        if ( $r == 4 ) {
+	        $rVal['TableOK'] = true;
+        }
 
         // Return the Status
         return $rVal;
@@ -171,7 +189,7 @@ class Settings extends Midori {
      *			  they are up to date (or compatible) with the running version
      */
     private function _isValidSQLTable( $TableName ) {
-	    $valid = array( 'Content', 'Meta', 'Type' );
+	    $valid = array( 'Content', 'Meta', 'Type', 'SysParm' );
 	    $rVal = false;
 
 	    if ( in_array($TableName, $valid) ) { $rVal = true; }
@@ -233,6 +251,7 @@ class Settings extends Midori {
 		    	$sqlDo = str_replace( "[DBNAME]", $DBName, $sqlStr );
 			    doSQLExecute($sqlDo);
 		    }
+		    $rVal = true;
 	    }
 
 	    // Return the Success Value
@@ -277,6 +296,32 @@ class Settings extends Midori {
     }
 
     /***********************************************************************
+     *  Email
+     ***********************************************************************/
+    /**
+     *	Function Records Email Settings to the appropriate Configuration File
+     */
+    private function _saveEmailConfig() {
+	    $data = array( 'EmailOn'	 => NoNull($this->settings['cmbEmail'], 'N'),
+	    			   'EmailServ'   => NoNull($this->settings['txtMailHost']),
+		               'EmailPort'   => intval($this->settings['txtMailPort']),
+		               'EmailUser'	 => NoNull($this->settings['txtMailUser']),
+		               'EmailPass'	 => NoNull($this->settings['txtMailPass']),
+		               'EmailSSL'	 => NoNull($this->settings['cmbMailSSL'], 'N'),
+		               'EmailSendTo' => NoNull($this->settings['txtMailSendTo']),
+		               'EmailReplyTo' => NoNull($this->settings['txtMailReply']),
+		              );
+
+		// Record the Data Accordingly
+		foreach ( $data as $Key=>$Val ) {
+			saveSetting( 'core', $Key, $Val );
+		}
+
+		// Return the Boolean Response
+		return true;
+    }
+
+    /***********************************************************************
      *  Sites
      ***********************************************************************/
     /**
@@ -299,6 +344,7 @@ class Settings extends Midori {
 		              'SiteSEOTags'		=> $this->settings['txtSiteSEO'],
 
 		              'doComments'		=> $this->settings['raComments'],
+		              'doWebCron'		=> $this->settings['raWebCron'],
 		              'DisqusID'     	=> $this->settings['txtDisqusID'],
 		              'AkismetKey'		=> $this->settings['txtAkismetKey'],
 		              'doTwitter'		=> $this->settings['raTwitter'],

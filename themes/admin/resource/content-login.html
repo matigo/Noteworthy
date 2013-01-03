@@ -1,48 +1,34 @@
 		<div class="login-form container_16"><!-- login form container -->
 			<div id="logo"><span style="color: #FFFFFF;">[admin_lblLogo]</span></div>
-			<form method="get" action="home.html"><!-- login form -->
-				<h5>Login to Continue</h5>
-				<div id="fields"><!-- login form fields -->
+			<form method="get" action=""><!-- login form -->
+				<h5>[lblLoginSub]</h5>
+				<div id="fields">
 					[ERROR_MSG]
 					<br />
-					<label for="email_addr">Email Address</label>
+					<label for="email_addr">[lblEmailAddr]</label>
 					<input type="text" name="email_addr" id="email_addr" size="15" value="[USERNAME]" />
-					<div class="left"><!-- remember me and submit -->
-						<p class="rememberme"><label class="float-label" for="remember_me">Remember Me</label> <input type="checkbox" name="remember_me" id="remember_me" value="1" checked="checked" title="Remember me" style="vertical-align: middle;"></p>
+					<div class="left">
+						<p class="rememberme"><label class="float-label" for="remember_me">[lblRememberMe]</label> <input type="checkbox" name="remember_me" id="remember_me" value="1" checked="checked" title="Remember me" style="vertical-align: middle;"></p>
 						<br />
 						<p><input type="submit" name="login" id="login" value="Login" class="silver" /></p>
 					</div>
 				</div>
-				<div class="left"><!-- lost password and help -->
+				<div class="left">
 					<p class="lost-info">
-						<span>Lost your password?</span> <a id="recovery" href="#">Retrieve it</a>
+						<span>[lblLostPass]</span> <a id="recovery" href="#">[lblRetrieval]</a>
 					</p>
 				</div>
+				<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+				<input type='hidden' id='dataset' name='dataset' value='login' />
 			</form>
 			<div id="footer"><!-- page footer -->
 				<p>&copy; [CopyYear] &middot; [lblPoweredBy] &middot; [lblAllRights]</p>
 			</div>
 		</div>
-		<!-- end .container_16 -->
 
 		<script type="text/javascript" src="[JS_DIR]/login.js"></script>
 		<script type="text/javascript">
 			jQuery(function($) {
-				$('#login').click(function() {
-					var token = '[TOKEN]',
-					apiKey = '[ACCESSKEY]',
-					email = $('#email_addr').val();
-					_canSubmit = false;
-
-					//window.location.href = 'home.html';
-					if( isValidEmailAddress( email ) ) {
-						checkLogin( email, token, apiKey );
-					} else {
-						alert( "No Dice." );
-					}
-
-					return false;
-				});
 				$('#recovery').click(function() {
 					alert( "This Function Hasn't Been Coded Yet" );
 					return false;

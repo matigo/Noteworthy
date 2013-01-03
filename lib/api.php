@@ -75,15 +75,23 @@ class api extends Midori {
 		    		break;
 
 		    	case 'dump':
-		    		$rVal = $this->settings;
+		    		if ( DEBUG_ENABLED > 0 ) {
+			    		$rVal = $this->settings;			    		
+		    		}
 		    		break;
-		    		
+
+		    	case 'email':
+		    		require_once( LIB_DIR . '/email.php' );
+		    		$mail = new Email( $this->settings );
+		    		$rVal = $mail->perform();
+		    		break;
+
 		    	case 'settings':
 		    		require_once( LIB_DIR . '/settings.php' );
 		    		$conf = new Settings( $this->settings );
 		    		$rVal = $conf->update();
 		    		break;
-		    	
+
 		    	case 'users':
 		    		require_once( LIB_DIR . '/user.php' );
 		    		$usr = new User( $this->settings['token'] );

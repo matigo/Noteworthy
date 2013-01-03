@@ -9,12 +9,12 @@
 require_once(LIB_DIR . '/functions.php');
 
 class User extends Midori {
-    var $Details;
-    var $Errors;
+    var $settings;
+    var $errors;
 
     function __construct( $Token = '' ) {
-        $this->Details = $this->_populateClass();
-        $this->Errors = array();
+        $this->settings = $this->_populateClass();
+        $this->errors = array();
 
         // Collect any information that might be missing
         if ( $this->_fillUserClass($Token) ) {
@@ -28,44 +28,54 @@ class User extends Midori {
     /**
      * Function returns a Boolean value representing whether a person is logged
      *      in or not.
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function isLoggedIn() {
-        return YNBool( $this->Details['isLoggedIn'] );
+        return YNBool( $this->settings['isLoggedIn'] );
     }
+
+    public function AdminCode() {
+        return $this->settings['adminCode'];
+    }
+
+    public function UserID() {
+	    return $this->settings['id'];
+    }
+    
+    public function EmailAddr( $Value = '' ) {
+	    $rVal = '';
+
+	    if ( $Value != '' ) {
+		    // Set the Email Address
+	    } else {
+		    $rVal = NoNull($this->settings['email']);
+	    }
+	    
+	    // Return the Appropriate Response
+	    return $rVal;
+	}
 
     /**
      * Function sets or gets the Person's Display Name and Returns the appropriate data.
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function DisplayName( $Value = '' ) {
-	    $rVal = '';
+	    $rVal = NoNull($this->settings['DisplayName']);
 	    
-	    if ( $Value != '' ) {
-		    // Set the UserName
-	    } else {
-		    $rVal = NoNull($this->Details['DisplayName']);
+	    if ( $rVal == "" ) {
+	    	// Use the Information from Evernote
+	    	$data = readSetting('core', '*');
+		    $rVal = NoNull($data['name'], $data['username']);
 	    }
-	    
+
 	    // Return the Appropriate Response
 	    return $rVal;
     }
 
     /**
      * Function tests an Email / AdminCode Combination and returns a Boolean Response
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function authAccount( $Email, $AdminCode, $Token ) {
         $rVal = array('isGood' => false,
+        			  'redir'  => '',
         			  'ErrMsg' => '',
         			  );
         $isLoggedIn = false;
@@ -79,9 +89,17 @@ class User extends Midori {
 
         // If No Token Accounts Exist, This is the First Visit. Create a User.
         if ( countDIRFiles(TOKEN_DIR) == 0 ) {
-	        $isLoggedIn = $this->createAccount( $Email, $AdminCode, $Token );
-	        if ( !$isLoggedIn ) { $rVal['ErrMsg'] = "Could Not Create Record"; }
+	        $newToken = $this->createAccount( $Email, $AdminCode, $Token );
+	        if ( $newToken == "" ) { $rVal['ErrMsg'] = "Could Not Create Record"; }
+	        $AdminCode = $newToken;
+	        $rVal['redir'] = $newToken;
 	        writeNote( "Created Account [Good: " . BoolYN($isLoggedIn) . "] - email: $Email AdminCode: $AdminCode Token: $Token" );
+
+		    // Ensure the InstallDone Setting is Complete
+		    $instDone = readSetting('core', 'installDone');
+		    if ( $instDone != 'Y' ) {
+			    saveSetting('core', 'installDone', 'Y');
+		    }
         }
 
         // Check to See if the AdminCode is Valid
@@ -93,19 +111,17 @@ class User extends Midori {
 		        $lots = unserialize( $data );
 
 		        // Add Some Account-Specific Information
-		        $this->Details['id'] = $AccountID;
-		        $this->Details['AdminCode'] = $AdminCode;		// One User Can Have Multiple Admin Codes (Temporary Logins)
-		        $this->Details['isLoggedIn'] = BoolYN($isLoggedIn);
+		        $this->settings['id'] = $AccountID;
+		        $this->settings['isLoggedIn'] = BoolYN($isLoggedIn);
 
 	            foreach ( $lots as $key=>$val ) {
-		            if ( $key != "isLoggedIn" ) {
-			            $this->Details[ $key ] = NoNull($val);
-		            }
+			    	$this->settings[ $key ] = NoNull($val);
 	            }
 
 	            // Create a Token Record
 	            $TokenFile = TOKEN_DIR . '/' . $Token . '.token';
-	            if ( file_put_contents($TokenFile, serialize($this->Details)) ) {
+	            $TokenData = array( 'email' => $Email );
+	            if ( file_put_contents($TokenFile, serialize($TokenData)) ) {
 		            $isLoggedIn = true;
 	            } else {
 		            $rVal['ErrMsg'] = "Could Not Write Token Record";
@@ -126,16 +142,19 @@ class User extends Midori {
 
     /**
      * Function creates a new User Account and Returns a Boolean Response
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function createAccount( $Email, $AdminCode, $Token ) {
-        $rVal = false;
+        $rVal = "";
 
         // Do Some Basic Error Checking
         if ( NoNull($Email) == "" || NoNull($AdminCode) == "" || NoNull($Token) == "" ) { return $rVal; }
+
+        // Ensure the AdminCode is just words, and not "install"
+        $AdminCode = preg_match('/^[\w\d]$/', $AdminCode);
+        if ( $AdminCode == 'install' ) {
+	        $AdminCode = getRandomString(8);
+	        $rVal = $AdminCode;
+        }
 
         // Create the User File if the Admin Code is Valid
         $AccountID = alphaToInt($AdminCode);
@@ -144,21 +163,17 @@ class User extends Midori {
 	        if ( !file_exists($UsersFile) ) {
 		        $data = array('id'			=> $AccountID,
 		        			  'adminCode'	=> $AdminCode,
-		        			  'DisplayName'	=> "",
-		        			  'ImageURL'	=> "",
 		        			  'Created'		=> time(),
 		        			  'email'		=> NoNull($Email),
 		        			  'isLoggedIn'	=> 'Y',
 		        			  );
 
 	            // Write the Record
-	            if ( file_put_contents($UsersFile, serialize($data)) ) {
-		            $rVal = true;
-	            }
+	            file_put_contents($UsersFile, serialize($data));
 	        }
         }
 
-        // Return the Success Boolean
+        // Return the Admin Code
         return $rVal;
     }
 
@@ -168,23 +183,53 @@ class User extends Midori {
     /**
      * Function builds the base variables that will be used throughout the
      *      application
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _populateClass() {
         $rVal = array( 'id'          => 0,
                        'DisplayName' => '',
-                       'ImageURL'    => '',
                        'Created'     => '',
                        'email'		 => '',
                        'adminCode'	 => '',
                        'isLoggedIn'  => 'N',
-                       'lastToken'	 => '',
                       );
 
         // Return the Base Array
+        return $rVal;
+    }
+    
+    private function _getUserFromToken( $Token ) {
+	    $rVal = false;
+        if ( $Token == '' ) { return $rVal; }
+        if ( !checkDIRExists(TOKEN_DIR) ) { return $rVal; }
+
+        // Search the Token Directory for the Appropriate Record
+        $TokenFile = TOKEN_DIR . '/' . $Token . '.token';
+        if ( file_exists($TokenFile) ) {
+	        $data = file_get_contents( $TokenFile );
+            $user = unserialize( $data );
+
+            // Read the Email Address
+            $rVal = $user['email'];
+        }
+
+	    // Return the UserName (Email Address)
+	    return $rVal;
+    }
+    
+    private function _setUserToken( $Token, $Email ) {
+	    $rVal = false;
+        if ( $Token == '' ) { return $rVal; }
+        if ( !checkDIRExists(TOKEN_DIR) ) { return $rVal; }
+
+        $TokenFile = TOKEN_DIR . '/' . $Token . '.token';
+        $data = array('email' => $Email );
+
+        // Write the Record
+        if ( file_put_contents($TokenFile, serialize($data)) ) {
+            $rVal = true;
+        }
+
+        // Return the Boolean Response
         return $rVal;
     }
 
@@ -193,10 +238,6 @@ class User extends Midori {
      *      Record and Returns a Boolean Response
      * 
      * Note: This may not be used long-term
-     * 
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _fillUserClass( $Token ) {
         $rVal = false;
@@ -207,17 +248,35 @@ class User extends Midori {
         $TokenFile = TOKEN_DIR . '/' . $Token . '.token';
         if ( file_exists($TokenFile) ) {
 	        $data = file_get_contents( $TokenFile );
-            $lots = unserialize( $data );
+            $user = unserialize( $data );
 
-            foreach ( $lots as $key=>$val ) {
-		    	$this->Details[ $key ] = NoNull($val);
+            // Read the User Data from the Token Value
+            if ( $user['email'] != "" ) {
+	            $rVal = $this->_readUserData( $user['email'] );
             }
-
-            // Set the Happy Return Boolean
-            $rVal = true;
         }
 
         // Return a Boolean
+        return $rVal;
+    }
+    
+    private function _readUserData( $Email ) {
+	    $UserFile = $this->_getUserFile( $Email );
+	    $rVal = false;
+
+        if ( file_exists($UserFile) ) {
+	        $data = file_get_contents( $UserFile );
+            $sets = unserialize( $data );
+
+            foreach ( $sets as $Key=>$Val ) {
+	            $this->settings[$Key] = $Val;
+            }
+
+            // Set a Happy Return Boolean
+            $rVal = true;
+        }
+
+        // Return the Boolean Response
         return $rVal;
     }
     

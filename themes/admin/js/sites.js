@@ -68,6 +68,7 @@ function performUpdates() {
     	}
 	}
 	// Ensure 'doComments' is Properly Set
+	params[ 'raWebCron' ] = findSelectionValue( 'doCron' );
 	params[ 'raComments' ] = findSelectionValue( 'doComments' );
 	params[ 'raTwitter' ] = findSelectionValue( 'doTwitter' );
 	document.getElementById("return-msg").innerHTML = _dispDiv;
@@ -257,11 +258,16 @@ function setSelectedNotebooks( apiKey, NotebookList ) {
 }
 
 function parseSelectedNotebooks( data ) {
+	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
 	var _errMsg = "";
 
 	if ( data.isGood == "Y" && data.errors.length == 0 ) {
-		alert( data.data.length + " " + (data.data.length == 1 ? "Notebook" : "Notebooks")  + " Will be Scanned" );
+		_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
+		_errMsg = data.data.length + " " + (data.data.length == 1 ? "Notebook" : "Notebooks")  + " Will be Regularly Scanned";
 	} else {
-		alert("Something Went Wrong Selecting the Notebooks!");
+		_errMsg = "Something Went Wrong Selecting the Notebooks!";
+		_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
 	}
+	_dispDiv = _dispDiv.replace("[MESSAGE]", _errMsg);
+	document.getElementById( "notebook-msg" ).innerHTML = _dispDiv;
 }

@@ -30,7 +30,7 @@ class Midori {
         if ( $this->_checkFolders() ) {
 	        $this->Site = getSiteDetails();
         }
-
+        
         // Add the Site Details to the General Settings
         if ( count($this->Site) > 0 ) {
             foreach( $this->Site as $key=>$val ) {
@@ -69,6 +69,9 @@ class Midori {
             	$rss = new Content( $this->Settings, '', '' );
             	$xml = $rss->getRSS();
 
+            	// Check for a WebCron Task (Results Will NOT Be Part of Return)
+            	$this->_checkCronRequirement();
+
             	// Return the Properly Formatted Result
             	return $xml;
             	break;
@@ -84,6 +87,10 @@ class Midori {
 
             default:
             	$ThemeFile = THEME_DIR . "/$ThemeLocation/template.php";
+
+            	// Check for a WebCron Task (Results Will NOT Be Part of Return)
+            	$this->_checkCronRequirement();
+
                 if ( file_exists( $ThemeFile ) ) {
                     require_once( $ThemeFile );
                     $HTML = new theme_main( $this->Settings );
@@ -116,6 +123,17 @@ class Midori {
 
 		// Return the Boolean
 		return $rVal;	    
+    }
+    
+    private function _checkCronRequirement() {
+    	$doCron = YNBool( $this->Settings['doWebCron'] );
+    	
+    	// Do we need to run a web cron job? Do so if necessary in an Asyncronous Call
+    	if ( $doCron ) {
+    		$CronURL = $this->Settings['HomeURL'] . '/cron/';
+    		$CronPMs = array();
+        	curlPostAsync( $CronURL, $CronPMs);
+    	}
     }
     
     private function _getRunTime() {

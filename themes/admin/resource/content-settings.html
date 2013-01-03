@@ -29,7 +29,7 @@
 							</div>
 							<div>
 								<label for="txtDBPass">[lblDBPass]</label>
-								<input type="text" value="[DBPASS]" id="txtDBPass" name="txtDBPass" tabindex="4" />
+								<input type="[DBPASSTYPE]" value="[DBPASS]" id="txtDBPass" name="txtDBPass" tabindex="4" />
 							</div>
 						</div>
 
@@ -59,16 +59,129 @@
 			</div>
 			<div class="clear"></div>
 
-			<div class="module-box grid_8 alpha">
-				<h2 class="title show_hide">Databases <span class="close-icon"></span></h2>
+			<div class="module-box grid_12 alpha">
+				<h2 class="title show_hide">[lblMailSettings] <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+					<form name="secondary" action="[HOMEURL]/api/settings/update" method="post">
+						<div>
+							<label for="cmbEmail">[lblMailEnable]</label>
+							<div>
+								<select id="cmbEmail" name="cmbEmail" tabindex="0" onchange="toggleEmail()" >
+									<option value="N"[EMAIL_N]>[lblDisabled]</option>
+									<option value="Y"[EMAIL_Y]>[lblEnabled]</option>
+								</select>
+								<div class="validation-message">
+									<p>[lblMailEnableB]</p>
+								</div>
+							</div>
+						</div>
+
+						<div id="Email"[DO_EMAIL]>
+							<div>
+								<label for="txtMailHost">[lblMailServ]</label>
+								<input type="text" value="[MAILSERV]" id="txtMailHost" name="txtMailHost" tabindex="1" />
+							</div>
+							<div>
+								<label for="cmbMailSSL">[lblMailSecSMTP]</label>
+								<div>
+									<select id="cmbMailSSL" name="cmbMailSSL" tabindex="2" >
+										<option value="N"[SSL_N]>[lblDisabled]</option>
+										<option value="Y"[SSL_Y]>[lblEnabled]</option>
+									</select>
+								</div>
+							</div>
+							<div>
+								<label for="txtMailPort">[lblMailPort]</label>
+								<input type="text" value="[MAILPORT]" id="txtMailPort" name="txtMailPort" tabindex="3" />
+								<div class="validation-message">
+									<p>[lblMailPortB]</p>
+								</div>
+							</div>
+							<div>
+								<label for="txtMailUser">[lblMailUser]</label>
+								<input type="text" value="[MAILUSER]" id="txtMailUser" name="txtMailUser" tabindex="4" />
+								<div class="validation-message">
+									<p id="username-msg"></p>
+								</div>
+							</div>
+							<div>
+								<label for="txtMailPass">[lblMailPass]</label>
+								<input type="[MAILPASSTYPE]" value="[MAILPASS]" id="txtMailPass" name="txtMailPass" tabindex="5" />
+							</div>
+
+							<hr />
+
+							<div>
+								<label for="txtMailSendTo">[lblMailSendTo]</label>
+								<input type="text" value="[MAILSENDTO]" id="txtMailSendTo" name="txtMailSendTo" tabindex="6" />
+								<div class="validation-message">
+									<p>[lblMailSendToB]</p>
+								</div>
+							</div>
+							<div>
+								<label for="txtMailReply">[lblMailReply]</label>
+								<input type="text" value="[MAILREPLY]" id="txtMailReply" name="txtMailReply" tabindex="7" />
+								<div class="validation-message">
+									<p>[lblMailReplyB]</p>
+								</div>
+							</div>
+						</div>
+
+						<div id="email-msg" style="padding: 5px 50px 10px;"></div>
+
+						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' id='dataset' name='dataset' value='email' />
+						<button id="test-mail" name="test-mail" class="btn-small green" type="submit" [DO_EMAIL] tabindex="8"><span>[lblMailTest]</span></button>
+						<button id="save-mail" name="save-mail" class="btn-small silver" type="submit" tabindex="9"><span>[lblSaveChanges]</span></button>
+					</form><!-- END form elements -->
+				</div>
+			</div>
+			<div class="module-box grid_4 alpha">
+				<h2 class="title show_hide">Mail Settings <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					<p>By configuring your mail settings, it will be possible for people to send you messages through a contact form on the site.</p>
+					<p><a href="#dbMail" title="Read More">Read More</a></p>
+					<div id="mailHelper"[DO_EMAIL]>
+						<h5>Common Settings</h5>
+						<p><i>Click on a provider to auto-fill some data<i></p>
+						<p onclick="fillServerInfo('gmail');">GMail</p>
+						<p onclick="fillServerInfo('hotmail');">Hotmail</p>
+						<p onclick="fillServerInfo('yahoo');">Yahoo!</p>
+					</div>
+				</div>
+			</div>
+			<div class="clear"></div>
+
+
+
+			<div id="dbMail" class="module-box grid_8 alpha">
+				<h2 class="title show_hide">[lblDBTitle] <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					[lblDBReason]
 				</div>
 			</div>
 			<div class="module-box grid_8 omega">
-				<h2 class="title show_hide">Debug <span class="close-icon"></span></h2>
+				<h2 class="title show_hide">[lblDebugTitle] <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+					[lblDebugReason]
+				</div>
+			</div>
+			<div class="clear"></div>
+
+			<div class="module-box grid_8 alpha">
+				<h2 class="title show_hide">[lblEmailTitle] <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					[lblEmailReason]
+				</div>
+			</div>
+			<div id="reminder" class="module-box grid_8 omega" [DO_EMAIL]>
+				<h2 class="title show_hide">[lblRemindTitle] <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					<form name="reminder" action="[HOMEURL]/api/email/remind" method="post">
+						[lblRemindReason]
+						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' id='dataset' name='dataset' value='remind' />
+						<button id="remind-mail" name="remind-mail" class="btn-small green" type="submit" tabindex="30"><span>[lblMailReminder]</span></button>					</form>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -103,14 +216,20 @@
 				}
 			}
 
-			function toggleTwitter() {
-				var e = document.getElementById("cmbTwitterUse");
-				var twit = e.options[e.selectedIndex].value;
+			function toggleEmail() {
+				var e = document.getElementById("cmbEmail");
+				var eml = e.options[e.selectedIndex].value;
 				
-				if ( twit == "1" ) {
-					document.getElementById("twitter").style.display = 'block';
+				if ( eml == "N" ) {
+					document.getElementById("Email").style.display = 'none';
+					document.getElementById("test-mail").style.display = 'none';
+					document.getElementById("mailHelper").style.display = 'none';
+					document.getElementById("reminder").style.display = 'none';
 				} else {
-					document.getElementById("twitter").style.display = 'none';
+					document.getElementById("Email").style.display = 'block';
+					document.getElementById("test-mail").style.display = 'inline';
+					document.getElementById("mailHelper").style.display = 'block';
+					document.getElementById("reminder").style.display = 'block';
 				}
 			}
 
@@ -122,9 +241,16 @@
 					return false;
 				});
 				
-				$('#save-twit').click(function() {
+				$('#save-mail').click(function() {
 					_canSubmit = false;
-					performUpdateTwit();
+					performUpdateMail();
+
+					return false;
+				});
+
+				$('#test-mail').click(function() {
+					_canSubmit = false;
+					performTestMail();
 
 					return false;
 				});

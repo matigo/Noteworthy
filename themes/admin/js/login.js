@@ -27,19 +27,19 @@ function checkLogin( email, token, apiKey ) {
         },
         dataType: "json"
     });
+    
+    return false;
 }
 
 function parseLogin( data ) {
-	var result = false;
-
 	if ( data.isGood == 'Y' ) {
+		alert( "Redirect to: " + data.redir );
 		if(window.top==window) {
-			window.setTimeout('location.reload()');
+			window.setTimeout( 'location.reload()' );
 		}
 	}
 
-    // Return the Parsed Timeline
-	return result;
+	return false;
 }
 
 /**

@@ -13,6 +13,7 @@ class miTheme extends theme_main {
     var $messages;
     var $content;
     var $perf;
+    var $user;
 
     function __construct( $settings ) {
         $GLOBALS['Perf']['app_s'] = getMicroTime();
@@ -24,7 +25,11 @@ class miTheme extends theme_main {
         
         // Prep the Content
         $this->content = new Content( $settings, dirname(__FILE__) );
-        
+
+        // Prep the User Data
+		require_once( LIB_DIR . '/user.php' );
+        $this->user = new User( $this->settings['token'] );
+
         // Load the User-Specified Language Files for this theme
         $LangFile = dirname(__FILE__) . "/lang/" . strtolower($this->settings['DispLang']) . ".php";
 
@@ -41,6 +46,11 @@ class miTheme extends theme_main {
 
             // Kill the Class
             unset( $Lang );
+        }
+        
+        // Are We Trying to Log In?
+        if ( $this->settings['dataset'] == 'login' ) {
+	        $this->_performLogin();
         }
 
         // Prep the Content
@@ -164,7 +174,7 @@ class miTheme extends theme_main {
     private function _isValidPage() {
         $rVal = true;
 
-        $validPg = array('login', 'landing', 'dashboard', 'search', '');
+        $validPg = array('login', 'landing', 'dashboard', 'search', 'about', '');
 
         // Determine if the Page Requested is in the Array
         if ( in_array(NoNull($this->settings['spage']), $validPg) ) {
@@ -195,7 +205,6 @@ class miTheme extends theme_main {
                           '[EN_SANDBOX]'  => readSetting('core', 'UseSandbox'),
                           '[ACCESSKEY]'	  => NoNull($this->settings['api_key']),
                           '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
-                          '[USERNAME]'	  => readSetting('core', 'username'),
                           '[ERROR_MSG]'   => $this->_getPageError(),
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
                           '[CSS_DIR]'     => CSS_DIR,
@@ -203,8 +212,8 @@ class miTheme extends theme_main {
                           '[JS_DIR]'      => JS_DIR,
                           
                           /* User Data */
-                          '[GRAVATAR]'	  => getGravatarURL( 'jason@j2fi.net' ),
-                          '[ABOUTLNK]'	  => $this->settings['mpage'] . '/about/',
+                          '[USERBLOCK]'	  => $this->_getUserBlock(),
+                          '[USERNAME]'	  => readSetting('core', 'username'),
 
                           /* Body Content */
                           '[NAVIGATION]'  => $this->_getNavigationMenu(),
@@ -242,6 +251,27 @@ class miTheme extends theme_main {
 
         // Return the Array
         return $ReplStr;
+    }
+
+    /**
+     *	Function Constructs the User Information Block and Returns formatted HTML
+     */
+    private function _getUserBlock() {
+    	$rVal = "";
+
+    	if ( $this->settings['isLoggedIn'] == 'Y' ) {
+	    	$Gravatar = getGravatarURL( $this->user->EmailAddr() );
+	    	$DispName = $this->user->DisplayName();
+	    	$HomeURL  = $this->settings['HomeURL'];
+	    	$AboutLnk = $HomeURL . "/" . $this->settings['mpage'] . '/about/';
+		    $rVal = "<div id=\"logout\">" .
+		    		"<img class=\"grav_default\" src=\"$Gravatar\" alt=\"" . $this->messages['lblWelcome'] . "\">" . $this->messages['lblWelcome'] . " <a class=\"welcome-link\" href=\"$AboutLnk\">$DispName</a>" .
+		    		"<img src=\"" . IMG_DIR . "/icons/lock_large_locked.png\" alt=\"" . $this->messages['lblLogout'] . "\"> <a href=\"$HomeURL\">" . $this->messages['lblLogout'] . "</a>" .
+		    		"</div>";	    	
+    	}
+
+	    // Return the User Block
+	    return $rVal;
     }
 
     /**
@@ -311,6 +341,8 @@ class miTheme extends theme_main {
         $rVal = array( '[ARCHIVE-LIST]' => '',
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
+                       '[ADMINURL]'		=> $this->settings['HomeURL'] . '/' . $this->settings['mpage'],
+                       '[NBOOKCOUNT]'	=> $this->_getSelectedNotebookCount(),
                       );
 
         switch ( $this->settings['spage'] ) {
@@ -322,6 +354,11 @@ class miTheme extends theme_main {
             	$rVal['[dVis]'] = ( $doComments ) ? 'block' : 'none';
             	$rVal['[ThemeList]'] = $this->_buildThemeList();
             	
+            	// Cron Settings
+            	$doCron = YNBool( $this->settings['doWebCron'] );
+            	$rVal['[raNoCronChk]'] = ( !$doCron ) ? 'checked="checked"' : '';
+            	$rVal['[raDoCronChk]'] = (  $doCron ) ? 'checked="checked"' : '';
+
             	// Twitter Settings
             	$doTwitter = YNBool( $this->settings['doTwitter'] );
             	$rVal['[raNoTweetChk]'] = ( !$doTwitter ) ? 'checked="checked"' : '';
@@ -341,6 +378,7 @@ class miTheme extends theme_main {
                 break;
             
             case 'settings':
+            	// MySQL Settings
             	$rVal['[DT_SQL]'] = ( DB_TYPE == 1 ) ? " selected" : "";
             	$rVal['[DT_NWS]'] = ( DB_TYPE == 2 ) ? " selected" : "";
                 $rVal['[DO_SQL]'] = ( DB_TYPE == 1 ) ? "" : ' style="display: none;"';
@@ -348,17 +386,53 @@ class miTheme extends theme_main {
                 $rVal['[DBNAME]'] = ( DB_TYPE == 1 ) ? NoNull(DB_MAIN) : "";
                 $rVal['[DBUSER]'] = ( DB_TYPE == 1 ) ? NoNull(DB_USER) : "";
                 $rVal['[DBPASS]'] = ( DB_TYPE == 1 ) ? NoNull(DB_PASS) : "";
+                $rVal['[DBPASSTYPE]'] = ( $rVal['[DBPASS]'] != "" ) ? 'password' : 'text';
+                
+                // Debug Settings
                 $rVal['[DEBUG0]'] = ( DEBUG_ENABLED == 0 ) ? " selected" : "";
                 $rVal['[DEBUG1]'] = ( DEBUG_ENABLED == 1 ) ? " selected" : "";
+
+                // Email Settings
+                $EmailEnabled = YNBool(readSetting('core', 'EmailOn'));
+                $SecureSSL = YNBool(readSetting('core', 'EmailSSL'));
+            	$rVal['[EMAIL_N]'] = ( !$EmailEnabled ) ? " selected" : "";
+            	$rVal['[EMAIL_Y]'] = (  $EmailEnabled ) ? " selected" : "";
+            	$rVal['[DO_EMAIL]'] = ( $EmailEnabled ) ? "" : ' style="display: none;"';
+            	$rVal['[SSL_N]'] = ( !$SecureSSL ) ? " selected" : "";
+            	$rVal['[SSL_Y]'] = (  $SecureSSL ) ? " selected" : "";
+            	$rVal['[EMAIL_STUB]'] = $this->_readBaseDomainURL( $this->settings['HomeURL'] );
+            	$rVal['[MAILSERV]'] = readSetting( 'core', 'EmailServ' );
+            	$rVal['[MAILPORT]'] = readSetting( 'core', 'EmailPort' );
+            	$rVal['[MAILUSER]'] = readSetting( 'core', 'EmailUser' );
+            	$rVal['[MAILPASS]'] = readSetting( 'core', 'EmailPass' );
+            	$rVal['[MAILPASSTYPE]'] = ( $rVal['[MAILPASS]'] != "" ) ? 'password' : 'text';
+            	$rVal['[MAILSENDTO]'] = readSetting( 'core', 'EmailSendTo' );
+            	$rVal['[MAILREPLY]'] = readSetting( 'core', 'EmailReplyTo' );
                 break;
 
             default:
-                
+            	// Add Nothing
         }
 
         // Return the Extra Content Data
         return $rVal;
     }
+
+    /**
+     *	Function Reads the Base Domain, excluding any subdomain information that might exist.
+     */
+	function _readBaseDomainURL( $url ) {
+		$rVal = false;
+	
+		$pieces = parse_url( $url );
+		$domain = isset( $pieces['host'] ) ? $pieces['host'] : '';
+		if (preg_match('/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i', $domain, $regs)) {
+			$rVal = $regs['domain'];
+		}
+	
+		// Return the Domain Information
+		return $rVal;
+	}
 
     /**
      *	Function Constructs a List of Themes (Excluding the Admin, of course)
@@ -411,18 +485,15 @@ class miTheme extends theme_main {
             $pages = array('dashboard'	=> array('icon' 	=> "icon-home",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblDashboard'] ),
-            			   'about'		=> array('icon' 	=> "icon-user",
-            									 'current'	=> "N",
-            									 'label'	=> $this->messages['lblAbout'] ),
-            			   'links'		=> array('icon' 	=> "icon-pencil",
-            									 'current'	=> "N",
-            									 'label'	=> $this->messages['lblLinks'] ),
             			   'sites'		=> array('icon' 	=> "icon-pencil",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblSites'] ),
             			   'settings'	=> array('icon' 	=> "icon-cogs",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblSettings'] ),
+            			   'about'		=> array('icon' 	=> "icon-user",
+            									 'current'	=> "N",
+            									 'label'	=> $this->messages['lblAbout'] ),
             			   );
 
             foreach ( $pages as $url=>$dtl ) {
@@ -443,9 +514,57 @@ class miTheme extends theme_main {
             	$rVal .= '<li' . $isCurrent . '><a href="' . $FullURL . '"><span class="nav-icon ' . $dtl['icon'] . '"></span> ' . $dtl['label'] . '</a>' . $SubList . '</li>';
 	        }
         }
+        
+        if ( $rVal != "" ) {
+	        $rVal = tabSpace( 4) . "<div id=\"nav-container\">\r\n" .
+	        		tabSpace( 6) . "<div class=\"container_16 sticky\" id=\"navigation\">\r\n" .
+	        		tabSpace( 8) . "<ul class=\"nav-list\" id=\"main-nav\">\r\n" .
+	        		tabSpace(10) . $rVal .
+	        		tabSpace( 8) . "</ul>\r\n" .
+	        		tabSpace( 6) . "</div>\r\n" .
+	        		tabSpace( 4) . "</div>";
+        }
 
         // Return the Administration Navigation Menu
         return $rVal;
+    }
+
+    /**
+     *	Function Performs the Login Functions
+     */
+    private function _performLogin() {
+    	$redirURL = "";
+    	$rVal = false;
+
+    	// Ensure We Have a Token
+    	if ( $this->settings['token'] != "" ) {
+			$data = $this->user->authAccount( $this->settings['email_addr'], $this->settings['mpage'], $this->settings['token'] );
+			if ( $data['redir'] != "" ) { $redirURL = $this->settings['HomeURL'] . '/' . $data['redir']; }
+			$rVal = YNBool( $data['isGood'] );
+    	}
+
+    	// If we have a Redirect URL, Use it
+	    if ( $redirURL != "" ) {
+		    redirectTo( $redirURL );
+	    }
+
+	    // Return the Boolean Response
+	    return $rVal;
+    }
+    
+    private function _getSelectedNotebookCount() {
+	    $UseSandbox = NoNull(readSetting( 'core', 'UseSandbox' ), 'Y');
+	    $isProd = ( $UseSandbox == 'Y' ) ? '_sb' : '_prod';
+	    $TokenFile = "core_notebooks$isProd";
+	    $rVal = 0;
+
+	    $data = readSetting( $TokenFile, '*');
+	    foreach ( $data as $NotebookGUID ) {
+		    if ( $NotebookGUID != "" ) { $rVal++; }
+	    }
+
+	    // Return the Number
+	    return $rVal;
     }
 
 }

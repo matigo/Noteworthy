@@ -67,18 +67,44 @@ class cookies extends Midori {
         // Validate the Token (if it exists)
         if ( NoNull($rVal['token']) != "" ) {
             $rVal['token'] = $this->cleanToken( $rVal['token'] );
-            $rVal['isLoggedIn'] = BoolYN( $this->isValidToken( $rVal['token'] ));
+            
+            $usrData = $this->_getUserData( $rVal['token'] );
+            if ( is_array($usrData) ) {
+	            foreach( $usrData as $kk=>$vv ) {
+		            $rVal[ $kk ] = $vv;
+	            }
+            }
+
+	        // Determine if the Admin Screen Should be Displayed
+	        if ( $this->_doShowAdmin(NoNull($rVal['mpage']), $rVal['adminCode'], $rVal['token']) ) {
+	        	$rVal['DispPg'] = 'admin';
+	        }
         }
 
-        // Determine if the Admin Screen Should be Displayed
-        if ( $this->_doShowAdmin(NoNull($rVal['mpage']), $rVal['token']) ) {
-        	$rVal['DispPg'] = 'admin';
-        }
 
         // Save the Cookies
         $this->_saveCookies( $rVal );
 
         // Return the Cookies
+        return $rVal;
+    }
+
+    private function _getUserData( $Token ) {
+	    $rVal = array( 'isLoggedIn' => 'N',
+	    			   'adminCode'  => getRandomString(12),
+	    			  );
+
+	    // Load the User Class if Appropriate
+        if ( NoNull($Token) != '' ) {
+	        require_once( LIB_DIR . '/user.php' );
+	        $user = new User( $Token );
+
+	        $rVal['isLoggedIn'] = BoolYN( $user->isLoggedIn() );
+	        $rVal['adminCode'] = $user->AdminCode();
+	        unset( $user );
+        }
+
+        // Return the Array
         return $rVal;
     }
 
@@ -173,18 +199,17 @@ class cookies extends Midori {
      * Function determines whether the Administration Panel should be displayed
      *		based on the mPage value passed and the level of security
      */
-    private function _doShowAdmin( $mPage, $token = "" ) {
-	    $UserAccessID = readSetting($token, 'UserAccessID');
-	    $accessID = alphaToInt( $mPage );
+    private function _doShowAdmin( $mPage, $AdminCode = "", $token = "" ) {
 	    $rVal = false;
 
 	    // If there is no system in place, create one
 	    if ( strtolower($mPage) == 'install' ) {
-		    $rVal = checkInstallRequired();
+	    	$isDone = readSetting('core', 'installDone');
+		    $rVal = YNBool(!$isDone);
 	    }
 
 	    // If the UserAccessID Matches the Access ID Passed, Grant Access
-	    if ( $UserAccessID == $accessID && $accessID != "" ) {
+	    if ( $AdminCode == $mPage && $mPage != "" ) {
 		    $rVal = true;
 	    }
 

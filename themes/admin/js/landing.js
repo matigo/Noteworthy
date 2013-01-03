@@ -116,6 +116,10 @@ function parsePostsResult( data ) {
 
 			_rows += _row;
 		}
+		
+		if ( ds.length == 0 ) {
+			showZeroPostDiv();
+		}
 
 		// Add Pagination
 		parsePageNavigation( _cPage, _Results, _RecTotal );
@@ -213,4 +217,9 @@ function parseRefreshResult( data ) {
 
     // Return Appropriately
 	return false;
+}
+
+function showZeroPostDiv() {
+	document.getElementById("posts-block").style.display = 'none';
+	document.getElementById("first-block").style.display = 'block';
 }

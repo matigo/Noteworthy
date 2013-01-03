@@ -37,7 +37,17 @@
 						
 						<hr />
 
-						<div><!-- Comment Usage -->
+						<div>
+							<div class="legend">Update Handling</div>
+							<input id="raNoCron" type="radio" class="radio" [raNoCronChk] name="doCron" value="N" /> <label class="float-label" for="raNoCron">[lblDisabled]</label>
+							<input id="raDoCron" type="radio" class="radio" [raDoCronChk] name="doCron" value="Y" /> <label class="float-label" for="raDoCron">[lblEnabled]</label>
+							<p style="margin: 15px 25px -10px 5px;">This is how updates will be done on your site. If you choose "Disabled", then you will need to set up a cron job on your server. If you're not sure what this means, or you don't have access to crontab, then click "Enabled". This will make the site check for updates a visitor comes to the site. This will <i>not</i> affect your server load whatsoever.</p>
+						</div>
+						<br />
+
+						<hr />
+
+						<div>
 							<div class="legend">Comments</div>
 							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">[lblDisabled]</label>
 							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">[lblEnabled]</label>
@@ -51,7 +61,7 @@
 
 						<hr />
 
-						<div><!-- Twitter Usage -->
+						<div>
 							<div class="legend">[lblTwitterUse]</div>
 							<input id="raNoTwitter" type="radio" class="radio" [raNoTweetChk] name="doTwitter" value="N" onclick="displayTweetDiv(this.value);" /> <label class="float-label" for="raNoTwitter">[lblDisabled]</label>
 							<input id="raDoTwitter" type="radio" class="radio" [raDoTweetChk] name="doTwitter" value="Y" onclick="displayTweetDiv(this.value);" /> <label class="float-label" for="raDoTwitter">[lblEnabled]</label>
@@ -85,7 +95,7 @@
 			</div>
 			<div class="clear"></div>
 			<div class="module-box grid_12 alpha"><!-- admin module box -->
-				<h2 class="title show_hide">Evernote Connection<span class="close-icon"></span></h2>
+				<h2 class="title show_hide">Evernote Connection</h2>
 				<div class="module-box-inner"><!-- admin module spacing -->
 					<div>
 						<label for="ttoken">Evernote Token <span style="font-size: 80%;">(Get a <a href="https://sandbox.evernote.com/api/DeveloperToken.action" title="Evernote Sandbox Token"><b>Sandbox Token Here</b></a> or a <a href="https://www.evernote.com/api/DeveloperToken.action" title="Evernote Production Token"><b>Production Token Here</b></a>)</span></label>
@@ -103,20 +113,15 @@
 								<th class="header sorting">Notebook</th>
 								<th class="header sorting">Default</th>
 								<th class="header sorting">Date Created</th>
-								<th class="header sorting">Date Updated</th>
+								<th class="header sorting">Last Updated</th>
 							</tr>
 						</thead>
 						<tbody id="enNotebooks">
 
 						</tbody>
 					</table><!-- END admin table -->
-					<div class="table-bottom"><!-- admin table OPTIONS -->
-						<div class="table-actions">
-							<form action="[HOMEURL]/api/settings/update" method="post">
-								<button id="notebook-click" class="btn-small green" type="submit"><span>Update</span></button>
-							</form>
-						</div>
-					</div>
+					<div id="notebook-msg" style="padding: 5px 50px 10px;"></div>
+					<button id="notebook-click" class="btn-small green" type="submit"><span>Save Selected Notebooks</span></button>
 				</div>
 			</div>
 			<div class="module-box grid_4 omega"><!-- admin module box -->
@@ -131,6 +136,16 @@
 							<h3>Production</h3>
 							<p>Production refers to the real Evernote servers. By using the Production servers you will be able to share content from the notebooks you specify online.</p>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div class="module-box grid_4 omega">
+				<h2 class="title show_hide">Import Your Data</h2>
+				<div class="module-box-inner">
+					<div class="user-messages">
+						<p>Once Evernote is Configured, you can import the data from your selected notebooks. This may take a little bit of time depending on the size and number of notes in your selected folders. Once the first import is complete, new records will be searched for every hour.</p>
+						<div id="import-msg" style="padding: 5px 50px 10px;"></div>
+						<button id="import-click" class="btn-small green" type="submit"><span>Import Notes</span></button>
 					</div>
 				</div>
 			</div>
