@@ -166,7 +166,9 @@ class Content extends Midori {
 		return $rVal;
     }
 
-
+    /**
+     *	Function Returns a Readable URL, which consists of the location and PageID
+     */
     private function _getReadableURI() {
     	$rVal = "";
 
@@ -186,6 +188,13 @@ class Content extends Midori {
 	    		}
 	    		if ( startsWith($rVal, '_') ) { $rVal = substr($rVal, 1); }
     	}
+    	
+    	// Append the Page Number if Applicable (Greater Than 1)
+    	$PageNo = 1;
+    	if ( array_key_exists('Page', $this->settings) ) {
+	    	$PageNo = nullInt($this->settings['Page']);
+    	}
+    	if ( $PageNo > 1 ) { $rVal .= "_$PageNo"; }
 
 	    // Return the Readable URI
 	    return $rVal;
@@ -923,8 +932,9 @@ class Content extends Midori {
 	    switch ( DB_TYPE ) {
 		    case 1:
 		    	// MySQL
-		    	$sqlStr = "SELECT max(`id`) as `LastID` FROM `Content`" .
-		    			  " WHERE `isReplaced` = 'N' and `TypeCd` IN ($TypeCd);";
+		    	$sqlStr = "SELECT UNIX_TIMESTAMP(max(`CreateDTS`)) as `LastID` FROM `Content`" .
+		    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now()" .
+		    			  "   and `TypeCd` IN ($TypeCd)";
 		    	$rslt = doSQLQuery( $sqlStr );
 			    if ( is_array($rslt) ) {
 					foreach ( $rslt as $Key=>$Row ) {
