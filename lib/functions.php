@@ -735,12 +735,15 @@ require_once(LIB_DIR . '/globals.php');
      * Notes:
      *  -- This should NOT be used to update data, as the "Read" Server is called
      */
-    function doSQLQuery( $sqlStr, $UseDB = DB_MAIN ) {
+    function doSQLQuery( $sqlStr, $UseDB = '' ) {
         $rVal = array();
         $r = 0;
 
         // Do Not Proceed If We Don't Have SQL Settings
-		if( !defined('DB_SERV') ) { return false; }
+		if ( !defined('DB_SERV') ) { return false; }
+		if ( $UseDB == '' && !defined('DB_MAIN') ) {
+			return false;
+		}
 
         $GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
@@ -774,10 +777,16 @@ require_once(LIB_DIR . '/globals.php');
      * Function Executes a SQL String against the Required Database and Returns
      *      a boolean response.
      */
-    function doSQLExecute( $sqlStr, $UseDB = DB_MAIN ) {
+    function doSQLExecute( $sqlStr, $UseDB = '' ) {
         $rVal = -1;
 
-        $GLOBALS['Perf']['queries']++;
+        // Do Not Proceed If We Don't Have SQL Settings
+		if ( !defined('DB_SERV') ) { return false; }
+		if ( $UseDB == '' && !defined('DB_MAIN') ) {
+			return false;
+		}
+
+		$GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
         $selected = mysql_select_db($UseDB, $db);
         mysql_query("SET NAMES " . DB_CHARSET);

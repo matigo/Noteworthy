@@ -20,7 +20,10 @@ class cookies extends Midori {
      *      containing all of the values the Application will require.
      */
     function _getCookies() {
-        $rVal = array();
+        $rVal = array( 'mpage' => '',
+        			   'spage' => '',
+        			   'ppage' => '',
+        			  );
 
         foreach( $_POST as $key=>$val ) {
             $rVal[ $key ] = $this->_CleanRequest($key, $val);
@@ -143,7 +146,9 @@ class cookies extends Midori {
         foreach ( $vals as $val ) {
             $keyval = explode( "=", $val );
             
-            $rVal[ $keyval[0] ] = $keyval[1];
+            if ( is_array($keyval) ) {
+	            $rVal[ $keyval[0] ] = $keyval[1];
+            }
         }
         
         // Return an Array Containing the Missing Data

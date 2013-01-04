@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for the Manifest theme
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once(dirname(__FILE__) . '/conf/settings.php');
 require_once(LIB_DIR . '/functions.php');
@@ -22,8 +18,12 @@ class theme_main implements themes {
 
     public function _getData() {
         $html_out = "A critical error has occurred. We're terribly sorry for this and are working on a fix.";
+        $mPage = '';
+        if ( array_key_exists('mpage', $this->settings) ) {
+	        $mPage = strtolower(NoNull($this->settings['mpage']));
+        }
 
-        switch ( strtolower(NoNull($this->settings['mpage'])) ) {
+        switch ( $mPage ) {
             case 'atom':
             case 'rss':
                 $html_out = $this->_getRSS();

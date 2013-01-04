@@ -242,7 +242,10 @@ class miTheme extends theme_main {
      */
     private function _getPageTitle( $Section ) {
         $rVal = NoNull($this->settings['SiteName']);
-        $rSuffix = "";
+        $rSuffix = $mPage = "";
+        if ( array_key_exists('mpage', $this->settings) ) {
+	        $mPage = $this->settings['mpage'];
+        }
 
         switch ( strtolower($Section) ) {
             case 'blog':
@@ -252,7 +255,10 @@ class miTheme extends theme_main {
                 break;
 
             default:
-                $rSuffix = $this->messages['ttl_' . strtolower(NoNull($this->settings[mpage])) ];
+            	$MsgIDX = 'ttl_' . strtolower($mPage);
+            	if ( array_key_exists($MsgIDX, $this->messages) ) {
+	                $rSuffix = $this->messages[$MsgIDX];	            	
+            	}
         }
 
         // Append the Page Title if it's Applicable

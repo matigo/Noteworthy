@@ -126,8 +126,11 @@ class Midori {
     }
     
     private function _checkCronRequirement() {
-    	$doCron = YNBool( $this->Settings['doWebCron'] );
-    	
+    	$doCron = false;
+    	if ( array_key_exists('doWebCron', $this->Settings) ) {
+	    	$doCron = YNBool( $this->Settings['doWebCron'] );	    	
+    	}
+
     	// Do we need to run a web cron job? Do so if necessary in an Asyncronous Call
     	if ( $doCron ) {
     		$CronURL = $this->Settings['HomeURL'] . '/cron/';
