@@ -744,6 +744,7 @@ require_once(LIB_DIR . '/globals.php');
 		if ( $UseDB == '' && !defined('DB_MAIN') ) {
 			return false;
 		}
+		if ( $UseDB == '' ) { $UseDB = DB_MAIN; }
 
         $GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
@@ -785,6 +786,7 @@ require_once(LIB_DIR . '/globals.php');
 		if ( $UseDB == '' && !defined('DB_MAIN') ) {
 			return false;
 		}
+		if ( $UseDB == '' ) { $UseDB = DB_MAIN; }
 
 		$GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);

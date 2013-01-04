@@ -196,8 +196,11 @@ class miTheme extends theme_main {
      *      Returns the Array
      */
     private function _collectPageData() {
+    	$CopyStr = date('Y');
+    	$CopyStr .= ( array_key_exists('company_name', $this->messages) ) ? ' - ' . NoNull($this->messages['company_name']) :
+    																		' - ' . NoNull($this->messages['site_name']);
         $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name'], NoNull($this->messages['site_name'])),
+                          '[COPYRIGHT]'   => $CopyStr,
                           '[SITENAME]'    => NoNull($this->settings['SiteName'], $this->messages['SiteName']),
                           '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->settings['SiteName']),
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
@@ -370,7 +373,7 @@ class miTheme extends theme_main {
 	            	if ( $Key == $i ) {
 		                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
 		                                  '[POST-FOOTER]'   => "",
-		                                  '[DISQUS_ID]'	    => NoNull($this->settings['DisqusID']),
+		                                  '[DISQUS_ID]'	    => readSetting('core', 'DisqusID'),
 		                                  '[COMMENTS]'      => "",
 		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
 		                                  '[DIV-CLASS]'     => "",
@@ -380,9 +383,6 @@ class miTheme extends theme_main {
 		                }
 		                foreach ( $this->messages as $Key=>$Msg ) {
 			                $ReplStr[ "[$Key]" ] = $Msg;
-		                }
-		                if ( intval($data['RecordCount']) == 1 ) {
-			                $ReplStr['[DISQUS_ID]'] = "j2fi";
 		                }
 
 		                if ( $this->settings['mpage'] != 'search' ) {
@@ -397,7 +397,8 @@ class miTheme extends theme_main {
 				            }
 		
 				            // Construct the Comments (If Necessary)
-				            if ( $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
+				            $doComments = YNBool( readSetting('core', 'doComments') );
+				            if ( $doComments && $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
 					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
 				            }
 				            

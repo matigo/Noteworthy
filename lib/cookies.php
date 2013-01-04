@@ -20,10 +20,7 @@ class cookies extends Midori {
      *      containing all of the values the Application will require.
      */
     function _getCookies() {
-        $rVal = array( 'mpage' => '',
-        			   'spage' => '',
-        			   'ppage' => '',
-        			  );
+        $rVal = array();
 
         foreach( $_POST as $key=>$val ) {
             $rVal[ $key ] = $this->_CleanRequest($key, $val);
@@ -182,7 +179,10 @@ class cookies extends Midori {
                      'isAdmin'		=> 'N',
                      'token'        => getRandomString(16),
                      'GA_Account'   => '',
-                     'isDebug'      => 'N'
+                     'isDebug'      => 'N',
+                     'mpage'		=> '',
+                     'spage'		=> '',
+                     'ppage'		=> ''
                      );
     }
 

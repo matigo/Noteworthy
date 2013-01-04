@@ -117,7 +117,7 @@ function parsePostsResult( data ) {
 			_rows += _row;
 		}
 		
-		if ( ds.length == 0 ) {
+		if ( ds.length == 0 || ds === false ) {
 			showZeroPostDiv();
 		}
 
