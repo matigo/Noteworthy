@@ -43,6 +43,10 @@ class Content extends Midori {
         return $this->_getPageTitle( $PostURL );
     }
     
+    function getPagePagination() {
+	    return $this->_getPagePagination();
+    }
+    
     function getRawArchives( $Results = 9999 ) {
     	$CacheFile = 'archives_raw_' . $Results;
     	$rVal = $this->_readCachedHTML( $CacheFile );
@@ -224,6 +228,66 @@ class Content extends Midori {
     	if ( $PageNo > 1 ) { $rVal .= "_$PageNo"; }
 
 	    // Return the Readable URI
+	    return $rVal;
+    }
+    
+    private function _getPagePagination() {
+    	$PostURL = sqlScrub( $this->settings['ReqURI'] );
+    	$PageNo = 1;
+    	$UnixTS = 0;
+    	if ( array_key_exists('Page', $this->settings) ) {
+	    	$PageNo = nullInt($this->settings['Page']);
+    	}
+    	$rVal = array();
+	    
+	    // Don't Continue if the PostURL Is Blank
+	    if ( $PostURL == "" ) { return $rVal; }
+	    
+	    $sqlStr = "SELECT UNIX_TIMESTAMP(c.`CreateDTS`) as `UnixTS` FROM `Content` c, `Meta` m" .
+	    		  " WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-URL'" .
+	    		  "   and c.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" .
+	    		  "   and m.`Value` LIKE '%$PostURL%'" .
+	    		  " LIMIT 0, 1;";
+	    $rslt = doSQLQuery( $sqlStr );
+	    if ( is_array($rslt) ) {
+		    $UnixTS = intval( $rslt[0]['UnixTS'] );
+	    }
+
+	    // If we have a Unix Timestamp, Run a Second Query
+	    if ( $UnixTS > 0 ) {
+	    	unset( $rslt );
+		    $sqlStr = "SELECT 'Prev' as `IDX`, a.`id`, a.`Title`, a.`CreateDTS`, a.`Value`" .
+		    		  "  FROM (SELECT c.`id`, c.`Title`, c.`CreateDTS`, m.`Value`" .
+		    		  		"	 FROM `Content` c, `Meta` m" .
+		    		  		"   WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
+		    		  		"	  and c.`TypeCd` = 'POST' and m.`TypeCd` = 'POST-URL'" .
+		    		  		"	  and c.`CreateDTS` <= FROM_UNIXTIME($UnixTS)" .
+		    		  		"	  and m.`Value` NOT LIKE '%$PostURL%'" .
+		    		  		"   ORDER BY `CreateDTS` DESC" .
+		    		  		"   LIMIT 0, 1) a" .
+		    		  " UNION ALL " .
+		    		  "SELECT 'Next' as `IDX`, b.`id`, b.`Title`, b.`CreateDTS`, b.`Value`" .
+		    		  "  FROM (SELECT c.`id`, c.`Title`, c.`CreateDTS`, m.`Value`" .
+		    		  		"	 FROM `Content` c, `Meta` m" .
+		    		  		"   WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
+		    		  		"	  and c.`TypeCd` = 'POST' and m.`TypeCd` = 'POST-URL'" .
+		    		  		"	  and c.`CreateDTS` >= FROM_UNIXTIME($UnixTS)" .
+		    		  		"	  and m.`Value` NOT LIKE '%$PostURL%'" .
+		    		  		"   ORDER BY `CreateDTS`" .
+		    		  		"   LIMIT 0, 1) b";
+		    $rslt = doSQLQuery( $sqlStr );
+		    if ( is_array($rslt) ) {
+			    foreach( $rslt as $Key=>$Row ) {
+		    		$rVal[ $Row['IDX'] ] = array( "id"		  => $Row['id'],
+					    					      "Title"	  => $Row['Title'],
+					    					      "CreateDTS" => $Row['CreateDTS'],
+					    					      "PostURL"	  => $Row['Value']
+				    					     );
+			    }
+		    }
+	    }
+
+	    // Return the Array
 	    return $rVal;
     }
 

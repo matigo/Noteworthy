@@ -214,6 +214,7 @@ class miTheme extends theme_main {
                           '[BLOG_BODY]'   => $this->_getBlogContent( 5 ),
                           '[NAVIGATION]'  => $this->_getNavigationMenu(),
                           '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
+                          '[PAGINATION]'  => $this->_getPageNavigation(),
                           '[EXTEND_HDR]'  => '',
                          );
 
@@ -370,12 +371,14 @@ class miTheme extends theme_main {
             $i = 1;
 
             if ( intval($data['RecordCount']) > 0 ) {
+            	$this->settings['RecordCount'] = intval($RecordCount);
 	            foreach ($data as $Key=>$Entry ) {
 	            	if ( $Key == $i ) {
 		                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
 		                                  '[POST-FOOTER]'   => "",
 		                                  '[DISQUS_ID]'	    => readSetting('core', 'DisqusID'),
 		                                  '[COMMENTS]'      => "",
+		                                  '[PAGINATION]'	=> "",
 		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
 		                                  '[DIV-CLASS]'     => "",
 		                                 );
@@ -402,7 +405,7 @@ class miTheme extends theme_main {
 				            if ( $doComments && $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
 					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
 				            }
-				            
+
 				            // Replace the Template Content Accordingly
 				            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
 	
@@ -508,6 +511,48 @@ class miTheme extends theme_main {
 
         // Return the Tags Listing
         return $rVal;
+    }
+
+    /**
+     *	Function Constructs the Page Navigation (Prev/Next) Links accordingly
+     */
+    private function _getPageNavigation() {
+    	$Template = "<div class=\"pageNav\">" .
+    				"<div class=\"prev\">[PREV-LINK]</div>" .
+    				"<div class=\"next\">[NEXT-LINK]</div>" .
+    				"</div>";
+    	$Prev = "&laquo; Older";
+    	$Next = "Newer &raquo;";
+	    $rVal = "";
+	    
+	    // If this is Not a Single Post, Return a Blank
+	    $RecordCount = 0;
+	    if ( array_key_exists('RecordCount', $this->settings) ) {
+	    	$RecordCount = $this->settings['RecordCount'];
+	    }
+	    if ( $RecordCount != 1 ) { return $rVal; }
+	    
+	    $data = $this->content->getPagePagination();
+	    if ( is_array($data) ) {
+	    	$rVal = $Template;
+	    	$PrevHREF = $NextHREF = "";
+	    	if ( array_key_exists('Prev', $data) ) {
+		    	$PrevURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $data['Prev']['PostURL']);
+		    	$PrevHREF = "<a href=\"$PrevURL\" title=\"" . $data['Prev']['Title'] . "\">$Prev</a>";
+	    	}
+
+	    	if ( array_key_exists('Next', $data) ) {
+		    	$NextURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $data['Next']['PostURL']);
+		    	$NextHREF = "<a href=\"$NextURL\" title=\"" . $data['Next']['Title'] . "\">$Next</a>";
+	    	}
+
+	    	// Replace the Strings Accordingly
+	    	$rVal = str_replace("[PREV-LINK]", $PrevHREF, $rVal);
+	    	$rVal = str_replace("[NEXT-LINK]", $NextHREF, $rVal);
+	    }
+
+	    // Return the Page Navigation
+	    return $rVal;
     }
     
     private function _getMonthListings( $GetAll = false ) {
