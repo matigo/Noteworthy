@@ -39,7 +39,7 @@ require_once(LIB_DIR . '/globals.php');
 
 		              'Location'        => 'manifest',
 		              'isDefault'       => 'Y',
-		              
+
 		              'doComments'		=> 'N',
 		              'DisqusID'     	=> '',
 
@@ -47,6 +47,13 @@ require_once(LIB_DIR . '/globals.php');
 		              'EN_SANDBOX'		=> 'N',
 		              'EN_TOKEN_EXPY'	=> 0,
 		              );
+		// Read In the Social Defaults
+		$Social = getSocialDefaults();
+		foreach( $Social as $Key=>$Val ) {
+			$rVal[ $Key ] = $Val;
+		}
+
+		// Fill In the Site-Specific Data
 		$Details = readSetting( $CacheToken, "*" );
 		foreach( $Details as $Key=>$Val ) {
 			$rVal[ $Key ] = $Val;
@@ -54,6 +61,29 @@ require_once(LIB_DIR . '/globals.php');
 
         // Return the Array of Site Details
         return $rVal;
+    }
+    
+    function getSocialDefaults() {
+		$Sites = array( 'Twitter'	=> 'http://twitter.com/',
+	    				'Facebook'	=> 'http://facebook.com/',
+	    				'YouTube'	=> 'http://youtube.com/',
+	    				'Last.fm'	=> 'http://lastfm.com/',
+	    				'Vimeo'		=> 'http://vimeo.com/',
+		               );
+		$rVal = array();
+		$idx = 1;
+
+		// Construct the Array
+		foreach ( $Sites as $Name=>$Link ) {
+    		$Suffix = str_pad((int) $idx, 2, "0", STR_PAD_LEFT);
+        	$rVal[ "SocName$Suffix" ] = $Name;
+        	$rVal[ "SocLink$Suffix" ] = $Link;
+        	$rVal[ "SocShow$Suffix" ] = "1";
+        	$idx++;
+		}
+
+		// Return the Array
+		return $rVal;
     }
 
     /**
@@ -1032,7 +1062,7 @@ require_once(LIB_DIR . '/globals.php');
 
 	    // Check to see if the Settings File Exists or Not
 	    if ( checkDIRExists( CONF_DIR ) ) {
-		    $tmpFile = CONF_DIR . '/' . $token;
+		    $tmpFile = CONF_DIR . "/$token.inc";
 		    if ( file_exists( $tmpFile ) ) {
 			    $data = file_get_contents( $tmpFile );
 			    $settings = unserialize($data);
@@ -1058,7 +1088,7 @@ require_once(LIB_DIR . '/globals.php');
 	    $rVal = "";
 
 	    // Check to see if the Settings File Exists or Not
-	    $tmpFile = CONF_DIR . '/' . $token;
+	    $tmpFile = CONF_DIR . "/$token.inc";
 	    if ( file_exists( $tmpFile ) ) {
 		    $data = file_get_contents( $tmpFile );
 		    $settings = unserialize($data);
@@ -1085,7 +1115,7 @@ require_once(LIB_DIR . '/globals.php');
 	    $rVal = false;
 
 	    // Check to see if the Settings File Exists or Not
-	    $tmpFile = CONF_DIR . '/' . $token;
+	    $tmpFile = CONF_DIR . "/$token.inc";
 	    if ( file_exists( $tmpFile ) ) {
 		    $data = file_get_contents( $tmpFile );
 		    $settings = unserialize($data);
@@ -1113,7 +1143,7 @@ require_once(LIB_DIR . '/globals.php');
 	    $rVal = false;
 
 	    // Clear the File (if it exists)
-	    $tmpFile = CONF_DIR . '/' . $token;
+	    $tmpFile = CONF_DIR . "/$token.inc";
 	    if ( file_exists( $tmpFile ) ) {
 		    // Create an Empty Array
 		    $settings = array();

@@ -49,28 +49,17 @@
 			</div>
 			<div class="clear"></div>
 
-			<div class="module-box grid_4 alpha">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
+			<div class="module-box grid_8 alpha">
+				<h2 class="title show_hide">Your Posts <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+					<p>Here you can see all of your posts in reverse chronological order. Sometimes there can be problems with the import from Evernote and, when that happens, you'll see a red button on the right side saying "Repair". You can click that button to repair just a single post. Pressing "Refresh" will do exactly what you expect; it will refresh that one post. If you've configured Noteworthy to use a cron task, then posts will automatically update themselves with the next refresh.</p>
 				</div>
 			</div>
-			<div class="module-box grid_4">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
+			<div class="module-box grid_8 omega">
+				<h2 class="title show_hide">Your Admin Link <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="module-box grid_4">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-				</div>
-			</div>
-			<div class="module-box grid_4 omega">
-				<h2 class="title show_hide">1/4 module <span class="close-icon"></span></h2>
-				<div class="module-box-inner">
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+					<p>Save your admin panel link! This link <a href="[ADMINURL]"><b>[ADMINURL]</b></a> is unique to you and your site. Even if you share this link with other people, they will not be able to log in and make changes to your site. Keep it in a safe place, and don't delete your browser cookies.</p>
+					<p>Future versions of Noteworthy will address the slightly scary prospect of being locked out of our administration screens.</p>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -97,61 +86,4 @@
 				window.accessKey = "[ACCESSKEY]";
 				getPostsList( 1 );
             });
-            
-			jQuery(function($) {
-				$('#akismet-test').click(function() {
-					_canSubmit = false;
-					checkAkismet( '[ACCESSKEY]', $('#siteurl').val(), $('#akismet-id').val() );
-
-					return false;
-				});
-				$('#evernote-test').click(function() {
-					var radios = document.getElementsByName('UseSandbox');
-					var UseSandbox = "Y";
-					_canSubmit = false;
-
-					for (var i = 0; i < radios.length; i++) {
-					    if (radios[i].checked) { UseSandbox = radios[i].value; }
-					}
-
-					checkEvernote( '[ACCESSKEY]', $('#ttoken').val(), UseSandbox );
-
-					return false;
-				});
-				$('#notebook-click').click(function() {
-					var tab = document.getElementById ("notebookTable");
-				    var elems = tab.getElementsByTagName("input");
-				    var len = elems.length;
-				    var guidList = "";
-				
-				    for ( var i = 0; i < len; i++ ) {
-				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
-				    		if ( elems[i].checked == true ) {
-				    			guidList += elems[i].value + '|';
-				    		}
-				    	}
-				    }
-
-				    // Set the Notebooks (Even if Zero are Selected)
-				    setSelectedNotebooks( '[ACCESSKEY]', guidList );
-
-					return false;
-				});
-				$('#checkall').click(function() {
-					var tab = document.getElementById ("notebookTable");
-				    var elems = tab.getElementsByTagName("input");
-				    var chkVal = document.getElementById("checkall").checked;
-				    var len = elems.length;
-
-				    for ( var i = 0; i < len; i++ ) {
-				    	if ( elems[i].type == "checkbox" && elems[i].id != "checkall" ) {
-				    		if ( elems[i].checked != chkVal ) {
-					    		elems[i].checked = chkVal;
-				    		}
-				    	}
-				    }
-
-					return true;
-				});
-			});
 		</script>

@@ -263,7 +263,7 @@ class miTheme extends theme_main {
 	    	$Gravatar = getGravatarURL( $this->user->EmailAddr() );
 	    	$DispName = $this->user->DisplayName();
 	    	$HomeURL  = $this->settings['HomeURL'];
-	    	$AboutLnk = $HomeURL . "/" . $this->settings['mpage'] . '/about/';
+	    	$AboutLnk = $HomeURL . "/" . $this->settings['mpage'] . '/dashboard/';
 		    $rVal = "<div id=\"logout\">" .
 		    		"<img class=\"grav_default\" src=\"$Gravatar\" alt=\"" . $this->messages['lblWelcome'] . "\">" . $this->messages['lblWelcome'] . " <a class=\"welcome-link\" href=\"$AboutLnk\">$DispName</a>" .
 		    		"<img src=\"" . IMG_DIR . "/icons/lock_large_locked.png\" alt=\"" . $this->messages['lblLogout'] . "\"> <a href=\"$HomeURL\">" . $this->messages['lblLogout'] . "</a>" .
@@ -354,6 +354,21 @@ class miTheme extends theme_main {
             	$rVal['[dVis]'] = ( $doComments ) ? 'block' : 'none';
             	$rVal['[ThemeList]'] = $this->_buildThemeList();
             	
+            	// Social Media Links
+            	$SocItems = array('SocName', 'SocLink', 'SocShow');
+            	for ( $i = 1; $i<= 5; $i++ ) {
+            		$KeySuffix = str_pad((int) $i, 2, "0", STR_PAD_LEFT);
+	            	foreach ( $SocItems as $Item ) {
+	            		$KeyName = $Item . $KeySuffix;
+		            	$rVal[ "[$KeyName]" ] = $this->settings[ $KeyName ];
+	            	}
+	            	if ( $this->settings[ "SocShow$KeySuffix" ] == "Y" ) {
+		            	$rVal[ "[SocChk$KeySuffix]" ] = "checked=\"checked\"";
+	            	} else {
+		            	$rVal[ "[SocChk$KeySuffix]" ] = "";
+	            	}
+            	}
+
             	// Cron Settings
             	$doCron = YNBool( $this->settings['doWebCron'] );
             	$rVal['[raNoCronChk]'] = ( !$doCron ) ? 'checked="checked"' : '';
@@ -375,6 +390,11 @@ class miTheme extends theme_main {
                 $rVal['[raProductionChk]'] = ($UseSandbox == 'N') ? 'checked="checked"' : '';
                 $rVal['[note-sandboxStyle]'] = ($UseSandbox == 'N') ? 'style="display: none;"' : '';
                 $rVal['[note-productionStyle]'] = ($UseSandbox == 'Y') ? 'style="display: none;"' : '';
+                $rVal['[iVis]'] = 'style="display: none;';
+                
+                if ( $rVal['[NBOOKCOUNT]'] > 0 ) {
+	                $rVal['[iVis]'] = "";
+                }
                 break;
             
             case 'settings':
@@ -397,7 +417,8 @@ class miTheme extends theme_main {
                 $SecureSSL = YNBool(readSetting('core', 'EmailSSL'));
             	$rVal['[EMAIL_N]'] = ( !$EmailEnabled ) ? " selected" : "";
             	$rVal['[EMAIL_Y]'] = (  $EmailEnabled ) ? " selected" : "";
-            	$rVal['[DO_EMAIL]'] = ( $EmailEnabled ) ? "" : ' style="display: none;"';
+            	//$rVal['[DO_EMAIL]'] = ( $EmailEnabled ) ? "" : ' style="display: none;"';
+            	$rVal['[DO_EMAIL]'] = ' style="display: none;"';
             	$rVal['[SSL_N]'] = ( !$SecureSSL ) ? " selected" : "";
             	$rVal['[SSL_Y]'] = (  $SecureSSL ) ? " selected" : "";
             	$rVal['[EMAIL_STUB]'] = $this->_readBaseDomainURL( $this->settings['HomeURL'] );
@@ -411,7 +432,7 @@ class miTheme extends theme_main {
                 break;
 
             default:
-            	// Add Nothing
+
         }
 
         // Return the Extra Content Data
@@ -491,9 +512,11 @@ class miTheme extends theme_main {
             			   'settings'	=> array('icon' 	=> "icon-cogs",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblSettings'] ),
+            			/*
             			   'about'		=> array('icon' 	=> "icon-user",
             									 'current'	=> "N",
             									 'label'	=> $this->messages['lblAbout'] ),
+            			 */
             			   );
 
             foreach ( $pages as $url=>$dtl ) {

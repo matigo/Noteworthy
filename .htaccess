@@ -9,3 +9,15 @@ RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/$ index.php?mpage=$1&spage=$2 [L,QSA]
 RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)$ index.php?mpage=$1&spage=$2 [L,QSA]
 RewriteRule ^([a-zA-Z0-9]+)/$ index.php?mpage=$1 [L,QSA]
 RewriteRule ^([a-zA-Z0-9]+)$ index.php?mpage=$1 [L,QSA]
+
+<FilesMatch "\.inc$">
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.user$">
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.token$">
+    Deny from all
+</FilesMatch>

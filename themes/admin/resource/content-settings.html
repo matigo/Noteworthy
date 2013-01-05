@@ -51,7 +51,7 @@
 					</form><!-- END form elements -->
 				</div>
 			</div>
-			<div class="module-box grid_4 alpha">
+			<div class="module-box grid_4 omega">
 				<h2 class="title show_hide">Information <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
 					<p>Noteworthy will be able to work with three different data stores in the future; MySQL, a collection of text files, and an API server. That said, the application only supports MySQL fully at the moment. You can try "No Database" at your own risk as it has not been verified.</p>
@@ -66,7 +66,7 @@
 						<div>
 							<label for="cmbEmail">[lblMailEnable]</label>
 							<div>
-								<select id="cmbEmail" name="cmbEmail" tabindex="0" onchange="toggleEmail()" >
+								<select id="cmbEmail" name="cmbEmail" tabindex="10" onchange="toggleEmail()" >
 									<option value="N"[EMAIL_N]>[lblDisabled]</option>
 									<option value="Y"[EMAIL_Y]>[lblEnabled]</option>
 								</select>
@@ -79,12 +79,12 @@
 						<div id="Email"[DO_EMAIL]>
 							<div>
 								<label for="txtMailHost">[lblMailServ]</label>
-								<input type="text" value="[MAILSERV]" id="txtMailHost" name="txtMailHost" tabindex="1" />
+								<input type="text" value="[MAILSERV]" id="txtMailHost" name="txtMailHost" tabindex="11" />
 							</div>
 							<div>
 								<label for="cmbMailSSL">[lblMailSecSMTP]</label>
 								<div>
-									<select id="cmbMailSSL" name="cmbMailSSL" tabindex="2" >
+									<select id="cmbMailSSL" name="cmbMailSSL" tabindex="12" >
 										<option value="N"[SSL_N]>[lblDisabled]</option>
 										<option value="Y"[SSL_Y]>[lblEnabled]</option>
 									</select>
@@ -92,35 +92,35 @@
 							</div>
 							<div>
 								<label for="txtMailPort">[lblMailPort]</label>
-								<input type="text" value="[MAILPORT]" id="txtMailPort" name="txtMailPort" tabindex="3" />
+								<input type="text" value="[MAILPORT]" id="txtMailPort" name="txtMailPort" tabindex="13" />
 								<div class="validation-message">
 									<p>[lblMailPortB]</p>
 								</div>
 							</div>
 							<div>
 								<label for="txtMailUser">[lblMailUser]</label>
-								<input type="text" value="[MAILUSER]" id="txtMailUser" name="txtMailUser" tabindex="4" />
+								<input type="text" value="[MAILUSER]" id="txtMailUser" name="txtMailUser" tabindex="14" />
 								<div class="validation-message">
 									<p id="username-msg"></p>
 								</div>
 							</div>
 							<div>
 								<label for="txtMailPass">[lblMailPass]</label>
-								<input type="[MAILPASSTYPE]" value="[MAILPASS]" id="txtMailPass" name="txtMailPass" tabindex="5" />
+								<input type="[MAILPASSTYPE]" value="[MAILPASS]" id="txtMailPass" name="txtMailPass" tabindex="15" />
 							</div>
 
 							<hr />
 
 							<div>
 								<label for="txtMailSendTo">[lblMailSendTo]</label>
-								<input type="text" value="[MAILSENDTO]" id="txtMailSendTo" name="txtMailSendTo" tabindex="6" />
+								<input type="text" value="[MAILSENDTO]" id="txtMailSendTo" name="txtMailSendTo" tabindex="16" />
 								<div class="validation-message">
 									<p>[lblMailSendToB]</p>
 								</div>
 							</div>
 							<div>
 								<label for="txtMailReply">[lblMailReply]</label>
-								<input type="text" value="[MAILREPLY]" id="txtMailReply" name="txtMailReply" tabindex="7" />
+								<input type="text" value="[MAILREPLY]" id="txtMailReply" name="txtMailReply" tabindex="17" />
 								<div class="validation-message">
 									<p>[lblMailReplyB]</p>
 								</div>
@@ -131,12 +131,12 @@
 
 						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
 						<input type='hidden' id='dataset' name='dataset' value='email' />
-						<button id="test-mail" name="test-mail" class="btn-small green" type="submit" [DO_EMAIL] tabindex="8"><span>[lblMailTest]</span></button>
-						<button id="save-mail" name="save-mail" class="btn-small silver" type="submit" tabindex="9"><span>[lblSaveChanges]</span></button>
+						<button id="test-mail" name="test-mail" class="btn-small green" type="submit" [DO_EMAIL] tabindex="18"><span>[lblMailTest]</span></button>
+						<button id="save-mail" name="save-mail" class="btn-small silver" type="submit" tabindex="19"><span>[lblSaveChanges]</span></button>
 					</form><!-- END form elements -->
 				</div>
 			</div>
-			<div class="module-box grid_4 alpha">
+			<div class="module-box grid_4 omega">
 				<h2 class="title show_hide">Mail Settings <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
 					<p>By configuring your mail settings, it will be possible for people to send you messages through a contact form on the site.</p>
@@ -151,8 +151,6 @@
 				</div>
 			</div>
 			<div class="clear"></div>
-
-
 
 			<div id="dbMail" class="module-box grid_8 alpha">
 				<h2 class="title show_hide">[lblDBTitle] <span class="close-icon"></span></h2>
@@ -181,7 +179,7 @@
 						[lblRemindReason]
 						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
 						<input type='hidden' id='dataset' name='dataset' value='remind' />
-						<button id="remind-mail" name="remind-mail" class="btn-small green" type="submit" tabindex="30"><span>[lblMailReminder]</span></button>					</form>
+						<button id="remind-mail" name="remind-mail" class="btn-small green" type="submit" tabindex="20"><span>[lblMailReminder]</span></button>					</form>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -229,7 +227,7 @@
 					document.getElementById("Email").style.display = 'block';
 					document.getElementById("test-mail").style.display = 'inline';
 					document.getElementById("mailHelper").style.display = 'block';
-					document.getElementById("reminder").style.display = 'block';
+					/* document.getElementById("reminder").style.display = 'block'; */
 				}
 			}
 

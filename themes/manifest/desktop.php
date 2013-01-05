@@ -126,6 +126,7 @@ class miTheme extends theme_main {
                           '[ANALYTICS]'  => $Analytics,
                           '[HOMEURL]'    => $this->settings['HomeURL'],
                           '[MULTILANG]'  => $LangList,
+                          '[FOOTLINKS]'	 => $this->_getSiteLinks(),
                           '[GenTime]'    => "<!-- Page generated in roughly: $App $lblSecond, $Api API $lblCalls, $SQL SQL $lblQuery, $Cch Cache $lblCache -->",
                          );
         // Add the Language-Specific Items
@@ -174,7 +175,7 @@ class miTheme extends theme_main {
      */
     private function _isValidPage() {
         $rVal = false;
-        $validPg = array('archives', 'links', 'blog', 'search', 'tags', '');
+        $validPg = array('archives', 'blog', 'search', 'tags', '');
 
         // Append the Valid Years of Content
         $years = $this->content->getValidPostYears();
@@ -339,7 +340,6 @@ class miTheme extends theme_main {
 
     private function _getNavigationMenu() {
         $pages = array( "archives"	=> $this->messages['lblArchives'],
-                        "links"		=> $this->messages['lblLink'],
                        );
         $rVal = "";
         $i = 1;
@@ -525,6 +525,28 @@ class miTheme extends theme_main {
 	    }
 	    
 	    // Return the List of Months
+	    return $rVal;
+    }
+
+    private function _getSiteLinks() {
+	    $data = $this->content->getSiteLinks();
+	    $rVal = "";
+	    
+	    if ( is_array($data) ) {
+		    foreach( $data as $Site=>$Link ) {
+			    $rVal .= "<li><a href=\"$Link\" title=\"$Site\">$Site</a></li>";
+		    }
+	    }
+	    
+	    // Wrap the Links appropriately
+	    if ( $rVal != "" ) {
+		    $rVal = "<h5>" . $this->messages['lblElsewhere'] . "</h5>" .
+		    		"<ul class=\"elsewhere\">" .
+		    		$rVal .
+		    		"</ul>";
+	    }
+
+	    // Return the Site Links
 	    return $rVal;
     }
 

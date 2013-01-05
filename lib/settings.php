@@ -69,6 +69,10 @@ class Settings extends Midori {
 		    	// Update the Main Site Data
 		    	$isGood = $this->_saveSiteData();
 		    	break;
+		    	
+		    case 'social':
+		    	$isGood = $this->_saveSocialData();
+		    	break;
 
 		    default:
 		    	// Do Nothing
@@ -368,6 +372,43 @@ class Settings extends Midori {
 		}
 
 		// Return a Happy Boolean
+		return true;
+    }
+
+    /**
+     *	Function Records Social Data to the appropriate Configuration File
+     */
+    private function _saveSocialData() {
+    	$SiteID = nullInt( $this->settings['SiteID'] );
+    	$CacheToken = "Site_$SiteID";
+
+	    $data = array('SocName01'		=> $this->settings['txtSocName01'],
+		              'SocLink01'		=> $this->settings['txtSocLink01'],
+		              'SocShow01'		=> ($this->settings['chkSocShow01'] == "on") ? 'Y' : 'N',
+		              
+		              'SocName02'		=> $this->settings['txtSocName02'],
+		              'SocLink02'		=> $this->settings['txtSocLink02'],
+		              'SocShow02'		=> ($this->settings['chkSocShow02'] == "on") ? 'Y' : 'N',
+		              
+		              'SocName03'		=> $this->settings['txtSocName03'],
+		              'SocLink03'		=> $this->settings['txtSocLink03'],
+		              'SocShow03'		=> ($this->settings['chkSocShow03'] == "on") ? 'Y' : 'N',
+		              
+		              'SocName04'		=> $this->settings['txtSocName04'],
+		              'SocLink04'		=> $this->settings['txtSocLink04'],
+		              'SocShow04'		=> ($this->settings['chkSocShow04'] == "on") ? 'Y' : 'N',
+		              
+		              'SocName05'		=> $this->settings['txtSocName05'],
+		              'SocLink05'		=> $this->settings['txtSocLink05'],
+		              'SocShow05'		=> ($this->settings['chkSocShow05'] == "on") ? 'Y' : 'N',
+		              );
+
+		// Record the Data Accordingly
+		foreach ( $data as $Key=>$Val ) {
+			saveSetting( $CacheToken, $Key, $Val );
+		}
+
+		// Return a Happy Boolean Response
 		return true;
     }
 

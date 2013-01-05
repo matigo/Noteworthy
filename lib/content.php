@@ -34,6 +34,10 @@ class Content extends Midori {
     	// Return the Content
         return $rVal;
     }
+    
+    function getSiteLinks() {
+	    return $this->_getSiteLinks();
+    }
 
     function getPageTitle( $PostURL = "" ) {
         return $this->_getPageTitle( $PostURL );
@@ -117,6 +121,29 @@ class Content extends Midori {
     /***********************************************************************
      *  Private Functions
      ***********************************************************************/
+    private function _getSiteLinks() {
+    	$SocItems = array('SocName', 'SocLink', 'SocShow');
+    	$SiteID = 0;
+    	$rVal = array();
+    	if ( array_key_exists('SiteID', $this->settings) ) {
+	    	$SiteID = nullInt( $this->settings['SiteID'] );
+    	}
+    	$SiteToken = "Site_$SiteID";
+
+    	for ( $i = 1; $i<= 5; $i++ ) {
+    		$KeySuffix = str_pad((int) $i, 2, "0", STR_PAD_LEFT);
+    		$doShow = $this->settings["SocShow$KeySuffix"];
+    		
+    		if ( $doShow == "Y" ) {
+    			$Name = $this->settings["SocName$KeySuffix"];
+	    		$rVal[ $Name ] = $this->settings["SocLink$KeySuffix"];
+    		}
+    	}
+
+    	// Return the Array
+    	return $rVal;
+    }
+
     private function _getCompletePostsList() {
 	    $RecordTotal = 0;
 	    $Results = 25;
@@ -928,24 +955,27 @@ class Content extends Midori {
     private function _getLastContentID( $AllTypes = false ) {
     	$TypeCd = ( $AllTypes ) ? "'POST', 'TWEET'" : "'POST'";
 	    $rVal = 0;
-	    
+
 	    switch ( DB_TYPE ) {
 		    case 1:
 		    	// MySQL
-		    	$sqlStr = "SELECT UNIX_TIMESTAMP(max(`CreateDTS`)) as `LastID` FROM `Content`" .
+		    	// Format: First 6 Digits Represent the number of posts in the database
+		    	//		   Latter Digits Represent the Highest Unix Timestamp of Published Posts
+		    	$sqlStr = "CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
+		    			  "  FROM `Content`" .
 		    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now()" .
 		    			  "   and `TypeCd` IN ($TypeCd)";
 		    	$rslt = doSQLQuery( $sqlStr );
 			    if ( is_array($rslt) ) {
 					foreach ( $rslt as $Key=>$Row ) {
-						$rVal = nullInt( $Row['LastID'] );
+						$rVal = NoNull( $Row['LastID'] );
 					}
 			    }
 			    break;
 
 		    case 2:
 		    	// Local Storage
-		    	$rVal = nullInt( readSetting('core', 'maxCreateTS') );
+		    	$rVal = NoNull( readSetting('core', 'maxCreateTS') );
 		    	break;
 
 		    default:

@@ -1,5 +1,4 @@
 		<div class="login-form container_16"><!-- login form container -->
-			<div id="logo"><span style="color: #FFFFFF;">[admin_lblLogo]</span></div>
 			<form method="get" action=""><!-- login form -->
 				<h5>[lblLoginSub]</h5>
 				<div id="fields">
@@ -13,11 +12,6 @@
 						<p><input type="submit" name="login" id="login" value="Login" class="silver" /></p>
 					</div>
 				</div>
-				<div class="left">
-					<p class="lost-info">
-						<span>[lblLostPass]</span> <a id="recovery" href="#">[lblRetrieval]</a>
-					</p>
-				</div>
 				<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
 				<input type='hidden' id='dataset' name='dataset' value='login' />
 			</form>
@@ -27,11 +21,3 @@
 		</div>
 
 		<script type="text/javascript" src="[JS_DIR]/login.js"></script>
-		<script type="text/javascript">
-			jQuery(function($) {
-				$('#recovery').click(function() {
-					alert( "This Function Hasn't Been Coded Yet" );
-					return false;
-				});
-			});
-		</script>

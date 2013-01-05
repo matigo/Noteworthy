@@ -1,8 +1,8 @@
-		<div class="container_16 admin-panel background"><!-- main panel container -->
-			<div class="module-box grid_16 alpha"><!-- admin module box -->
-				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2><!-- admin module title -->
-				<div class="module-box-inner"><!-- admin module spacing -->
-					<form name="primary" action="[HOMEURL]/api/settings/update" method="post"><!-- START form elements -->
+		<div class="container_16 admin-panel background">
+			<div class="module-box grid_16 alpha">
+				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					<form name="primary" action="[HOMEURL]/api/settings/update" method="post">
 						<div>
 							<label for="txtHomeURL">Site URL</label>
 							<input type="text" value="[HOMEURL]" id="txtHomeURL" name="txtHomeURL" />
@@ -25,7 +25,7 @@
 
 						<hr />
 						
-						<div><!-- Theme Selection -->
+						<div>
 							<div class="legend">Syling</div>
 							<label for="txtLocation">Choose Your Theme</label>
 							<div>
@@ -41,7 +41,7 @@
 							<div class="legend">Update Handling</div>
 							<input id="raNoCron" type="radio" class="radio" [raNoCronChk] name="doCron" value="N" /> <label class="float-label" for="raNoCron">[lblDisabled]</label>
 							<input id="raDoCron" type="radio" class="radio" [raDoCronChk] name="doCron" value="Y" /> <label class="float-label" for="raDoCron">[lblEnabled]</label>
-							<p style="margin: 15px 25px -10px 5px;">This is how updates will be done on your site. If you choose "Disabled", then you will need to set up a cron job on your server. If you're not sure what this means, or you don't have access to crontab, then click "Enabled". This will make the site check for updates a visitor comes to the site. This will <i>not</i> affect your server load whatsoever.</p>
+							<p style="margin: 15px 25px -10px 5px;">This is how updates will be done on your site. If you choose "Disabled", then you will need to set up a cron job on your server. If you're not sure what this means, or you don't have access to crontab, then click "Enabled". This will make the site check for updates a visitor comes to the site. This will <i>not</i> affect your server load whatsoever. You can <a href="#cron" title="Cron Jobs on Noteworthy"><b>read more about Cron here</b></a>.</p>
 						</div>
 						<br />
 
@@ -94,9 +94,73 @@
 				</div>
 			</div>
 			<div class="clear"></div>
-			<div class="module-box grid_12 alpha"><!-- admin module box -->
+
+			<div class="module-box grid_12 alpha">
+				<h2 class="title show_hide">Social Links <span class="close-icon"></span></h2>
+				<div class="module-box-inner">
+					<p>Here you can set some links people can use to follow you elsewhere on the Internet.</p>
+					<form name="socials" action="[HOMEURL]/api/settings/update" method="post">
+						<table id="socialTable" class="pages-table">
+							<thead>
+								<tr>
+									<th class="header">Display Name</th>
+									<th class="header">Link</th>
+									<th class="header">Active</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><input type="text" value="[SocName01]" id="txtSocName01" name="txtSocName01" tabindex="0" style="width: 225px;" /></td>
+									<td><input type="text" value="[SocLink01]" id="txtSocLink01" name="txtSocLink01" tabindex="1" /></td>
+									<td><input type="checkbox" id="chkSocShow01" name="chkSocShow01" [SocChk01]/></td>
+								</tr>
+								<tr>
+									<td><input type="text" value="[SocName02]" id="txtSocName02" name="txtSocName02" tabindex="2" style="width: 225px;" /></td>
+									<td><input type="text" value="[SocLink02]" id="txtSocLink02" name="txtSocLink02" tabindex="3" /></td>
+									<td><input type="checkbox" id="chkSocShow02" name="txtSocShow02" [SocChk02]/></td>
+								</tr>
+								<tr>
+									<td><input type="text" value="[SocName03]" id="txtSocName03" name="txtSocName03" tabindex="4" style="width: 225px;" /></td>
+									<td><input type="text" value="[SocLink03]" id="txtSocLink03" name="txtSocLink03" tabindex="5" /></td>
+									<td><input type="checkbox" id="chkSocShow03" name="chkSocShow03" [SocChk03]/></td>
+								</tr>
+								<tr>
+									<td><input type="text" value="[SocName04]" id="txtSocName04" name="txtSocName04" tabindex="6" style="width: 225px;" /></td>
+									<td><input type="text" value="[SocLink04]" id="txtSocLink04" name="txtSocLink04" tabindex="7" /></td>
+									<td><input type="checkbox" id="chkSocShow04" name="chkSocShow04" [SocChk04]/></td>
+								</tr>
+								<tr>
+									<td><input type="text" value="[SocName05]" id="txtSocName05" name="txtSocName05" tabindex="8" style="width: 225px;" /></td>
+									<td><input type="text" value="[SocLink05]" id="txtSocLink05" name="txtSocLink05" tabindex="9" /></td>
+									<td><input type="checkbox" id="chkSocShow05" name="chkSocShow05" [SocChk05]/></td>
+								</tr>
+							</tbody>
+						</table>
+
+						<div id="social-msg" style="padding: 5px 50px 10px;"></div>
+
+						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
+						<input type='hidden' id='dataset' name='dataset' value='social' />
+						<button id="save-social" name="save-social" class="btn-small silver" type="submit" tabindex="10"><span>[lblSaveChanges]</span></button>
+					</form><!-- END form elements -->
+				</div>
+			</div>
+			<div class="module-box grid_4 omega">
+				<h2 class="title show_hide">Social Links</h2>
+				<div class="module-box-inner">
+					<div class="user-messages">
+						<div id="note-sandbox" class="user-message">
+							<h3>Let People See You</h3>
+							<p>Here you can add links to your profiles on any other websites you might want to share with.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="clear"></div>
+
+			<div class="module-box grid_12 alpha">
 				<h2 class="title show_hide">Evernote Connection</h2>
-				<div class="module-box-inner"><!-- admin module spacing -->
+				<div class="module-box-inner">
 					<div>
 						<label for="ttoken">Evernote Token <span style="font-size: 80%;">(Get a <a href="https://sandbox.evernote.com/api/DeveloperToken.action" title="Evernote Sandbox Token" target="_blank"><b>Sandbox Token Here</b></a> or a <a href="https://www.evernote.com/api/DeveloperToken.action" title="Evernote Production Token" target="_blank"><b>Production Token Here</b></a>)</span></label>
 						<input class="input-large" type="text" value="[EN_TOKEN]" id="ttoken" maxlength="120" />
@@ -106,8 +170,8 @@
 					</div>
 					<button id="evernote-test" class="btn-small green" type="submit"><span>Connect to Evernote</span></button>
 
-					<table id="notebookTable" class="pages-table tablesorter"> <!-- START admin table -->
-						<thead> <!-- admin table header -->
+					<table id="notebookTable" class="pages-table tablesorter">
+						<thead>
 							<tr>
 								<td><input type="checkbox" class="checkall" id="checkall" value="1" /></td>
 								<th class="header sorting">Notebook</th>
@@ -124,10 +188,10 @@
 					<button id="notebook-click" class="btn-small green" type="submit"><span>Save Selected Notebooks</span></button>
 				</div>
 			</div>
-			<div class="module-box grid_4 omega"><!-- admin module box -->
-				<h2 class="title show_hide">Evernote Integration</h2><!-- admin module title -->
-				<div class="module-box-inner"><!-- admin module spacing -->
-					<div class="user-messages"> <!-- USER messages -->
+			<div class="module-box grid_4 omega">
+				<h2 class="title show_hide">Evernote Integration</h2>
+				<div class="module-box-inner">
+					<div class="user-messages">
 						<div id="note-sandbox" class="user-message" [note-sandboxStyle]>
 							<h3>Sandbox</h3>
 							<p>The Evernote Sandbox allows you to test Noteworthy with a test Evernote account. This is useful if you'd like to see whether the software is a good match for what you want to accomplish, or if you just don't trust my software with your real Evernote account.</p>
@@ -139,7 +203,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="module-box grid_4 omega">
+			<div class="module-box grid_4 omega" [iVis]>
 				<h2 class="title show_hide">Import Your Data</h2>
 				<div class="module-box-inner">
 					<div class="user-messages">
@@ -147,6 +211,27 @@
 						<div id="import-msg" style="padding: 5px 50px 10px;"></div>
 						<button id="import-click" class="btn-small green" type="submit"><span>Import Notes</span></button>
 					</div>
+				</div>
+			</div>
+			<div class="clear"></div>
+
+			<div class="module-box grid_16 alpha">
+				<h2 class="title show_hide">About Cron Jobs<span class="close-icon"></span></h2>
+				<div id="cron" class="module-box-inner">
+					<p><i>Cron</i> is the time-based job scheduler found on many servers. Cron enables us to schedule jobs (commands or shell scripts) to run periodically at certain times or dates. It is commonly used to automate system maintenance or administration and, in the case of Noteworthy, this includes connecting to various services online to look for new content.</p>
+					<p>Setting up a cron job is quite easy if you have shell access on your web server. Simply type:</p>
+					<pre>crontab -e</pre>
+					<p>And you're in. If this is the first time you've used crontab, the file will be empty. You can have the server check for updates every 15 minutes by typing the following:</p>
+					<pre>15 * * * * /usr/bin/wget -q --timeout=600 "[HOMEURL]/cron/"</pre>
+					<p>15 minutes should be a decent time interval between cron jobs, but keep in mind that Tweets will only be checked every five minutes and Evernote every hour. This is to ensure these services don't block or ban you from accessing their servers. Want to learn more about cron jobs? <a href="http://en.wikipedia.org/wiki/Cron" title="Wikipedia | Cron" target="_blank">Wikipedia</a> has a good article on them explaining how they work and how to use them.</p>
+				</div>
+			</div>
+			<div class="clear"></div>
+
+			<div class="module-box grid_16 alpha">
+				<h2 class="title show_hide">About Comments<span class="close-icon"></span></h2>
+				<div id="cron" class="module-box-inner">
+					<p>Noteworthy does not have local storage of comments. Instead, the free commenting service Disqus can allow visitors to leave feedback on your posts. You can <a href="http://disqus.com/" title="Disqus | Elevating the Discussion"><b>sign up for a Disqus account here</b></a>. The necessary code and resources will <i>automagically</i> appear on your site after entering your Disqus ID.</p>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -184,6 +269,12 @@
 				$('#save-sites').click(function() {
 					_canSubmit = false;
 					performUpdates();
+
+					return false;
+				});
+				$('#save-social').click(function() {
+					_canSubmit = false;
+					performSocialUpdates();
 
 					return false;
 				});

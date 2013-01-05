@@ -49,6 +49,7 @@ class theme_en implements lang_base {
                       'lblSearch'       => "Search",
                       'lblFeedTitle'    => "Subscribe to My RSS Feed",
                       'lblTweet'        => "Tweet",
+                      'lblElsewhere'	=> "Elsewhere",
 
                       'lblPage'         => "Page",
                       'lblNextPage'     => "Next Page",
@@ -60,19 +61,6 @@ class theme_en implements lang_base {
                       'lblPoweredBy'    => "Powered By <a href=\"http://dematigo.com/projects#Noteworthy\" title=\"Noteworthy\">Noteworthy</a>.",
                       'lblAllRights'    => "All Rights Reserved",
                       'lblMyName'       => "",
-
-                      'lblMonth01'      => "January",
-                      'lblMonth02'      => "February",
-                      'lblMonth03'      => "March",
-                      'lblMonth04'      => "April",
-                      'lblMonth05'      => "May",
-                      'lblMonth06'      => "June",
-                      'lblMonth07'      => "July",
-                      'lblMonth08'      => "August",
-                      'lblMonth09'      => "September",
-                      'lblMonth10'      => "October",
-                      'lblMonth11'      => "November",
-                      'lblMonth12'      => "December",
 
                       );
 

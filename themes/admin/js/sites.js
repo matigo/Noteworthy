@@ -77,7 +77,43 @@ function performUpdates() {
         url: apiPath + method,
         data: params,
         success: function( data ) {
-            parseUpdateResult( data.data );
+            parseUpdateResult( data.data, "return-msg" );
+            _canSubmit = true;
+        },
+        error: function (xhr, ajaxOptions, thrownError){
+            alert(xhr.status + ' | ' + thrownError);
+            _canSubmit = true;
+        },
+        dataType: "json"
+    });
+}
+
+function performSocialUpdates() {
+    var params = new Object();
+    var method = 'settings/update';
+    var apiPath = getAPIPath();
+    var _dispDiv = '<div class="sys-message sys-info"><p>Updating the Cache Files. This May Take a Few Minutes.</p></div>';
+
+    // Set the Parameters
+    for( i = 0; i < document.socials.elements.length; i++ ) {
+    	if ( document.socials.elements[i].id != "" ) {
+	    	params[ document.socials.elements[i].id ] = document.socials.elements[i].value;
+    	}
+	}
+	params[ 'chkSocShow01' ] = findSelectionValue( 'chkSocShow01' );
+	params[ 'chkSocShow02' ] = findSelectionValue( 'chkSocShow02' );
+	params[ 'chkSocShow03' ] = findSelectionValue( 'chkSocShow03' );
+	params[ 'chkSocShow04' ] = findSelectionValue( 'chkSocShow04' );
+	params[ 'chkSocShow05' ] = findSelectionValue( 'chkSocShow05' );
+
+	// Ensure 'doComments' is Properly Set
+	document.getElementById("social-msg").innerHTML = _dispDiv;
+
+    $.ajax({
+        url: apiPath + method,
+        data: params,
+        success: function( data ) {
+            parseUpdateResult( data.data, "social-msg" );
             _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
@@ -96,9 +132,10 @@ function findSelectionValue( field ) {
             return test[i].value;
         }
     }
+    return "";
 }
 
-function parseUpdateResult( data ) {
+function parseUpdateResult( data, msgTag ) {
 	var result = false;
 	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
 
@@ -109,7 +146,7 @@ function parseUpdateResult( data ) {
 		_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
 	}
 	_dispDiv = _dispDiv.replace("[MESSAGE]", data.Message);
-	document.getElementById("return-msg").innerHTML = _dispDiv;
+	document.getElementById( msgTag ).innerHTML = _dispDiv;
 
     // Return the Parsed Result Message
 	return result;
