@@ -35,9 +35,9 @@ class theme_en implements lang_base {
         $rVal = array('lang_name'       => "English",
                       'lang_cd'         => "EN",
 
-                      'site_name'       => "Noteworthy Lives!",
-                      'site_descr'      => "A Demo of a Clean and Simple Noteworthy Theme",
-                      'lblEnableJS'     => "Please Enable JavaScript to View This Site",
+                      'SiteName'		=> "Noteworthy Lives!",
+                      'SiteDescr'		=> "A Demo of a Clean and Simple Noteworthy Theme",
+                      'lblEnableJS'		=> "Please Enable JavaScript to View This Site",
 
                       'lblHome'         => "Home",
                       'lblAbout'        => "About Me",

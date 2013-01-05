@@ -229,7 +229,7 @@ class Content extends Midori {
 
     private function _getPageTitle( $PostURL = "" ) {
 	    if ( $PostURL == "" ) { $PostURL = $this->settings['ReqURI']; }
-	    $rVal = $this->messages['site_name'];
+	    $rVal = NoNull($this->settings['SiteName'], $this->messages['SiteName']);
 	    $URL = sqlScrub( $PostURL );
 
 		$sqlStr = "SELECT m.`Value`, c.`Title`, c.`guid` FROM `Content` c, `Meta` m" .

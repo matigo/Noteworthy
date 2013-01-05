@@ -77,6 +77,7 @@ class miTheme extends theme_main {
                           '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->messages['site_descr']),
                           '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
                           '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
+                          '[FEEDTITLE]'	  => NoNull($this->messages['lblFeedTitle'], "Subscribe via RSS"),
                           '[ERROR_MSG]'   => '',
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
                           '[CSS_DIR]'     => CSS_DIR,
