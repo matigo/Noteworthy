@@ -67,6 +67,15 @@ class Content extends Midori {
 	    return $rVal;
     }
     
+    function getTweetsList( $Results = 25 ) {
+	    $CacheFile = "tweets_$Results";
+	    $rVal = $this->_readCachedHTML( $CacheFile, true );
+    	if ( !$rVal ) {
+    		$rVal = $this->_getTweetsList( $Results );
+    	}
+	    return $rVal;
+    }
+    
     function getTagsList( $IncludeAll = false ) {
     	$CacheFile = strtolower( 'tags_' . BoolYN($IncludeAll) );
     	$rVal = $this->_readCachedHTML( $CacheFile );
@@ -125,6 +134,37 @@ class Content extends Midori {
     /***********************************************************************
      *  Private Functions
      ***********************************************************************/
+    /**
+     *	Function Returns the Most Recent X Tweets
+     */
+    private function _getTweetsList( $Results = 25 ) {
+    	$PageNo = 1;
+    	if ( array_key_exists('Page', $this->settings) ) {
+		    $PageNo = nullInt($this->settings['Page'], 1);
+    	}
+    	$rVal = false;
+    	
+    	$StartNo = intval($PageNo) - 1;
+    	if ( $StartNo < 0 ) { $StartNo = 0; }
+    	$sqlStr = "SELECT c.`Value` as `Tweet`, c.`CreateDTS`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateUTS`, m.`Value` as `TweetID`" .
+    			  "  FROM `Content` c, `Meta` m" .
+    			  " WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
+    			  "   and c.`TypeCd` = 'TWEET' and m.`TypeCd` = 'TWEET-ID'" .
+    			  "   and c.`CreateDTS` <= Now()" .
+    			  " ORDER BY c.`CreateDTS` DESC" .
+    			  " LIMIT $StartNo, $Results";
+    	$rslt = doSQLQuery( $sqlStr );
+    	if ( is_array($rslt) ) {
+    		$rVal = $rslt;
+    	}
+
+    	// Return the Result
+    	return $rVal;
+    }
+
+    /**
+     *	Function Returns the Site Links Assigned in the Administration Panel
+     */
     private function _getSiteLinks() {
     	$SocItems = array('SocName', 'SocLink', 'SocShow');
     	$SiteID = 0;
@@ -545,16 +585,18 @@ class Content extends Midori {
 	    		break;
 
 	    	case 'SEARCH':
-	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`," .
+	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, c.`TypeCd` as `TYPE-CODE`," .
 		    				  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`," .
 		    				  " UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
 		    				  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`," .
-		    				  " substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) as `CONTENT`," .
-		    				  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-URL') as `POST-URL`," .
+		    				  " CASE c.`TypeCd` WHEN 'TWEET' THEN c.`Value`" .
+		    				  				  " ELSE substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) END as `CONTENT`," .
+		    				  " CASE c.`TypeCd` WHEN 'TWEET' THEN (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'TWEET-ID')" .
+		    				  				  " ELSE (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-URL') END as `POST-URL`," .
 		    				  " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-AUTHOR') as `POST-AUTHOR`" .
 	    				"  FROM `Content` c" .
 	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` IN ('POST', 'TWEET')" .
-	    				"   and c.`Value` LIKE '$PostFilter'" .
+	    				"   and c.`CreateDTS` <= Now() and c.`Value` LIKE '$PostFilter'" .
 	    				" ORDER BY c.`CreateDTS` DESC" .
 	    				" LIMIT $PageNo, $Results;";
 	    		break;

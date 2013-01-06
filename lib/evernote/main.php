@@ -110,10 +110,6 @@ class evernote {
     /**
      * Function Checks to Ensure the Request Can Proceed
      *	Definition: Is API Key required? Yes? Do we have it? Yes? Matches?
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _canProceed() {
 	    $UseSandbox = NoNull($this->setting['sandbox'], readSetting( 'core', 'UseSandbox' ));
@@ -138,6 +134,7 @@ class evernote {
 	    	}
 
 	    } else {
+	    	$this->errors[] = "Evernote is Not Enabled";
 			$ErrCount++;
 		}
 

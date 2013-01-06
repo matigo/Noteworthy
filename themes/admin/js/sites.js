@@ -30,13 +30,15 @@ function checkAkismet( apiKey, siteURL, akismetKey ) {
 
 function parseResult( data ) {
 	var result = false;
-	var _errMsg = "";
+	var _errMsg = "<p>** API Error. Please Try Again. **</p>";
 
-	if ( data.isGood == 'Y' ) {
-		result = true;
-		_errMsg = "<p>It's Good!</p>";
-	} else {
-		_errMsg = "<p>** API Key is Invalid. Please Confirm and Try Again. **</p>";
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == 'Y' ) {
+			result = true;
+			_errMsg = "<p>It's Good!</p>";
+		} else {
+			_errMsg = "<p>** API Key is Invalid. Please Confirm and Try Again. **</p>";
+		}
 	}
 	document.getElementById("akismet-err").innerHTML = _errMsg;
 
@@ -138,14 +140,18 @@ function findSelectionValue( field ) {
 function parseUpdateResult( data, msgTag ) {
 	var result = false;
 	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
+	var _dispMsg = '** API Error. Please Try Again.';
 
-	if ( data.isGood == 'Y' ) {
-		result = true;
-		_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
-	} else {
-		_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == 'Y' ) {
+			result = true;
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
+		} else {
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+		}
+		_dispMsg = data.Message;
 	}
-	_dispDiv = _dispDiv.replace("[MESSAGE]", data.Message);
+	_dispDiv = _dispDiv.replace("[MESSAGE]", _dispMsg);
 	document.getElementById( msgTag ).innerHTML = _dispDiv;
 
     // Return the Parsed Result Message
@@ -215,7 +221,7 @@ function parseEvernoteResult( data, apiKey ) {
 		getNotebooks( apiKey );
 	} else {
 		document.getElementById("enNotebooks").innerHTML = "";
-		alert("API Key Does Not Appear Valid");
+		alert( data.Message );
 	}
 }
 
@@ -247,22 +253,24 @@ function parseEvernoteNotebooks( data ) {
 	var checked = "";
 	var _errMsg = "";
 
-	if ( data.errors.length == 0 ) {
-		var ds = data.data;
+	if( typeof data.errors != "undefined" ) {
+		if ( data.errors.length == 0 ) {
+			var ds = data.data;
 
-		// Append the HTML to the Result String
-		for ( var i = 0; i < ds.length; i++ ) {
-			if ( ds[i].state == "checked" ) {
-				checked = 'checked="' + ds[i].state + '" ';
-			} else {
-				checked = '';
+			// Append the HTML to the Result String
+			for ( var i = 0; i < ds.length; i++ ) {
+				if ( ds[i].state == "checked" ) {
+					checked = 'checked="' + ds[i].state + '" ';
+				} else {
+					checked = '';
+				}
+
+				result += '<tr><td><input type="checkbox" value="' + ds[i].guid + '" ' + checked + '/></td>' +
+							  '<td>' + ds[i].name + '</td>' +
+							  '<td>' + ds[i].defaultNotebook + '</td>' +
+							  '<td>' + dateFormat(ds[i].serviceCreated, "mmmm dS, yyyy") + '</td>' +
+							  '<td>' + dateFormat(ds[i].serviceUpdated, "mmmm dS, yyyy") + '</td></tr>';
 			}
-			
-			result += '<tr><td><input type="checkbox" value="' + ds[i].guid + '" ' + checked + '/></td>' +
-						  '<td>' + ds[i].name + '</td>' +
-						  '<td>' + ds[i].defaultNotebook + '</td>' +
-						  '<td>' + dateFormat(ds[i].serviceCreated, "mmmm dS, yyyy") + '</td>' +
-						  '<td>' + dateFormat(ds[i].serviceUpdated, "mmmm dS, yyyy") + '</td></tr>';
 		}
 	}
 
@@ -298,12 +306,14 @@ function parseSelectedNotebooks( data ) {
 	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
 	var _errMsg = "";
 
-	if ( data.isGood == "Y" && data.errors.length == 0 ) {
-		_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
-		_errMsg = data.data.length + " " + (data.data.length == 1 ? "Notebook" : "Notebooks")  + " Will be Regularly Scanned";
-	} else {
-		_errMsg = "Something Went Wrong Selecting the Notebooks!";
-		_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == "Y" && data.errors.length == 0 ) {
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
+			_errMsg = data.data.length + " " + (data.data.length == 1 ? "Notebook" : "Notebooks")  + " Will be Regularly Scanned";
+		} else {
+			_errMsg = "Something Went Wrong Selecting the Notebooks!";
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+		}
 	}
 	_dispDiv = _dispDiv.replace("[MESSAGE]", _errMsg);
 	document.getElementById( "notebook-msg" ).innerHTML = _dispDiv;

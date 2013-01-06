@@ -51,9 +51,9 @@ class Cron {
 		    // Mark the Process as Complete!
 		    $this->_markCronDone();
 	    }
-	    
+
 	    // Return the Value
-	    print_r( $rVal );
+	    return $rVal;
     }
 
     /** ********************************************************************** *

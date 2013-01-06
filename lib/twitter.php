@@ -27,7 +27,7 @@ class Twitter {
     public function doUpdate( $FillGaps = false ) {
 	    $rVal = 0;
 
-	    if ( $this->Details['TwitUserName'] != "" ) {
+	    if ( $this->Details['TwitName'] != "" ) {
 		    if ( !FillGaps ) {
 			    $rVal = $this->_updateTweets();
 
@@ -56,8 +56,9 @@ class Twitter {
      *      Class
      */
     private function _populateClass() {
-        $rVal = array( 'TwitUserName'      => readSetting('core', 'TwitUserName'),
-                       'methodTimeline'    => "http://twitter.com/statuses/user_timeline.json",
+    	$SiteID = 0;
+        $rVal = array( 'TwitName'		=> readSetting( "Site_$SiteID", "TwitName" ),
+                       'methodTimeline'	=> "http://twitter.com/statuses/user_timeline.json",
                       );
 
         // Return the Base Array
@@ -73,7 +74,7 @@ class Twitter {
                        );
         $count = 100;
         
-        $url = 'http://api.twitter.com/1/statuses/user_timeline.json?screen_name=' . $this->Details['TwitUserName'] . '&count=' . $count . '&trim_user=true';
+        $url = 'http://api.twitter.com/1/statuses/user_timeline.json?screen_name=' . $this->Details['TwitName'] . '&count=' . $count . '&trim_user=true';
         if ( $MaxID != "" ) { $url .= "&max_id=" . $MaxID; }
 
         $ch = curl_init();

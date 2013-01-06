@@ -10,16 +10,17 @@
 require_once(LIB_DIR . '/globals.php');
 
     /**
-     *	Function returns the Site Details based on teh Site Requested
+     *	Function returns the Site Details based on the SiteID Requested
      */
     function getSiteDetails( $SiteID = 0 ) {
     	$SiteID = nullInt( $SiteID );
     	$CacheToken = "Site_$SiteID";
     	$APIKey = readSetting( $CacheToken, 'api_key' );
     	$SiteURL = readSetting( $CacheToken, 'HomeURL' );
+    	$doSave = false;
     	if ( $APIKey == "" ) {
     		$APIKey = getRandomString( 32, true);
-    		saveSetting( $CacheToken, 'api_key', $APIKey );
+    		$doSave = true;
     	}
         $rVal = array('URL'             => $_SERVER['SERVER_NAME'],
 		              'HomeURL'         => 'http://' . $_SERVER['SERVER_NAME'],
@@ -57,6 +58,13 @@ require_once(LIB_DIR . '/globals.php');
 		$Details = readSetting( $CacheToken, "*" );
 		foreach( $Details as $Key=>$Val ) {
 			$rVal[ $Key ] = $Val;
+		}
+		
+		// If this is the First Access for the SiteID, Save The Defaults
+		if ( $doSave ) {
+			foreach( $rVal as $Key=>$Val ) {
+				saveSetting( $CacheToken, $Key, $Val );
+			}
 		}
 
         // Return the Array of Site Details

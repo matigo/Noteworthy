@@ -28,13 +28,12 @@ class api extends Midori {
     /**
      * Function performs the requested Method Activity and Returns the Results
      *		in an array.
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function performAction() {
-	    $rVal = "Invalid Request";
+	    $rVal = array('data'   => false,
+					  'errors' => 'Invalid Request',
+					  'isGood' => 'N',
+					  );
 
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
 		if ( $this->_canProceed() ) {
@@ -110,7 +109,12 @@ class api extends Midori {
 		    		$eNote = new evernote( $this->settings );
 		    		$rVal = $eNote->performAction();
 		    		break;
+		    	
+		    	default:
+		    		// Do Nothing
 		    }
+		} else {
+			$rVal['Message'] = "Invalid Noteworthy API Key";
 		}
 
 	    // Return the Array

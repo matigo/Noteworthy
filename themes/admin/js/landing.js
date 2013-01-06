@@ -69,7 +69,8 @@ function parsePostsResult( data ) {
 		_row = '';
 	var _homeURL = getAPIPath();
 	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>',
-		_returnDiv = '';
+		_returnDiv = '',
+		_isGood = 'N';
 	var _rowTemplate = '<tr id="[GUID]"><td>[ID]</td>' +
 					   '<td>[TITLE]</td>' +
 					   '<td>[CREATEDTS]</td>' +
@@ -112,7 +113,6 @@ function parsePostsResult( data ) {
 			_row = _row.replace("[METAS]", ds[i].MetaRecords);
 			_row = _row.replace("[REFRESH]", _refresh);
 			_row = _row.replace("[HOMEURL]", _homeURL);
-			_row = _row.replace("[HOMEURL]", _homeURL);
 
 			_rows += _row;
 		}
@@ -126,9 +126,12 @@ function parsePostsResult( data ) {
 
 	} else {
 		_returnDiv = _dispDiv.replace("[CLASS]", "sys-error");
+		_returnDiv = _returnDiv.replace("[MESSAGE]", data.Message);
+		document.getElementById("system-msg").innerHTML = _returnDiv;
+		
+		// Show the Zero Post Div
+		showZeroPostDiv();
 	}
-	_dispDiv = _dispDiv.replace("[MESSAGE]", data.Message);
-	document.getElementById("return-msg").innerHTML = _returnDiv;
 	document.getElementById("post-data").innerHTML = _rows;
 	
 	// Return Appropriately
