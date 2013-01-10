@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS `[DBNAME]`.`Type`;
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Type` (
     `Code`          varchar(12)             NOT NULL    ,
     `Descr`         varchar(80)             NOT NULL    DEFAULT '',
@@ -16,7 +15,6 @@ VALUES ('POST', 'Post Content'), ('POST-GPS', 'Post Entry GPS Location'), ('POST
        ('TWEET-DTS', 'Tweet Date/Time Stamp'), ('TWEET-GPS', 'Tweet GPS Location'), ('TAG', 'Item Tag'),
        ('POST-URL', 'URL of Object'), ('POST-NCUD', 'Notebook Create/Update/Delete Hash'), ('OTHER', 'Other (Unspecified) Content');
 
-DROP TABLE IF EXISTS `[DBNAME]`.`Content`;
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     `id`            int(11)        UNSIGNED NOT NULL    AUTO_INCREMENT,
     `guid`          char(36)                NOT NULL    ,
@@ -25,18 +23,19 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     `Value`         text                    NOT NULL    ,
     `Hash`          varchar(40)                 NULL    ,
     `ParentID`      int(11)                     NULL    ,
+    `PostURL`		text					NOT NULL	,
+    `PostAuthor`	varchar(80)				NOT NULL	,
 
-    `CreateDTS`     datetime                NOT NULL    ,
-    `UpdateDTS`     datetime                NOT NULL    ,
-    `DeleteDTS`     datetime                    NULL    ,
-    `EntryDTS`      timestamp               NOT NULL    DEFAULT CURRENT_TIMESTAMP,
-    `isReplaced`    enum('N','Y')           NOT NULL    DEFAULT 'N',
+    `CreateDTS`     datetime                NOT NULL	,
+    `UpdateDTS`     datetime                NOT NULL	,
+    `DeleteDTS`     datetime                    NULL	,
+    `EntryDTS`      timestamp               NOT NULL	DEFAULT CURRENT_TIMESTAMP,
+    `isReplaced`    enum('N','Y')           NOT NULL	DEFAULT 'N',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-CREATE INDEX `conPriIDX` ON `[DBNAME]`.`Content` (`id`, `guid`, `TypeCd`);
-CREATE INDEX `conDtsIDX` ON `[DBNAME]`.`Content` (`id`, `CreateDTS`, `DeleteDTS`);
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE INDEX `conPriIDX` ON `[DBNAME]`.`Content` (`id`, `ParentID`, `TypeCd`, `isReplaced`);
+ALTER TABLE `[DBNAME]`.`Content` ADD FULLTEXT(`Title`, `Value`, `PostURL`);
 
-DROP TABLE IF EXISTS `[DBNAME]`.`Meta`;
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Meta` (
     `id`            int(11)        UNSIGNED NOT NULL    AUTO_INCREMENT,
     `ContentID`     int(11)                     NULL    ,
@@ -50,11 +49,9 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Meta` (
     `EntryDTS`      timestamp               NOT NULL    DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-CREATE INDEX `mtaPriIDX` ON `nworth`.`Meta` (`id`, `ContentID`, `TypeCd`);
-CREATE INDEX `mtaSecIDX` ON `nworth`.`Meta` (`id`, `ParentID`, `TypeCd`);
-CREATE INDEX `mtaGuiIDX` ON `nworth`.`Meta` (`id`, `guid`, `TypeCd`);
+CREATE INDEX `mtaPriIDX` ON `[DBNAME]`.`Meta` (`id`, `ContentID`, `ParentID`, `TypeCd`);
+CREATE INDEX `mtaGuiIDX` ON `[DBNAME]`.`Meta` (`id`, `guid`, `TypeCd`);
 
-DROP TABLE IF EXISTS `[DBNAME]`.`SysParm`;
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`SysParm` (
     `Code`          varchar(12)             NOT NULL    ,
     `intVal`		int(11)					NOT NULL	DEFAULT 0,
@@ -67,4 +64,4 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`SysParm` (
 CREATE INDEX `typPriIDX` ON `[DBNAME]`.`SysParm` (`Code`, `isDeleted`);
 
 INSERT INTO `[DBNAME]`.`SysParm` (`Code`, `intVal`)
-VALUES ('DB_VERSION', 1);
+VALUES ('DB_VERSION', 2);

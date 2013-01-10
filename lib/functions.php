@@ -98,7 +98,7 @@ require_once(LIB_DIR . '/globals.php');
      *	Function Returns an Array of Themes in the Theme Directory
      */
     function getThemeList() {
-    	$Excludes = array( 'admin', 'resource', 'themes.php');
+    	$Excludes = array( 'admin', 'resource', 'themes.php', '.DS_Store');
 	    $rVal = array();
 
 		if ($handle = opendir( THEME_DIR )) {
@@ -960,6 +960,50 @@ require_once(LIB_DIR . '/globals.php');
 
 	    fwrite($fp, $out);
 	    fclose($fp);
+	}
+
+
+    /**
+     *	Function Calls a URL Asynchronously, and Returns Nothing
+     *	Source: http://codeissue.com/issues/i64e175d21ea182/how-to-make-asynchronous-http-calls-using-php
+     */
+    function httpPostAsync( $url, $paramstring, $method = 'get', $timeout = '30', $returnresponse = false ) {
+		$method = strtoupper($method);
+		$urlParts = parse_url($url);      
+		$fp = fsockopen($urlParts['host'],         
+						isset( $urlParts['port'] ) ? $urlParts['port'] : 80,         
+						$errno, $errstr, $timeout);
+		$rVal = false;
+	
+		//If method="GET", add querystring parameters
+		if ($method='GET')
+			$urlParts['path'] .= '?'.$paramstring;
+	
+		$out = "$method ".$urlParts['path']." HTTP/1.1\r\n";     
+		$out.= "Host: ".$urlParts['host']."\r\n";
+		$out.= "Connection: Close\r\n";
+	
+		//If method="POST", add post parameters in http request body
+		if ($method='POST') {
+			$out.= "Content-Type: application/x-www-form-urlencoded\r\n";     
+			$out.= "Content-Length: ".strlen($paramstring)."\r\n\r\n";
+			$out.= $paramstring;      
+		}
+
+		fwrite($fp, $out);     
+	
+		//Wait for response and return back response only if $returnresponse=true
+		if ( $returnresponse ) {
+			$rVal = stream_get_contents($fp);
+		} else {
+			$rVal = true;
+		}
+
+		// Close the Connection
+		fclose($fp);
+		
+		// Return the Result
+		return $rVal;
 	}
 
     /***********************************************************************

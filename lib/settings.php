@@ -122,20 +122,23 @@ class Settings extends Midori {
 
 	    // Validate the MySQL Login (If Necessary)
 	    if ( $DBType == 1 ) {
+	    	writeNote( "Testing DB Settings ..." );
 		    $DBInfo = $this->_testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass );
-		    if ( !$DBInfo['LoginOK'] ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr001'], "Invalid MySQL Settings"); }
+		    if ( !$DBInfo['LoginOK'] ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr001'], "One or More Invalid MySQL Settings"); }
 	    }
 
 	    // Record the Data
 	    if ( $DBInfo['LoginOK'] ) {
 		    $rVal = $this->_saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug );
-		    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr002'], "Could Not Save Configuration Data"); }
-	    }
-
-	    // Create the Tables if Necessary
-	    if ( !$DBInfo['TableOK'] ) {
-		    $rVal = $this->_createDBTables();
-		    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr004'], "Could Not Populate Database"); }
+		    if ( $rVal ) {
+			    // Create the Tables if Necessary
+			    if ( !$DBInfo['TableOK'] ) {
+				    $rVal = $this->_createDBTables();
+				    if ( !$rVal ) { $this->errors[] = NoNull($this->messages['lblSetUpdErr004'], "Could Not Populate Database"); }
+			    }
+		    } else {
+		    	$this->errors[] = NoNull($this->messages['lblSetUpdErr002'], "Could Not Save Configuration Data");
+		    }
 	    }
 
 	    // Return a Boolean Response
@@ -146,12 +149,14 @@ class Settings extends Midori {
      *	Function Tests the SQL Login Data passed and Returns a Boolean Response
      */
     private function _testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass ) {
+    	writeNote( "_testSQLSettings( $DBServ, $DBName, $DBUser, $DBPass )" );
     	$rVal = array( 'LoginOK' => false,
     				   'TableOK' => false,
     				  );
 	    $r = 0;
 
 	    if ( $DBServ == "" || $DBName == "" || $DBUser == "" || $DBPass == "" ) {
+	    	$this->errors[] = NoNull($this->messages['lblSetUpdErr001'], "One or More Invalid MySQL Settings");
 		    return $rVal;
 	    }
 
@@ -193,7 +198,7 @@ class Settings extends Midori {
      *			  they are up to date (or compatible) with the running version
      */
     private function _isValidSQLTable( $TableName ) {
-	    $valid = array( 'Content', 'Meta', 'Type', 'SysParm' );
+	    $valid = array( 'Content', 'Meta', 'SysParm', 'Type' );
 	    $rVal = false;
 
 	    if ( in_array($TableName, $valid) ) { $rVal = true; }
@@ -205,10 +210,11 @@ class Settings extends Midori {
     /**
      * Function Saves a Setting with a Specific Token to the Temp Directory
      */
-    private function _saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug) {
+    private function _saveDBConfigData( $DBType, $DBServ, $DBName, $DBUser, $DBPass, $isDebug ) {
     	// Perform some VERY basic Validation here
     	if ( $isDebug < 0 || $isDebug > 1 ) { $isDebug = 0; }
     	if ( $DBType < 1 || $DBType > 2 ) { $DBType = 2; }
+    	$rVal = false;
 
 	    // Check to see if the Settings File Exists or Not
 	    if ( checkDIRExists( CONF_DIR ) ) {
@@ -232,13 +238,19 @@ class Settings extends Midori {
 		    			"?>";
 
 		    // Write the File to the Configuration Folder
-		    $fh = fopen($ConfFile, 'w+');
+		    $fh = fopen($ConfFile, 'w');
 		    fwrite($fh, $ConfData);
 		    fclose($fh);
+
+			// Set a Happy Return Boolean		    
+		    $rVal = true;
+
+	    } else {
+		    writeNote( "The Configuration File [" . CONF_DIR . "] Either Does Not Exist and Cannot Be Created, or is Not Writable" );
 	    }
 
-	    // Return a Happy Boolean
-	    return true;
+	    // Return a Boolean Response
+	    return $rVal;
     }
 
     /**

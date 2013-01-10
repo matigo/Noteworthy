@@ -510,9 +510,10 @@ class Content extends Midori {
 	 *		well ... returns the proper Query statement.
 	 */
 	private function _getAppropriateSQLQuery( $ReqURL, $QType = "POSTS", $PageNo = 0, $Results = 25, $doOverride = false ) {
+		$doExcerpt = YNBool($this->settings['RSSExcerpt']);
 		$Segments = explode('/', $ReqURL);
 		$TypeFilter = "POST-URL";
-		$PostFilter = '%' . $ReqURL . '%';
+		$PostFilter = sqlScrub($ReqURL);
 		$rVal = "";
 
 		switch ( strtolower($Segments[1]) ) {
@@ -537,6 +538,20 @@ class Content extends Midori {
 
 			default:
 				// Return the Post Query
+		}
+		
+		// Is this a Monthly View?
+		if ( is_numeric($Segments[1]) && is_numeric($Segments[2]) && NoNull($Segments[3]) == "" ) {
+			$QType = 'MONTHLY';
+			$DateStr = nullInt($Segments[1]) . '-' . nullInt($Segments[2]);
+			$StartDT = date( 'Y-m', strtotime("$DateStr first day") );
+			$EndDT = date( 'Y-m-d', strtotime("$DateStr next month last day") );
+			$PostFilter = " '$StartDT-01 00:00:00' AND '$EndDT 23:59:59'";
+		}
+
+		if ( $PostFilter == "%/%" ) {
+			$QType = 'HOME';
+			$doExcerpt = true;
 		}
 		
 		switch ( strtoupper($QType) ) {
@@ -566,39 +581,56 @@ class Content extends Midori {
 	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'";
 	    		break;
 
+	    	case 'HOME':
 	    	case 'RSS':
 	    		$ContentStr = "c.`Value`";
-	    		if ( YNBool($this->settings['RSSExcerpt']) ) {
+	    		if ( $doExcerpt ) {
 		    		$ContentStr = "substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3)";
 	    		}
-	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, m.`Value` as `POST-URL`," .
+	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`," .
 	    					  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`, UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
 	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`, $ContentStr as `CONTENT`," .
+	    					  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-URL') as `POST-URL`," .
 	    					  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-AUTHOR') as `POST-AUTHOR`," .
 	    					  " (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-FOOTER') as `POST-FOOTER`" .
-	    				"  FROM `Content` c, `Meta` m" .
-	    				" WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
-	    				"   and c.`TypeCd` = 'POST' and m.`TypeCd` = 'POST-URL'" .
+	    				"  FROM `Content` c" .
+	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
 	    				"   and c.`CreateDTS` <= Now()" .
 	    				" ORDER BY c.`CreateDTS` DESC" .
-	    				" LIMIT 0, $Results";
+	    				" LIMIT $PageNo, $Results";
+	    		break;
+
+	    	case 'MONTHLY':
+	    		$rVal = "SELECT n.`id` as `POST-ID`, n.`guid` as `POST-GUID`, n.`Title` as `TITLE`, n.`TypeCd` as `TYPE-CODE`," .
+		    				  " UNIX_TIMESTAMP(n.`EntryDTS`) as `ENTRY-UNIX`," .
+		    				  " UNIX_TIMESTAMP(n.`CreateDTS`) as `DATE-UNIX`," .
+		    				  " UNIX_TIMESTAMP(n.`UpdateDTS`) as `UPDATE-UNIX`," .
+		    				  " CASE n.`TypeCd` WHEN 'TWEET' THEN n.`Value`" .
+		    				  				  " ELSE substr(n.`Value`, locate('<p>', n.`Value`), locate('</p>', n.`Value`) + 3) END as `CONTENT`," .
+		    				  " n.`PostURL`, n.`PostAuthor`, n.`CreateDTS`, n.`UpdateDTS`, tmp.`Results`" .
+	    				"  FROM `Notes` n," .
+	    					  " (SELECT count(t.`id`) as `Results` FROM `Notes` t" .
+	    					  "   WHERE t.`isReplaced` = 'N' and t.`TypeCd` = 'POST' and t.`CreateDTS` BETWEEN $PostFilter) tmp" .
+	    				" WHERE n.`isReplaced` = 'N' and `TypeCd` = 'POST' and n.`CreateDTS` BETWEEN $PostFilter" .
+	    				" ORDER BY `CreateDTS`" .
+	    				" LIMIT $PageNo, $Results";
 	    		break;
 
 	    	case 'SEARCH':
-	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, c.`TypeCd` as `TYPE-CODE`," .
-		    				  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`," .
-		    				  " UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
-		    				  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`," .
-		    				  " CASE c.`TypeCd` WHEN 'TWEET' THEN c.`Value`" .
-		    				  				  " ELSE substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) END as `CONTENT`," .
-		    				  " CASE c.`TypeCd` WHEN 'TWEET' THEN (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'TWEET-ID')" .
-		    				  				  " ELSE (SELECT a.`Value` FROM `Meta` a WHERE c.`id` = a.`ContentID` and a.`TypeCd` = 'POST-URL') END as `POST-URL`," .
-		    				  " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-AUTHOR') as `POST-AUTHOR`" .
-	    				"  FROM `Content` c" .
-	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` IN ('POST', 'TWEET')" .
-	    				"   and c.`CreateDTS` <= Now() and c.`Value` LIKE '$PostFilter'" .
-	    				" ORDER BY c.`CreateDTS` DESC" .
-	    				" LIMIT $PageNo, $Results;";
+	    		$rVal = "SELECT n.`id` as `POST-ID`, n.`guid` as `POST-GUID`, n.`Title` as `TITLE`, n.`TypeCd` as `TYPE-CODE`," .
+		    				  " UNIX_TIMESTAMP(n.`EntryDTS`) as `ENTRY-UNIX`," .
+		    				  " UNIX_TIMESTAMP(n.`CreateDTS`) as `DATE-UNIX`," .
+		    				  " UNIX_TIMESTAMP(n.`UpdateDTS`) as `UPDATE-UNIX`," .
+		    				  " CASE n.`TypeCd` WHEN 'TWEET' THEN n.`Value`" .
+		    				  				  " ELSE substr(n.`Value`, locate('<p>', n.`Value`), locate('</p>', n.`Value`) + 3) END as `CONTENT`," .
+		    				  " n.`PostURL`, n.`PostAuthor`, n.`CreateDTS`, n.`UpdateDTS`, tmp.`Results`" .
+	    				"  FROM `Notes` n," .
+	    					  "	(SELECT count(n.`id`) as `Results` FROM `Notes` n" .
+	    					  "   WHERE n.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" . 
+	    					  "     and MATCH (n.`Title`, n.`Value`) AGAINST ('$PostFilter')) tmp" .
+	    				" WHERE n.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" .
+	    				"   and MATCH (n.`Title`, n.`Value`) AGAINST ('$PostFilter')" .
+	    				" LIMIT $PageNo, $Results";
 	    		break;
 
 			default:
@@ -773,10 +805,8 @@ class Content extends Midori {
 				    		}
 
 				    		// Determine the Total Number of Records
-				    		$sqlStr = $this->_getAppropriateSQLQuery( $ReqURL, 'RECORDCOUNT' );
-				    		$rCnt = doSQLQuery( $sqlStr );
 				    		if ( is_array($rCnt) ) {
-					    		$RecordCount = nullInt( $rCnt[0]['Records'] );
+					    		$RecordCount = nullInt( $rslt[0]['Results'] );
 				    		}
 			    		}
 		    		}

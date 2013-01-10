@@ -45,16 +45,13 @@ class evernote {
     /**
      * Function performs the requested Method Activity and Returns the Results
      *		in an array.
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     public function performAction() {
 	    $data = "Evernote Feature Not Activated";
 
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
 		if ( $this->_canProceed() ) {
+			writeNote( "Evernote - performAction: " . NoNull($this->settings['spage']) );
 		    switch ( NoNull($this->settings['spage']) ) {
 		    	case 'listNotebooks':
 		    		$data = $this->_getNotebooks();
@@ -244,6 +241,7 @@ class evernote {
 	    $rVal = array();
 
 	    if ( $this->settings['ttoken'] != '' ) {
+	    	writeNote( "Testing Token: " . $this->settings['ttoken'] );
 		    $splitter = array();
 		    $isOK = true;
 
@@ -567,6 +565,7 @@ class evernote {
 		$rVal = "Update Incomplete";
 		
 		try {
+			writeNote( "About to Update Notes from Evernote Server" );
 			$noteStoreShard = $this->_getNoteStoreShard();
 			$isOK = false;
 

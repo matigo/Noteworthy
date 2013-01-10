@@ -143,7 +143,7 @@ class lang_en implements lang_base {
                       'lblYearSuffix'	=> "",
                       
                       'lblSetUpdGood'	=> "Successfully Updated Settings",
-                      'lblSetUpdErr001'	=> "Invalid MySQL Settings",
+                      'lblSetUpdErr001'	=> "One or More Invalid MySQL Settings",
                       'lblSetUpdErr002'	=> "Could Not Save Configuration Data",
                       'lblSetUpdErr003'	=> "Database Already Exists",
                       'lblSetUpdErr004'	=> "Could Not Populate Database",
