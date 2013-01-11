@@ -608,7 +608,7 @@ class evernote {
 	/**
 	 *	Function Refreshes a Note in the DataStore
 	 */
-	private function _refreshNote( $ReadOnly = false ) {
+	private function _refreshNote() {
 		$NoteGUID = sqlScrub($this->settings['guid']);
 		$rVal = false;
 		
@@ -644,29 +644,15 @@ class evernote {
             			   nullInt($note->deleted) / 1000;
             	$NoteCUD = md5($NoteCUD);
 
-            	if ( $ReadOnly ) {
-                	$thisNote = array( "guid"		  => NoNull($note->guid),
-                					   "title"		  => NoNull($note->title),
-                					   "created" 	  => $note->created / 1000,
-                					   "updated" 	  => $note->updated / 1000,
-                					   "notebookGUID" => $note->notebookGuid,
-                					   "author" 	  => NoNull($note->attributes->author, $this->settings['DEFAULT_AUTHOR']),
-                					   "NoteCUD" 	  => $NoteCUD,
-                					  );
-                	$rVal = $thisNote;
-
-            	} else {
-                	// Update the Note
-                	if ( $this->_recordNote($note, $NoteCUD) ) {
-                		$sqlStr = "SELECT c.`id`, c.`guid`, c.`Title`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`," .
-                					    " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`, LENGTH(c.`Value`) as `PostLength`," .
-                					    " (SELECT m.`Value` FROM `Meta` m WHERE c.`id` = m.`ContentID` and m.`TypeCd` = 'POST-URL') as `PostURL`," .
-                					    " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
-                				  "  FROM `Content` c" .
-                				  " WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
-                				  "   and c.`guid` = '$NoteGUID';";
-                		$rVal = doSQLQuery( $sqlStr );
-                	}
+            	// Update the Note
+            	if ( $this->_recordNote($note, $NoteCUD) ) {
+            		$sqlStr = "SELECT c.`id`, c.`guid`, c.`Title`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`, c.`PostURL`," .
+            					    " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`, LENGTH(c.`Value`) as `PostLength`," .
+            					    " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
+            				  "  FROM `Content` c" .
+            				  " WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
+            				  "   and c.`guid` = '$NoteGUID';";
+            		$rVal = doSQLQuery( $sqlStr );
             	}
 	        }
 
@@ -697,6 +683,8 @@ class evernote {
 	 * Note: ReadOnly = {TRUE} will return an array of notes (Name, GUID, CreateDTS, UpdateDTS)
 	 */
 	private function _collectNotes( $NotebookGUIDs, $ReadOnly = false ) {
+		$LastEvernoteUpdateTime = intval(readSetting( 'cron', 'EvernoteLastDTS' ));
+		$MaxUpdateTime = $LastEvernoteUpdateTime;
 		$rVal = 0;
 
 		// Don't Collect Notes unless we have an array (even for one)
@@ -704,9 +692,6 @@ class evernote {
 			return $rVal;
 			exit;
 		}
-		
-		// Swap the Return Value to an Array if Necessary
-		if ( $ReadOnly ) { $rVal = array(); }
 
 		try {
 			$noteStoreShard = $this->_getNoteStoreShard();
@@ -741,21 +726,12 @@ class evernote {
                     			   nullInt($note->created) / 1000 . '.' .
                     			   nullInt($note->updated) / 1000 . '.' .
                     			   nullInt($note->deleted) / 1000;
-                    	$NoteCUD = md5($NoteCUD);
-                    	$i++;
+                    	$UpdateDTS = nullInt($note->updated) / 1000;
+                    	if ( $UpdateDTS > $LastEvernoteUpdateTime ) {
+                    		saveSetting( 'cron', 'EvernoteLastDTS', $UpdateDTS );
+	                    	$NoteCUD = md5($NoteCUD);
+	                    	$i++;
 
-                    	if ( $ReadOnly ) {
-	                    	$thisNote = array( "guid"		  => NoNull($note->guid),
-	                    					   "title"		  => NoNull($note->title),
-	                    					   "created" 	  => $note->created,
-	                    					   "updated" 	  => $note->updated,
-	                    					   "notebookGUID" => $note->notebookGuid,
-	                    					   "author" 	  => NoNull($note->attributes->author, $this->settings['DEFAULT_AUTHOR']),
-	                    					   "NoteCUD" 	  => $NoteCUD,
-	                    					  );
-	                    	$rVal[] = $thisNote;
-
-                    	} else {
 	                    	// Check to see if there is a difference
 	                    	if ( $this->_isNewNote($note->guid, $NoteCUD) ) {
 	                    		if ( in_array($note->notebookGuid, $NotebookGUIDs) ) {
@@ -889,30 +865,39 @@ class evernote {
                     $ParentID = $this->_getPostParentIDFromGUID( $data['guid'] );
                     $DeleteDTS = ( $data['deleted'] > 0 ) ? "FROM_UNIXTIME(" . $data['deleted'] . ")" : "NULL";
 
-                    $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, `Hash`, `ParentID`, `CreateDTS`, `UpdateDTS`, `DeleteDTS`) " .
+                    $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, `Hash`, `ParentID`, `PostURL`, `PostAuthor`," . 
+                    								 "`CreateDTS`, `UpdateDTS`, `DeleteDTS`) " .
                               "VALUES ( '" . $data['guid'] . "', " .
                                        "'POST', " .
                                        "'" . sqlScrub( $data['title'] ) . "', ".
                                        "'" . sqlScrub( $data['content'] ) . "', " .
                                        "'" . $data['contentHash'] . "', " .
-                                       " $ParentID, " .
+                                       " $ParentID, '" . $data['url'] . "', '" . sqlScrub($data['author']) . "', " .
                                        " FROM_UNIXTIME(" . $data['created'] . "), " .
                                        " FROM_UNIXTIME(" . $data['updated'] . "), " .
                                        " $DeleteDTS );";
                     $dbID = doSQLExecute( $sqlStr );
 
                     if ( $dbID > 0 ) {
+	                    // Save the Footnotes in the Content Directory (If They Exist)
+                        if ( $data['footnotes'] != '' ) {
+                            $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, `Hash`, `ParentID`, `PostURL`, `PostAuthor`," . 
+                    								 "`CreateDTS`, `UpdateDTS`, `DeleteDTS`) " .
+		                              "VALUES ( '" . $data['guid'] . "', 'POST-FOOTER', '', '" . sqlScrub($data['footnotes']) . "', " .
+		                                       "'" . md5($data['footnotes']) . "', $dbID, '" . $data['url'] . "', '" . sqlScrub($data['author']) . "', " .
+		                                       " FROM_UNIXTIME(" . $data['created'] . "), FROM_UNIXTIME(" . $data['updated'] . "), " .
+		                                       " $DeleteDTS );";
+		                    $footID = doSQLExecute( $sqlStr );
+		                    writeNote( "PostID $dbID Footnote Saved to $footID" );
+                        }
+
+                        // Write the Meta Data Where Appropriate
                         $sqlStr = "INSERT INTO `Meta` (`ContentID`, `ParentID`, `guid`, `TypeCd`, `Value`, `Hash`) " .
                                   "VALUES";
-                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-AUTHOR', '" . sqlScrub($data['author']) . "', '" . md5($data['author']) . "')," .
-                        		  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "')," .
-                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NCUD', '" . $NoteCUD . "', '" . md5($NoteCUD) . "')," .
-                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-URL', '" . $data['url'] . "', '" . md5($data['url']) . "'),";
+                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "')," .
+                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NCUD', '" . $NoteCUD . "', '" . md5($NoteCUD) . "'),";
                         if ( $data['contentLength'] > 0 ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-LENGTH', '" . $data['contentLength'] . "', '" . md5($cLen) . "'),";
-                        }
-                        if ( $data['footnotes'] != '' ) {
-                            $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-FOOTER', '" . sqlScrub($data['footnotes']) . "', '" . md5($data['footnotes']) . "'),";
                         }
                         if ( $data['attributes']['longitude'] != '' ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-GPS-LNG', '" . $data['attributes']['longitude'] . "', '" . md5($data['attributes']['longitude']) . "'),";
@@ -976,17 +961,13 @@ class evernote {
 
     /**
      * Function Returns the Maximum Content.id Value for a given GUID
-     * 
-     * Change Log
-     * ----------
-     * 2012.04.14 - Created Function (J2fi)
      */
     private function _getPostParentIDFromGUID( $NoteGUID ) {
         $rVal = 'NULL';
 
         if ( $NoteGUID ) {
         	$sqlStr = "SELECT max(`id`) as `MaxID` FROM `Content`" .
-        			  " WHERE `isReplaced` = 'N' and `guid` = '$NoteGUID';";
+        			  " WHERE `isReplaced` = 'N' and `guid` = '$NoteGUID'";
         	$rslt = doSQLQuery( $sqlStr );
 			if ( is_array($rslt) ) {
 				foreach ( $rslt as $Key=>$Row ) {

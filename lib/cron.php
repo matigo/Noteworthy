@@ -24,6 +24,7 @@ class Cron {
      *  Public Functions
      ** ********************************************************************** */
     function performFunctions() {
+    	writeNote( "Cron::performFunctions()" );
     	$rVal = "Nothing To Be Done";
 
 	    if ( $this->_canDoUpdate() ) {
@@ -32,6 +33,7 @@ class Cron {
 		    // Update the Twitter Feed (Done Every 5 Minutes)
 		    $TwitName = $this->settings['TwitName'];
 		    if ( $TwitName != "" ) {
+			    writeNote( "Collecting Tweets for: $TwitName" );
 			    require_once( LIB_DIR . '/twitter.php' );
 			    $twt = new Twitter();
 			    $rVal['LastTweet'] = $twt->doUpdate();
@@ -40,9 +42,10 @@ class Cron {
 
 		    // Update the Evernote Posts (If Necessary)
 		    if ( $this->_canUpdateService("Evernote") ) {
+		    	writeNote( "Perform Evernote Update" );
 				require_once( LIB_DIR . '/evernote/main.php' );
 				$eNote = new evernote( $this->settings );
-				$rVal = $eNote->performAction();
+				$rVal['EverNote'] = $eNote->performAction();
 		    }
 
 		    // Update the Long-Loading Pages
@@ -52,6 +55,14 @@ class Cron {
 		    $this->_markCronDone();
 	    }
 
+	    // Record the Results if Necessary
+	    if ( is_array($rVal) ) {
+		    foreach( $rVal as $Key=>$Val ) {
+			    writeNote( "Cron Result: [$Key] => $Val" );
+		    }
+	    } else {
+		    writeNote( "Cron Result: $rVal" );
+	    }
 	    // Return the Value
 	    return $rVal;
     }

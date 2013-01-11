@@ -379,6 +379,7 @@ class miTheme extends theme_main {
 		                                  '[DISQUS_ID]'	    => readSetting('core', 'DisqusID'),
 		                                  '[COMMENTS]'      => "",
 		                                  '[PAGINATION]'	=> "",
+		                                  '[IMG_DIR]'		=> IMG_DIR,
 		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
 		                                  '[DIV-CLASS]'     => "",
 		                                 );
@@ -410,8 +411,15 @@ class miTheme extends theme_main {
 				            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
 	
 		                } else {
-		                	if ( $ReplStr['[POST-URL]'] != "" ) {
-				                $rVal .= readResource( RES_DIR . '/content-search-post.html', $ReplStr);		                	
+		                	if ( $ReplStr['[PostURL]'] != "" ) {
+		                		$SearchResource = '/content-search-post.html';
+		                		$ReplStr['[POST-URL]'] = str_replace('[HOMEURL]', $this->settings['HomeURL'], $ReplStr['[PostURL]'] );
+		                		if ( $ReplStr['[TYPE-CODE]'] == 'TWEET' ) {
+		                			$ReplStr['[CONTENT]'] = parseTweet( $ReplStr['[CONTENT]'] );
+		                			$ReplStr['[TITLE]'] = strip_tags( $ReplStr['[CONTENT]'] );
+			                		$SearchResource = '/content-search-tweet.html';
+		                		}
+		                		$rVal .= readResource( RES_DIR . $SearchResource, $ReplStr);
 		                	}
 		                }
 		                $i++;

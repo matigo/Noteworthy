@@ -69,6 +69,7 @@ class Twitter {
      * Function Updates the Local Database for the Tweets since Last Check
      */
     private function _updateTweets( $MaxID = "" ) {
+    	writeNote( "_updateTweets( $MaxID )" );
         $rVal = array( 'LastTweet' => $MaxID,
                        'Records'   => 0
                        );
@@ -82,16 +83,19 @@ class Twitter {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $Tweets = json_decode(curl_exec($ch), true);
         $TweetList = "'0'";
-        
+        $Twit = sqlScrub($this->Details['TwitName']);
+        $PrefixURL = "https://twitter.com/$Twit/status/";
+
         // Collect the TweetIDs in the ResultSet
+        writeNote( "Received " . count($Tweets) . " Tweets from Twitter" );
         foreach ( $Tweets as $Tweet ) {
             $TweetList .= ", '" . NoNull($Tweet['id_str']) . "'";
         }
         $TweetsInDB = $this->_getTweetIDs( $TweetList );
-        
+
         foreach ( $Tweets as $Tweet ) {
             $Tweet = preg_replace('/"id":(\d+)/', '"id":"$1"', $Tweet);
-            
+
             // Construct the Main Content Element
             $guid = md5($Tweet['id_str']);
             $msg = NoNull($Tweet['text']);
@@ -105,8 +109,12 @@ class Twitter {
             }
 
             if ( !in_array($TweetID, $TweetsInDB) ) {
-                $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, `Hash`, `CreateDTS`, `UpdateDTS`) " .
-                          "VALUES ('$guid', 'TWEET', '', '" . sqlScrub( $msg ) . "', '" . md5($msg) . "', FROM_UNIXTIME($TweetDTS), FROM_UNIXTIME($TweetDTS));";
+                $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, " . 
+                								 "`PostURL`, `PostAuthor`, " . 
+                								 "`Hash`, `CreateDTS`, `UpdateDTS`) " .
+                          "VALUES ('$guid', 'TWEET', '', '" . sqlScrub( $msg ) . "', " . 
+                          		  "'$PrefixURL" . $TweetID . "', '$Twit', " . 
+                          		  "'" . md5($msg) . "', FROM_UNIXTIME($TweetDTS), FROM_UNIXTIME($TweetDTS));";
                 $ContentID = doSQLExecute( $sqlStr );
 
                 if ( $ContentID > 0 ) {
@@ -125,10 +133,14 @@ class Twitter {
                 }
                 $rVal['Records']++;
             }
+            writeNote( "Last Tweet ID: $TweetID" );
             $rVal['LastTweet'] = $TweetID;
         }
 
         // Return the Number of Tweets Added
+        foreach ( $rVal as $Key=>$Val ) {
+	        writeNote( "Results: [$Key] => $Val" );
+        }
         return $rVal;
     }
 

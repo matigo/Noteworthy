@@ -191,7 +191,7 @@ require_once(LIB_DIR . '/globals.php');
     }
     
     /**
-     * Function Identifies UserNames and Replaces the Name with a proper URL
+     * Function Identifies UserNames, HashTags, and URLs before Replacing them with proper URLs
      */
     function parseTweet( $Tweet ) {
         $rVal = $Tweet;

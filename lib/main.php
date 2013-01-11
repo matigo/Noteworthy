@@ -134,8 +134,6 @@ class Midori {
     	// Do we need to run a web cron job? Do so if necessary in an Asyncronous Call
     	if ( $doCron ) {
     		$CronURL = $this->Settings['HomeURL'] . '/cron/';
-    		//$CronPMs = array();
-        	//curlPostAsync( $CronURL, $CronPMs);
         	httpPostAsync( $CronURL, '');
     	}
     }
