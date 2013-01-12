@@ -35,6 +35,7 @@ class Email {
         $Method = NoNull($this->settings['spage']);
         $rVal = $this->messages['lblInvalidFunc'] . " [$Method]";
 
+        // Perform the Requested Work
         switch ( $Method ) {
             case 'send':
                 // Send a Message to the Appropriate Accounts

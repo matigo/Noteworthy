@@ -26,9 +26,9 @@
     function NoNull( $string, $Default = "" ) {
         $rVal = $Default;
 
-        if ( isset( $string ) ) {
-            $rVal = ltrim(rtrim( $string ));
-        }
+        // Let's do some trimming and, if necessary, return defaults
+        if ( isset( $string ) ) { $rVal = ltrim(rtrim( $string )); }
+        if ( $rVal == "" && $Default != "" ) { $rVal = $Default; }
 
         // Return the String Value
         return $rVal;

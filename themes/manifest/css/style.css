@@ -173,7 +173,7 @@ input[type=submit]{
   color: #fff;
   font-weight: bold;
   background-color: #8EA7AA;
-  background-image: url(images/button.png);
+  background-image: url(../img/button.png);
   background-repeat: repeat-x;
   background-position: left top;
   border-width: 1px;

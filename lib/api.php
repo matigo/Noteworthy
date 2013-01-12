@@ -5,10 +5,6 @@
  * @copyright 2012
  * 
  * Class contains the rules and methods called for API Handling in Noteworhty
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created Class (J2fi)
  */
 require_once( LIB_DIR . '/functions.php');
 
@@ -80,9 +76,14 @@ class api extends Midori {
 		    		break;
 
 		    	case 'email':
-		    		require_once( LIB_DIR . '/email.php' );
-		    		$mail = new Email( $this->settings );
-		    		$rVal = $mail->perform();
+		    		$canEmail = YNBool( readSetting('core', 'EmailOn') );
+		    		if ( $canEmail ) {
+			    		require_once( LIB_DIR . '/email.php' );
+			    		$mail = new Email( $this->settings );
+			    		$rVal = $mail->perform();			    		
+		    		} else {
+			    		$rVal['errors'] = "Email Is Not Enabled";
+		    		}
 		    		break;
 
 		    	case 'settings':
@@ -127,18 +128,18 @@ class api extends Midori {
     /**
      * Function Checks to Ensure the Request Can Proceed
      *	Definition: Is API Key required? Yes? Do we have it? Yes? Matches?
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
      */
     private function _canProceed() {
+	    $doPage = NoNull($this->settings['mpage'], $this->settings['spage']);
 	    $rVal = false;
-	    
-	    if ( boolYN($this->settings['require_key']) ) {
+
+	    if ( BoolYN($this->settings['require_key']) ) {
 		    if ( NoNull($this->settings['api_key']) == NoNull($this->settings['accessKey']) ) {
 			    $rVal = true;
 		    }
+		    // I don't like this, but emails should be sent without an API Access Key
+		    if ( $doPage == 'email' ) { $rVal = true; }
+
 	    } else {
 		    $rVal = true;
 	    }
@@ -146,17 +147,6 @@ class api extends Midori {
 	    // Return a Boolean
 	    return $rVal;
     }
-
-    /**
-     * Function Returns a SQL String Based on the Method passed.
-     *
-     * Change Log
-     * ----------
-     * 2012.10.07 - Created Function (J2fi)
-     */
-     private function _evernoteValidate() {
-	     
-     }
 
 }
 

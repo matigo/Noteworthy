@@ -331,21 +331,26 @@ class Content extends Midori {
 	    return $rVal;
     }
 
+    /**
+     *	Function Returns just the Title of the Post, or an Empty String
+     */
     private function _getPageTitle( $PostURL = "" ) {
 	    if ( $PostURL == "" ) { $PostURL = $this->settings['ReqURI']; }
-	    $rVal = NoNull($this->settings['SiteName'], $this->messages['SiteName']);
+	    $rVal = "";
 	    $URL = sqlScrub( $PostURL );
 
-		$sqlStr = "SELECT m.`Value`, c.`Title`, c.`guid` FROM `Content` c, `Meta` m" .
-				  " WHERE c.`id` = m.`ContentID` and c.`isReplaced` = 'N'" .
-				  "   and m.`TypeCd` = 'POST-URL' and m.`Value` LIKE '%$URL%'" .
+		$sqlStr = "SELECT c.`Title` FROM `Content` c" .
+				  " WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
+				  "   and c.`PostURL` LIKE '%$URL%'" .
 				  " LIMIT 0, 1;";
 		$rslt = doSQLQuery( $sqlStr );
 		if ( is_array($rslt) ) {
-			$rVal .= " | " . NoNull( $rslt[0]['Title'] );
+			if ( NoNull($rslt[0]['Title']) != "" ) {
+				$rVal = NoNull($rslt[0]['Title']);
+			}
 		}
 
-		// Return the Title
+		// Return the Title or an Empty String
 		return $rVal;
     }
 
@@ -818,7 +823,7 @@ class Content extends Midori {
 
 				    		// Construct the Search Result for the Theme
 				    		foreach ( $rslt as $Key=>$Post ) {
-					    		$rVal[ $Records ] = $this->_buildMultiReturnArray( $Post, $meta );
+					    		$rVal[ $Records ] = $this->_buildMultiReturnArray( $Post, $PostMeta );
 					    		$Records++;
 				    		}
 
@@ -830,10 +835,10 @@ class Content extends Midori {
 		    		}
 
 		    		// Fill in the Blanks
+		    		$rVal['Records'] = count($rVal);
 		    		$rVal['RecordTotal'] = $RecordCount;
 		    		$rVal['RecordCount'] = $RecordCount;
 		    		$rVal['Resource'] = $Resource;
-		    		$rVal['Records'] = $Records - 1;
 
 		    		// If there Are 0 Results (rslt is NOT an array) Then 404
 		    	}
@@ -992,10 +997,6 @@ class Content extends Midori {
 					case 'POST-GPS-LNG':
 						$GeoLng = $Row['Value'];
 						break;
-					
-					case 'POST-FOOTER':
-						$PostFoot = $Row['Value'];
-						break;
 
 					default:
 						// Do Nothing -- Unhandled TypeCd
@@ -1009,7 +1010,6 @@ class Content extends Midori {
 	    }
 
 	    // Save the Information
-	    $rVal['[POST-FOOTER]'] = NoNull($PostFoot);
 	    $rVal['[POST-TAG]'] = NoNull($PostTag);
 	    $rVal['[POST-GEO]'] = NoNull($GeoTag);
 
