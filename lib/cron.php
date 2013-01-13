@@ -80,6 +80,13 @@ class Cron {
     	$Elapsed =  time() - intval($LastCron);
 	    $rVal = false;
 
+	    // If the Cron is Still Marked as Active after 4 CronTime Occurrences, Reset the Thing
+	    // This is a very kludgy way to handle a cron task that failed half-way through without
+	    // reporting the error
+	    if ( $isActive && $Elapsed > ($CronTime * 4) ) {
+		    $isActive = false;
+	    }
+
 	    // If the Elapsed Time is Greater than the Cron Interval, Return True
 	    if ( !$isActive && $Elapsed > intval($CronTime) ) {
 	    	saveSetting($this->settings['TokenName'], 'isActive', BoolYN(true) );

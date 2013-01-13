@@ -62,7 +62,6 @@ class Content extends Midori {
     	$rVal = $this->_readCachedHTML( $CacheFile );
     	if ( !$rVal ) {
     		$rVal = $this->_getArchiveList( $CacheFile );
-    		$this->_saveCachedHTML( $CacheFile, $rVal );
     	}
 	    return $rVal;
     }
@@ -81,7 +80,6 @@ class Content extends Midori {
     	$rVal = $this->_readCachedHTML( $CacheFile );
     	if ( !$rVal ) {
 	    	$rVal = $this->_getTagsList( $IncludeAll );
-    		$this->_saveCachedHTML( $CacheFile, $rVal );
     	}
 	    return $rVal;
     }
@@ -146,10 +144,9 @@ class Content extends Midori {
     	
     	$StartNo = intval($PageNo) - 1;
     	if ( $StartNo < 0 ) { $StartNo = 0; }
-    	$sqlStr = "SELECT c.`Value` as `Tweet`, c.`CreateDTS`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateUTS`, m.`Value` as `TweetID`" .
-    			  "  FROM `Content` c, `Meta` m" .
-    			  " WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
-    			  "   and c.`TypeCd` = 'TWEET' and m.`TypeCd` = 'TWEET-ID'" .
+    	$sqlStr = "SELECT c.`Value` as `Tweet`, c.`CreateDTS`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateUTS`, c.`PostURL`" .
+    			  "  FROM `Content` c" .
+    			  " WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'TWEET'" .
     			  "   and c.`CreateDTS` <= Now()" .
     			  " ORDER BY c.`CreateDTS` DESC" .
     			  " LIMIT $StartNo, $Results";
@@ -1107,7 +1104,8 @@ class Content extends Midori {
      *	- This is used mainly to ensure the cache is sufficiently up to date
      */
     private function _getLastContentID( $AllTypes = false ) {
-    	$TypeCd = ( $AllTypes ) ? "'POST', 'TWEET'" : "'POST'";
+    	$TypeCd = "'POST'";
+    	if ( $AllTypes ) { $TypeCd = "'POST', 'TWEET'"; }
 	    $rVal = 0;
 
 	    switch ( DB_TYPE ) {
@@ -1115,7 +1113,7 @@ class Content extends Midori {
 		    	// MySQL
 		    	// Format: First 6 Digits Represent the number of posts in the database
 		    	//		   Latter Digits Represent the Highest Unix Timestamp of Published Posts
-		    	$sqlStr = "CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
+		    	$sqlStr = "SELECT CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
 		    			  "  FROM `Content`" .
 		    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now()" .
 		    			  "   and `TypeCd` IN ($TypeCd)";
@@ -1135,7 +1133,7 @@ class Content extends Midori {
 		    default:
 		    	// API Retrieval -- We Shouldn't Be Here
 	    }
-	    
+
 	    // Return the ID
 	    return $rVal;
     }
@@ -1167,6 +1165,37 @@ class Content extends Midori {
 	    $sqlStr = $this->_getAppropriateSQLQuery( '', 'RSS' );
 	    $data = doSQLQuery( $sqlStr );
 	    if ( is_array($data) ) {
+	    	// Collect the PostIDs and Read In any Footnotes that May exist
+	    	$PostIDs = "0";
+	    	foreach( $data as $Key=>$Post ) {
+		    	$PostIDs .= ", " . $Post['POST-ID'];
+	    	}
+
+	    	// If We Have a List of PostIDs (Not Including 0), Collect the Footers (If Available)
+	    	if ( strlen($PostIDs) > 1 ) {
+		    	$sqlStr = "SELECT `ParentID`, `Value` FROM `Content`" .
+		    			  " WHERE `isReplaced` = 'N' and `TypeCd` = 'POST-FOOTER'" .
+		    			  "   and `ParentID` IN ($PostIDs)" .
+		    			  " ORDER BY `CreateDTS` DESC";
+		    	$meta = doSQLQuery( $sqlStr );
+		    	if ( is_array($meta) ) {
+		    		foreach ( $data as $Key=>$Post ) {
+		    			$Post['POST-FOOTER'] = "";
+				    	foreach ( $meta as $K=>$Row ) {
+					    	// Check for a Matched ID
+					    	if ( intval($Post['POST-ID']) == intval($Row['ParentID']) ) {
+						    	$data[$Key]['POST-FOOTER'] = NoNull($Row['Value']);
+						    	break;
+					    	}
+				    	}
+		    		}
+		    	}
+
+		    	// Release the Array
+		    	unset($meta);
+	    	}
+
+	    	// Construct the RSS Entries
 		    foreach( $data as $Key=>$Post ) {
 		    	if ( $LastUpdate < intval($Post['UPDATE-UNIX']) ) { $LastUpdate = intval($Post['UPDATE-UNIX']); }
 			    $ReplStr['[ENTRIES]'] .= $this->_buildRSSEntry( $Post );
@@ -1209,19 +1238,25 @@ class Content extends Midori {
     }
     
     private function _buildRSSEntry( $PostData ) {
+	    $rssCopyright = NoNull(readSetting('Site_' . $this->settings['SiteID'], 'RSSCopyright'), $this->messages['rss_copyright']);
+	    if ( $rssCopyright != "" ) {
+		    // Add the Site Name and Link Information
+		    $rssCopyright .= " <a href=\"" . $this->settings['HomeURL'] . "\" title=\"" . $this->settings['SiteName'] . "\">" .
+		    				 $this->settings['SiteName'] . "</a>";
+	    }
 	    $rVal = "";
 
 	    if ( is_array($PostData) ) {
 	    	$DispLang = NoNull($this->settings['DispLang'], 'EN');
-	    	$UpdateDT = date("c", intval($PostData['UPDATE-UNIX']));
-	    	$PublshDT = date("c", intval($PostData['DATE-UNIX']));
+	    	$UpdateDT = date("c", round(intval($PostData['UPDATE-UNIX']), -1));
+	    	$PublshDT = date("c", round(intval($PostData['DATE-UNIX']), -1));
 	    	$PostURL = str_replace("[HOMEURL]", $this->settings['HomeURL'], $PostData['POST-URL']);
 	    	$Content = $this->_cleanContent($PostData['CONTENT']);
 	    	if ( NoNull($PostData['POST-FOOTER']) != "" ) {
 		    	$Content .= "<hr />" . NoNull($PostData['POST-FOOTER']);
 	    	}
-	    	if ( NoNull($this->settings['RSSCopyright']) != "" ) {
-		    	$Content .= "<hr />" . NoNull($this->settings['RSSCopyright']);
+	    	if ( $rssCopyright != "" ) {
+		    	$Content .= "<hr />" . $rssCopyright;
 	    	}
 		    $rVal = tabSpace(1) . "<entry>\r\n" .
 		    		tabSpace(2) . "<title>" . NoNull($PostData['TITLE']) . "</title>\r\n" .

@@ -41,7 +41,7 @@ class lang_en implements lang_base {
                       'lang_name'       => "English",
                       'lang_cd'         => "EN",
 
-                      'rss_copyright'   => "",
+                      'rss_copyright'   => "Copyright &copy; " . date('Y'),
                       'lblDisqusEnJS'	=> "Please enable JavaScript to view the <a href=\"http://disqus.com/?ref_noscript\">comments powered by Disqus.",
                       'lblFeedTitle'	=> "Subscribe via RSS",
 

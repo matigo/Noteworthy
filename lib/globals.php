@@ -15,9 +15,12 @@
         $rVal = $default;
         
         if ( is_numeric($number) ) { $rVal = $number; }
+        if ( $rVal == 0 && $default > 0 ) {
+	        $rVal = $default;
+        }
 
         // Return the Numeric Value
-        return $rVal;
+        return intval($rVal);
     }
 
     /**

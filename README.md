@@ -47,7 +47,8 @@ There are some optional pieces to the puzzle that might make things a little bet
 The use of a database is a requirement at the moment. In future releases, the MySQL component will be optional.
 
 <h2>Quick Notes</h2>
-Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.
+<p>Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.</p>
+<p>There are a few issues with the JavaScript in the Admin Panel. Be sure to click the Save buttons again if an error is returned the first time. This should be resolved in future updates.</p>
 
 <h2>Questions?</h2>
 <p>Have questions about Noteworthy? Feel free to contact me on here, <a href="http://twitter.com/matigo">Twitter</a>, or <a href="http://jasonirwin.ca/contact/">my website</a>. I respond to all email.</p>
