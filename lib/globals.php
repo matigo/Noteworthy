@@ -20,7 +20,7 @@
         }
 
         // Return the Numeric Value
-        return intval($rVal);
+        return floatval($rVal);
     }
 
     /**

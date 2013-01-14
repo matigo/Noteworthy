@@ -1113,7 +1113,10 @@ class Content extends Midori {
 			    	// MySQL
 			    	// Format: First 6 Digits Represent the number of posts in the database
 			    	//		   Latter Digits Represent the Highest Unix Timestamp of Published Posts
-			    	$sqlStr = "SELECT `TypeCd`, CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
+			    	// Note:   Tweets are Refreshed every minute for relative counter consistency
+			    	$sqlStr = "SELECT `TypeCd`, CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), " .
+			    									  "CASE `TypeCd` WHEN 'TWEET' THEN UNIX_TIMESTAMP(DATE_FORMAT(NOW(), '%Y-%m-%d %h:%i')) " .
+			    									  "ELSE UNIX_TIMESTAMP(max(`CreateDTS`)) END) as `LastID`" .
 			    			  "  FROM `Content`" .
 			    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now() and `TypeCd` NOT IN ('POST-FOOTER')" .
 			    			  " GROUP BY `TypeCd`";
