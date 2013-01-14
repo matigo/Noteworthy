@@ -774,6 +774,7 @@ require_once(LIB_DIR . '/globals.php');
      *  -- This should NOT be used to update data, as the "Read" Server is called
      */
     function doSQLQuery( $sqlStr, $UseDB = '' ) {
+        writeNote( "doSQLQuery(): $sqlStr" );
         $rVal = array();
         $r = 0;
 
@@ -789,7 +790,7 @@ require_once(LIB_DIR . '/globals.php');
         $selected = mysql_select_db($UseDB, $db);
         $utf8 = mysql_query("SET NAMES " . DB_CHARSET);
         $result = mysql_query($sqlStr);
-        
+
         if ( $result ) {
             // Read the Result into an Array
             while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -817,6 +818,7 @@ require_once(LIB_DIR . '/globals.php');
      *      a boolean response.
      */
     function doSQLExecute( $sqlStr, $UseDB = '' ) {
+        writeNote( "doSQLExecute(): $sqlStr" );
         $rVal = -1;
 
         // Do Not Proceed If We Don't Have SQL Settings

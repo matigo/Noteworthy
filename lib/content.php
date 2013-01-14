@@ -1103,35 +1103,54 @@ class Content extends Midori {
      * Function Returns the Last Content.id Value for TypeCd = 'POST'
      *	- This is used mainly to ensure the cache is sufficiently up to date
      */
-    private function _getLastContentID( $AllTypes = false ) {
-    	$TypeCd = "'POST'";
-    	if ( $AllTypes ) { $TypeCd = "'POST', 'TWEET'"; }
+    private function _getLastContentID( $isTweet = false ) {
 	    $rVal = 0;
 
-	    switch ( DB_TYPE ) {
-		    case 1:
-		    	// MySQL
-		    	// Format: First 6 Digits Represent the number of posts in the database
-		    	//		   Latter Digits Represent the Highest Unix Timestamp of Published Posts
-		    	$sqlStr = "SELECT CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
-		    			  "  FROM `Content`" .
-		    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now()" .
-		    			  "   and `TypeCd` IN ($TypeCd)";
-		    	$rslt = doSQLQuery( $sqlStr );
-			    if ( is_array($rslt) ) {
-					foreach ( $rslt as $Key=>$Row ) {
-						$rVal = NoNull( $Row['LastID'] );
-					}
-			    }
-			    break;
+	    // If We Don't Already Have the LastIDs, Go Get Them
+	    if ( !array_key_exists('LastPostID', $this->settings) ) {
+		    switch ( DB_TYPE ) {
+			    case 1:
+			    	// MySQL
+			    	// Format: First 6 Digits Represent the number of posts in the database
+			    	//		   Latter Digits Represent the Highest Unix Timestamp of Published Posts
+			    	$sqlStr = "SELECT `TypeCd`, CONCAT(RIGHT(CONCAT('000000', count(`guid`)), 6), UNIX_TIMESTAMP(max(`CreateDTS`))) as `LastID`" .
+			    			  "  FROM `Content`" .
+			    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now() and `TypeCd` NOT IN ('POST-FOOTER')" .
+			    			  " GROUP BY `TypeCd`";
+			    	$rslt = doSQLQuery( $sqlStr );
+				    if ( is_array($rslt) ) {
+						foreach ( $rslt as $Key=>$Row ) {
+							switch ( NoNull($Row['TypeCd']) ) {
+								case 'TWEET':
+									$this->settings['LastTweetID'] = NoNull( $Row['LastID'] );
+									break;
+								
+								case 'POST':
+									$this->settings['LastPostID'] = NoNull( $Row['LastID'] );
+									break;
+								
+								default:
+									// We Shouldn't Be Here
+							}
+						}
+				    }
+				    break;
 
-		    case 2:
-		    	// Local Storage
-		    	$rVal = NoNull( readSetting('core', 'maxCreateTS') );
-		    	break;
+			    case 2:
+			    	// Local Storage
+			    	$rVal = NoNull( readSetting('core', 'maxCreateTS') );
+			    	break;
 
-		    default:
-		    	// API Retrieval -- We Shouldn't Be Here
+			    default:
+			    	// API Retrieval -- We Shouldn't Be Here
+		    }
+	    }
+
+	    // Get the Appropriate Content ID
+	    if ( $isTweet ) {
+		    $rVal = $this->settings['LastTweetID'];
+	    } else {
+		    $rVal = $this->settings['LastPostID'];
 	    }
 
 	    // Return the ID
