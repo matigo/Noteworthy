@@ -341,6 +341,7 @@ class miTheme extends theme_main {
         $rVal = array( '[ARCHIVE-LIST]' => '',
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
+                       '[SYSTEM-MSGS]'	=> '',
                        '[ADMINURL]'		=> $this->settings['HomeURL'] . '/' . $this->settings['mpage'],
                        '[NBOOKCOUNT]'	=> $this->_getSelectedNotebookCount(),
                       );
@@ -384,19 +385,19 @@ class miTheme extends theme_main {
             	// Evernote Settings
             	$UseSandbox = NoNull($this->setting['sandbox'], readSetting( 'core', 'UseSandbox' ));
             	if ( $UseSandbox != 'N' ) { $UseSandbox = 'Y'; }
-            	
+
             	// Set the Various Values for Sandbox Usage
                 $rVal['[raSandboxChk]'] = ($UseSandbox == 'Y') ? 'checked="checked"' : '';
                 $rVal['[raProductionChk]'] = ($UseSandbox == 'N') ? 'checked="checked"' : '';
                 $rVal['[note-sandboxStyle]'] = ($UseSandbox == 'N') ? 'style="display: none;"' : '';
                 $rVal['[note-productionStyle]'] = ($UseSandbox == 'Y') ? 'style="display: none;"' : '';
                 $rVal['[iVis]'] = 'style="display: none;';
-                
+
                 if ( $rVal['[NBOOKCOUNT]'] > 0 ) {
 	                $rVal['[iVis]'] = "";
                 }
                 break;
-            
+
             case 'settings':
             	// MySQL Settings
             	$rVal['[DT_SQL]'] = ( DB_TYPE == 1 ) ? " selected" : "";
@@ -407,7 +408,7 @@ class miTheme extends theme_main {
                 $rVal['[DBUSER]'] = ( DB_TYPE == 1 ) ? NoNull(DB_USER) : "";
                 $rVal['[DBPASS]'] = ( DB_TYPE == 1 ) ? NoNull(DB_PASS) : "";
                 $rVal['[DBPASSTYPE]'] = ( $rVal['[DBPASS]'] != "" ) ? 'password' : 'text';
-                
+
                 // Debug Settings
                 $rVal['[DEBUG0]'] = ( DEBUG_ENABLED == 0 ) ? " selected" : "";
                 $rVal['[DEBUG1]'] = ( DEBUG_ENABLED == 1 ) ? " selected" : "";
@@ -415,24 +416,28 @@ class miTheme extends theme_main {
                 // Email Settings
                 $EmailEnabled = YNBool(readSetting('core', 'EmailOn'));
                 $SecureSSL = YNBool(readSetting('core', 'EmailSSL'));
-            	$rVal['[EMAIL_N]'] = ( !$EmailEnabled ) ? " selected" : "";
-            	$rVal['[EMAIL_Y]'] = (  $EmailEnabled ) ? " selected" : "";
-            	//$rVal['[DO_EMAIL]'] = ( $EmailEnabled ) ? "" : ' style="display: none;"';
-            	$rVal['[DO_EMAIL]'] = ' style="display: none;"';
+            	$rVal['[EMAIL_N]']		= ( !$EmailEnabled ) ? " selected" : "";
+            	$rVal['[EMAIL_Y]']		= (  $EmailEnabled ) ? " selected" : "";
+            	$rVal['[DO_EMAIL]'] = ( $EmailEnabled ) ? "" : ' style="display: none;"';
             	$rVal['[SSL_N]'] = ( !$SecureSSL ) ? " selected" : "";
             	$rVal['[SSL_Y]'] = (  $SecureSSL ) ? " selected" : "";
-            	$rVal['[EMAIL_STUB]'] = $this->_readBaseDomainURL( $this->settings['HomeURL'] );
-            	$rVal['[MAILSERV]'] = readSetting( 'core', 'EmailServ' );
-            	$rVal['[MAILPORT]'] = readSetting( 'core', 'EmailPort' );
-            	$rVal['[MAILUSER]'] = readSetting( 'core', 'EmailUser' );
-            	$rVal['[MAILPASS]'] = readSetting( 'core', 'EmailPass' );
-            	$rVal['[MAILPASSTYPE]'] = ( $rVal['[MAILPASS]'] != "" ) ? 'password' : 'text';
-            	$rVal['[MAILSENDTO]'] = readSetting( 'core', 'EmailSendTo' );
-            	$rVal['[MAILREPLY]'] = readSetting( 'core', 'EmailReplyTo' );
+            	$rVal['[EMAIL_STUB]']	= $this->_readBaseDomainURL( $this->settings['HomeURL'] );
+            	$rVal['[MAILSERV]']		= readSetting( 'core', 'EmailServ' );
+            	$rVal['[MAILPORT]']		= readSetting( 'core', 'EmailPort' );
+            	$rVal['[MAILUSER]']		= readSetting( 'core', 'EmailUser' );
+            	$rVal['[MAILPASS]']		= readSetting( 'core', 'EmailPass' );
+            	$rVal['[MAILPASSTYPE]']	= ( $rVal['[MAILPASS]'] != "" ) ? 'password' : 'text';
+            	$rVal['[MAILSENDTO]']	= readSetting( 'core', 'EmailSendTo' );
+            	$rVal['[MAILREPLY]']	= readSetting( 'core', 'EmailReplyTo' );
                 break;
 
-            default:
+            case 'dashboard':
+            case '':
+            	$rVal['[SYSTEM-MSGS]'] = $this->_getSystemMessages();
+            	break;
 
+            default:
+            	// Do Nothing
         }
 
         // Return the Extra Content Data
@@ -587,6 +592,70 @@ class miTheme extends theme_main {
 	    }
 
 	    // Return the Number
+	    return $rVal;
+    }
+
+    /**
+     *	Function Writes any System Messages that Might Exist to the Dashboard
+     */
+    private function _getSystemMessages() {
+    	$data = $this->_checkSystemMessages();
+		$rVal = "";
+
+		// Construct the Messages
+		foreach( $data as $Key=>$Msg ) {
+			foreach( $Msg as $Icon=>$Show ) {
+				$rVal .= "<div class=\"sys-message $Icon\"><p>$Show</p></div>";				
+			}
+		}
+
+		// Return the HTML-Formatted Information
+		return $rVal;
+    }
+
+    /**
+     *	Function Checks the State of the Installation and Returns the Appropriate Messages
+     */
+    private function _checkSystemMessages() {
+	    $rVal = array();
+
+	    // Check the Database Version (If Necessary)
+	    if ( DB_TYPE == 1 ) {
+		    $sqlStr = "SELECT `intVal` FROM `SysParm` WHERE `isDeleted` = 'N' and `Code` = 'DB_VERSION';";
+		    $rslt = doSQLQuery( $sqlStr );
+		    if ( is_array($rslt) ) {
+			    if ( nullInt($rslt[0]['intVal']) < DB_VER ) {
+			    	// Update the Database
+			    	require_once( LIB_DIR . '/settings.php' );
+			    	$conf = array( 'DispLang'	=> $this->settings['DispLang'],
+			    				   'dataset'	=> 'updatedb',
+			    				  );
+			    	$sets = new Settings( $conf );
+			    	$data = $sets->update();
+			    	
+			    	if ( $data['isGood'] ) {
+				    	$rVal[] = array( 'sys-info' => "Successfully Updated Database to Version " . DB_VER );
+			    	} else {
+			    		foreach ( $data['error'] as $Error ) {
+				    		$rVal[] = array( 'sys-warning' => $Error );
+			    		}
+			    	}
+
+				    // Release the Class
+				    unset( $sets );
+			    }
+
+		    } else {
+			    $rVal[] = array( 'sys-error' => "Unable to Check Database Version!" );
+		    }		    
+	    }
+
+		// If there is no data, add a single record	    
+	    if ( count($rVal) == 0 ) {
+		    $rVal[] = array('sys-success' => "Everything looks good! No errors to report.");
+	    }
+
+	    // Return the Array of Messages
 	    return $rVal;
     }
 

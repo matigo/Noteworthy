@@ -389,6 +389,7 @@ class evernote {
 	 * Get an Array of Selected Notebook GUIDs
 	 */
 	private function _getSelectedNotebooks() {
+		writeNote( "Entered Function: _getSelectedNotebooks()" );
 		$settingKey = 'core_notebooks' . $this->settings['EVERNOTE_POINTER'];
 		$rVal = readSetting( $settingKey, '*' );
 
@@ -400,6 +401,7 @@ class evernote {
 	 * Get a Boolean Response Outlining the Validity of the Supplied NotebookGUID
 	 */	
 	private function _isValidNotebookGUID( $NotebookGUID ) {
+		writeNote( "Entered Function: _isValidNotebookGUID( $NotebookGUID )" );
 		$rVal = false;
 
 		// Don't Allow an Empty String to Waste Time
@@ -417,11 +419,17 @@ class evernote {
 			        if ( $data ) {
 				        foreach ( $data as $notebook ) {
 				        	if ( $notebook->guid == $NotebookGUID ) {
+				        		writeNote( "NotebookID [$NotebookGUID] Is Valid )" );
 					        	$rVal = true;
 					        	break;
 				        	}
 				        }
 			        }
+
+					// Record Whether Notebook ID is Valid or Not
+					if ( !$rVal ) {
+						writeNote( "NotebookID [$NotebookGUID] Is Invalid )" );
+					}
 		        }
 	        }
 
@@ -447,6 +455,7 @@ class evernote {
 	 * Get an Array of Notebooks, their Names, and GUIDs
 	 */
 	private function _getNotebooks() {
+		writeNote( "Entered Function: _getNotebooks()" );
 		$rVal = array();
 
 		try {
@@ -565,7 +574,7 @@ class evernote {
 		$rVal = "Update Incomplete";
 		
 		try {
-			writeNote( "About to Update Notes from Evernote Server" );
+			writeNote( "_performUpdate: About to Update Notes from Evernote Server" );
 			$noteStoreShard = $this->_getNoteStoreShard();
 			$isOK = false;
 
@@ -602,6 +611,7 @@ class evernote {
 		}
 
         // Return the Notes for the Provided NotebookGUID
+		writeNote( "_performUpdate: Completed Update" );
         return $rVal;
 	}
 	
@@ -610,11 +620,12 @@ class evernote {
 	 */
 	private function _refreshNote() {
 		$NoteGUID = sqlScrub($this->settings['guid']);
+		writeNote( "_refreshNote: Refresh Note [$NoteGUID]" );
 		$rVal = false;
 		
 		// Don't Do Anything if the GUID is Invalid
 		if ( $NoteGUID == "" || strlen($NoteGUID) != 36 ) {
-			writeNote( "Invalid GUID: $NoteGUID" );
+			writeNote( "_refreshNote: Invalid GUID: $NoteGUID" );
 			return $rVal;
 			exit;
 		}
@@ -624,7 +635,6 @@ class evernote {
 
 		try {
 			$noteStoreShard = $this->_getNoteStoreShard();
-			$NoteCUD = 'guid|0.0.0';
 			$isOK = false;
 
 	        if ( $noteStoreShard != '' ) {
@@ -632,20 +642,17 @@ class evernote {
 
 		        // Prepare the NoteStore
 		        if ( !$this->_prepNoteStore() ) {
-		        	writeNote( "NoteStore Not Prepared" );
+		        	writeNote( "_refreshNote: NoteStore Not Prepared" );
 			        return $rVal;
 		        }
 
 		        // Collect the Resource (With Data and With Attributes)
 		        $note = $this->noteStore->getNote($this->settings['DEVELOPER_TOKEN'], $NoteGUID, true, true, false, false);
-            	$NoteCUD = NoNull($note->notebookGuid) . '|' .
-            			   nullInt($note->created) / 1000 . '.' .
-            			   nullInt($note->updated) / 1000 . '.' .
-            			   nullInt($note->deleted) / 1000;
-            	$NoteCUD = md5($NoteCUD);
+		        $CurrUpdSeqNo = nullInt($note->updateSequenceNum);
 
             	// Update the Note
-            	if ( $this->_recordNote($note, $NoteCUD) ) {
+            	if ( $this->_recordNote($note, $CurrUpdSeqNo) ) {
+            		writeNote( "_refreshNote: Note [" . $note->guid . "] Has Been Recorded" );
             		$sqlStr = "SELECT c.`id`, c.`guid`, c.`Title`, UNIX_TIMESTAMP(c.`CreateDTS`) as `CreateDTS`, c.`PostURL`," .
             					    " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UpdateDTS`, LENGTH(c.`Value`) as `PostLength`," .
             					    " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
@@ -674,6 +681,7 @@ class evernote {
 		}
 
 		// Return the Boolean or Array
+		writeNote( "_refreshNote: Completed Note [$NoteGUID]" );
 		return $rVal;
 	}
 	
@@ -683,8 +691,8 @@ class evernote {
 	 * Note: ReadOnly = {TRUE} will return an array of notes (Name, GUID, CreateDTS, UpdateDTS)
 	 */
 	private function _collectNotes( $NotebookGUIDs, $ReadOnly = false ) {
-		$LastEvernoteUpdateTime = intval(readSetting( 'cron', 'EvernoteLastDTS' ));
-		$MaxUpdateTime = $LastEvernoteUpdateTime;
+		$LastUpdSeqNo = nullInt(readSetting( 'cron', 'UpdateSequenceNo' ));
+		$CurrUpdSeqNo = $MaxUpdSeqNo = 0;
 		$rVal = 0;
 
 		// Don't Collect Notes unless we have an array (even for one)
@@ -716,38 +724,54 @@ class evernote {
                 $i = 1;
 
                 while ( $Offset < $totalNotes || $totalNotes < 0 ) {
-                	$NoteCUD = 'guid|0.0.0';
-
                 	$notes = $this->noteStore->findNotes($this->settings['DEVELOPER_TOKEN'], $searchFilter, $Offset, $Pages);
-                	$totalNotes = ($ReadOnly) ? 25 : $notes->totalNotes;
+                	$totalNotes = $notes->totalNotes;
 
                     foreach ( $notes->notes as $note ) {
-                    	$NoteCUD = NoNull($note->notebookGuid) . '|' .
-                    			   nullInt($note->created) / 1000 . '.' .
-                    			   nullInt($note->updated) / 1000 . '.' .
-                    			   nullInt($note->deleted) / 1000;
-                    	$UpdateDTS = nullInt($note->updated) / 1000;
-                    	if ( $UpdateDTS > $LastEvernoteUpdateTime ) {
-                    		saveSetting( 'cron', 'EvernoteLastDTS', $UpdateDTS );
-	                    	$NoteCUD = md5($NoteCUD);
+                    	$CurrUpdSeqNo = nullInt($note->updateSequenceNum);
+                    	if ( $CurrUpdSeqNo > $MaxUpdSeqNo ) { $MaxUpdSeqNo = $CurrUpdSeqNo; }
+
+                    	if ( $CurrUpdSeqNo > $LastUpdSeqNo ) {
+	                    	writeNote( "_collectNotes: Note [" . $note->guid . " | " . $note->title . "] Requires Updates" );
 	                    	$i++;
 
 	                    	// Check to see if there is a difference
-	                    	if ( $this->_isNewNote($note->guid, $NoteCUD) ) {
+	                    	if ( $this->_isNewNote($note->guid, $CurrUpdSeqNo) ) {
+	                    		writeNote( "_collectNotes: Note [" . $note->guid . "] Is Ready To Be Recorded" );
 	                    		if ( in_array($note->notebookGuid, $NotebookGUIDs) ) {
 			                    	// Record the Note
-				                    if ( $this->_recordNote( $note, $NoteCUD ) ) { $rVal++; }
+				                    if ( $this->_recordNote( $note, $CurrUpdSeqNo ) ) {
+				                    	$rVal++;
+				                    } else {
+					                    writeNote( "_collectNotes: ERROR -- Note [" . $note->guid . " | " . $note->title . "] COULD NOT Be Recorded" );
+				                    }
 			                    } else {
 				                    // The Note has been Deleted or Moved (or is not part of the site)
 				                    $this->_removeNote( $note->guid );
 			                    }
+	                    	} else {
+		                    	writeNote( "_collectNotes: Note [" . $note->guid . " | " . $note->title . "] Is Already In the Database" );
 	                    	}
                     	}
                     }
 
-                    // Set the Offset Value
-                    $Offset += $Pages;
+                    // Set the Offset Value (Exit If We're Done)
+                    if ( $CurrUpdSeqNo < $LastUpdSeqNo ) {
+                    	$Offset = $totalNotes + 1;
+                    } else {
+	                	$Offset += $Pages;
+	                }
                 }
+
+				// Save the New Update Sequence Number                
+                if ( $MaxUpdSeqNo > $LastUpdSeqNo ) {
+	                saveSetting( 'cron', 'UpdateSequenceNo', $MaxUpdSeqNo );
+                }
+
+                // Debug Data
+				writeNote( "_collectNotes: Last Update Sequence No: $LastUpdSeqNo" );
+				writeNote( "_collectNotes: Maximum Update Sequence No: $MaxUpdSeqNo" );
+				writeNote( "_collectNotes: -- Test Segment Complete --" );
 	        }
 
 		} catch (TTransportException $e) {
@@ -769,46 +793,45 @@ class evernote {
 	}
 
 	/*
-	 * Function Checks to See if the Note Has Been Updated or Changed in Some Way
+	 * Function Checks to See if the Note Has Been Updated or Changed in Some Way through the Update Sequence ID
 	 */
-	private function _isNewNote( $NoteGUID, $NoteCUD ) {
+	private function _isNewNote( $NoteGUID, $UpdSeqID ) {
 		$rVal = true;
-		$CurrentCUD = "";
+		$CurrSeqID = 0;
 
 		switch ( DB_TYPE ) {
 			case 1:
 				// MySQL
 				if ( !is_array($this->tmp) ) {
 					$this->tmp = array();
-					$sqlStr = "SELECT c.`id`, c.`guid`, m.`Value` as `NoteCUD` FROM `Content` c, `Meta` m" .
-							  " WHERE m.`ContentID` = c.`id` and c.`TypeCd` = 'POST'" .
-							  "   and m.`TypeCd` = 'POST-NCUD' and c.`isReplaced` = 'N'" .
-							  " ORDER BY c.`CreateDTS`";
+					$sqlStr = "SELECT c.`id`, c.`guid`, c.`UpdateSeqID` FROM `Content` c" .
+							  " WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
+							  " ORDER BY c.`CreateDTS` DESC";
 					$rslt = doSQLQuery( $sqlStr );
 					if ( is_array($rslt) ) {
 	                    foreach ( $rslt as $Key=>$Row ) {
-	                        $this->tmp[ $Row['guid'] ] = NoNull($Row['NoteCUD']);
+	                        $this->tmp[ $Row['guid'] ] = nullInt($Row['UpdateSeqID']);
 	                    }
 					}
 				}
 
 				if ( array_key_exists($NoteGUID, $this->tmp) ) {
-					$CurrentCUD = $this->tmp[ $NoteGUID ];
+					$CurrSeqID = $this->tmp[ $NoteGUID ];
 				}
 				break;
 
 			case 2:
 				// NoteWorthy Store
 				$settingKey = 'core_notes' . $this->settings['EVERNOTE_POINTER'];
-				$CurrentCUD = readSetting( $settingKey, $NoteGUID );
+				$CurrSeqID = readSetting( $settingKey, $NoteGUID );
 				break;
 
 			default:
 				// Do Nothing Here
 		}
 
-		// Compare the CUDs
-		if ( $CurrentCUD == $NoteCUD ) {
+		// Compare the Sequence IDs
+		if ( $CurrSeqID == $UpdSeqID ) {
 			$rVal = false;
 		}
 
@@ -821,7 +844,8 @@ class evernote {
 	 *
 	 * Note: The API Function Will Not Accept New Posts This Way, it is Not Included Here
 	 */
-	private function _recordNote( $NoteObj, $NoteCUD ) {
+	private function _recordNote( $NoteObj, $UpdSeqID ) {
+		writeNote( "_recordNote: Building Records for [" . $NoteObj->guid . "] | " . NoNull($NoteObj->title));
 		$rVal = false;
 
 		try {
@@ -847,6 +871,7 @@ class evernote {
 						   'created'		=> (nullInt($NoteObj->created) / 1000) + 1,
 						   'updated'		=> nullInt($NoteObj->updated) / 1000,
 						   'deleted'		=> nullInt($NoteObj->deleted) / 1000,
+						   'updSeqID'		=> nullInt($NoteObj->updateSequenceNum),
 						   'excerpt'		=> '',
 						   'notebookGUID'	=> $NoteObj->notebookGuid,
 						   'url'			=> '',
@@ -866,13 +891,14 @@ class evernote {
                     $DeleteDTS = ( $data['deleted'] > 0 ) ? "FROM_UNIXTIME(" . $data['deleted'] . ")" : "NULL";
 
                     $sqlStr = "INSERT INTO `Content` (`guid`, `TypeCd`, `Title`, `Value`, `Hash`, `ParentID`, `PostURL`, `PostAuthor`," . 
-                    								 "`CreateDTS`, `UpdateDTS`, `DeleteDTS`) " .
+                    								 "`UpdateSeqID`, `CreateDTS`, `UpdateDTS`, `DeleteDTS`) " .
                               "VALUES ( '" . $data['guid'] . "', " .
                                        "'POST', " .
                                        "'" . sqlScrub( $data['title'] ) . "', ".
                                        "'" . sqlScrub( $data['content'] ) . "', " .
                                        "'" . $data['contentHash'] . "', " .
                                        " $ParentID, '" . $data['url'] . "', '" . sqlScrub($data['author']) . "', " .
+                                       		 $data['updSeqID'] . ", " .
                                        " FROM_UNIXTIME(" . $data['created'] . "), " .
                                        " FROM_UNIXTIME(" . $data['updated'] . "), " .
                                        " $DeleteDTS );";
@@ -894,8 +920,7 @@ class evernote {
                         // Write the Meta Data Where Appropriate
                         $sqlStr = "INSERT INTO `Meta` (`ContentID`, `ParentID`, `guid`, `TypeCd`, `Value`, `Hash`) " .
                                   "VALUES";
-                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "')," .
-                                  " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NCUD', '" . $NoteCUD . "', '" . md5($NoteCUD) . "'),";
+                        $sqlVal = " ($dbID, NULL, '" . $data['guid'] . "', 'POST-NBGUID', '" . $data['notebookGUID'] . "', '" . md5($data['notebookGUID']) . "'),";
                         if ( $data['contentLength'] > 0 ) {
                             $sqlVal .= " ($dbID, NULL, '" . $data['guid'] . "', 'POST-LENGTH', '" . $data['contentLength'] . "', '" . md5($cLen) . "'),";
                         }
@@ -928,7 +953,7 @@ class evernote {
 				
 				case 2:
 					/** NoteWorthy Store **/
-					$RawDIR = $this->settings['ContentDIR'] . '/cache';
+					$RawDIR = $this->settings['ContentDIR'] . '/store';
 					if ( checkDIRExists( $RawDIR ) ) {
 						$FileName = $RawDIR . '/' . $NoteObj->guid . '.raw';
 						$FileSize = file_put_contents($FileName, serialize($data));
@@ -941,10 +966,10 @@ class evernote {
 						if ( $FileSize > 0 ) { $rVal = true; }
 					}
 
-					// Save the NoteCUD
+					// Save the Update Sequence ID
 					$settingKey = 'core_notes' . $this->settings['EVERNOTE_POINTER'];
-					saveSetting( $settingKey, $note->guid, $NoteCUD );
-					
+					saveSetting( $settingKey, $note->guid, $UpdSeqID );
+
 					// Set a Happy Boolean
 					$rVal = true;
 					break;
@@ -956,6 +981,7 @@ class evernote {
 		}
 		
 		// Return a Boolean Response
+		writeNote( "_recordNote: Completed Note [" . $NoteObj->guid . "]");
 		return $rVal;
 	}
 
@@ -1012,7 +1038,8 @@ class evernote {
 
 					// If rVal is TRUE, it means the GUID Existed. Remove the File.
 					if ( $rVal ) {
-						$FileName = $this->settings['ContentDIR'] . "/$NoteGUID";
+						$RawDIR = $this->settings['ContentDIR'] . '/store';
+						$FileName = $RawDIR . "/$NoteGUID";
 						if ( is_file($FileName) ) { unlink( $FileName ); }						
 					}
 					break;
@@ -1102,7 +1129,9 @@ class evernote {
 		
 		switch ( DB_TYPE ) {
     		case 1:
-    		    $sqlStr = "SELECT `guid` FROM `Meta` WHERE `isDeleted` = 'N' and `Value` = '$PostURL'";
+    		    $sqlStr = "SELECT `guid` FROM `Content`" . 
+    		    		  " WHERE `isReplaced` = 'N' and `TypeCd` = 'POST'" . 
+    		    		  "   and `PostURL` = '$PostURL'";
 				$rslt = doSQLQuery($sqlStr);
                 if ( is_array($rslt) ) {
                     foreach ( $rslt as $Key=>$Row ) {

@@ -1,0 +1,2 @@
+ALTER TABLE `[DBNAME]`.`Content` ADD COLUMN `UpdateSeqID` int(11) NOT NULL DEFAULT 0 AFTER `PostAuthor`;
+UPDATE `[DBNAME]`.`SysParm` SET `intVal` = 3, `UpdateDTS` = Now() WHERE `isDeleted` = 'N' and `Code` = 'DB_VERSION';

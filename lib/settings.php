@@ -48,6 +48,11 @@ class Settings extends Midori {
 	    		// Create the Database
 	    		$isGood = $this->_createDBTables();
 	    		break;
+	    	
+	    	case 'updatedb':
+	    		// Update the Database
+	    		$isGood = $this->_updateDBTables();
+	    		break;
 
 	    	case 'dashboard':
 	    		// Update Some of the Dashboard Settings (?)
@@ -267,22 +272,64 @@ class Settings extends Midori {
 		    	$sqlDo = str_replace( "[DBNAME]", $DBName, $sqlStr );
 			    doSQLExecute($sqlDo);
 		    }
-		    $rVal = true;
+
+		    // Update to the Most Current Version (If Required)
+		    $rVal = $this->_updateDBTables();
 	    }
 
 	    // Return the Success Value
+	    return $rVal;
+    }
+    
+    /**
+     *	Function Updates the Database to the Current Version
+     */
+    private function _updateDBTables() {
+    	$CurrVer = 0;
+	    $rVal = false;
+
+	    // Determine the current Database Version
+	    $sqlStr = "SELECT `intVal` FROM `SysParm` WHERE `isDeleted` = 'N' and `Code` = 'DB_VERSION';";
+	    $rslt = doSQLQuery( $sqlStr );
+	    if ( is_array($rslt) ) {
+		    $CurrVer = nullInt($rslt[0]['intVal']);
+	    }
+
+	    // Collect the Necessary SQL Update Statements
+	    for ( $i = $CurrVer; $i < DB_VER; $i++ ) {
+		    $sqlList = $this->_readSQLInstallScript( false, $i + 1 );
+
+		    if ( is_array($sqlList) ) {
+			    foreach( $sqlList as $sqlStr ) {
+				    $sqlDo = str_replace( "[DBNAME]", DB_MAIN, $sqlStr );
+				    doSQLExecute($sqlDo);
+			    }
+
+			    // If We're Here, Chances Are It's Good
+			    $rVal = true;
+		    } else {
+			    $this->error[] = "Problem With the SQL Update Script";
+		    }
+	    }
+
+	    // Return the Boolean Response
 	    return $rVal;
     }
 
     /**
      *	Read the SQL install.php file into an array
      */
-    private function _readSQLInstallScript( $doTruncate = false ) {
+    private function _readSQLInstallScript( $doTruncate = false, $Version = 0 ) {
     	$SQLFile = BASE_DIR . "/sql/install.sql";
+    	if ( $Version > 0 ) {
+	    	$SQLFile = BASE_DIR . "/sql/update" . substr("0000" . $Version, -4) . ".sql";
+    	}
+	    writeNote( "Reading SQL Scripts File: $SQLFile" );
 	    $rVal = array();
 	    $i = 0;
 
 	    // Add the Table Truncation Lines (if Requested)
+	    // -- This Needs to be Done Better; SHOW TABLES followed by a TRUNCATE --
 	    if ( $doTruncate ) {
 		    $trunks = array( 'Type', 'Meta', 'Content', 'SysParm' );
 		    foreach ( $trunks as $tbl ) {
@@ -304,7 +351,7 @@ class Settings extends Midori {
 
     	} else {
     		$rVal = false;
-	    	$this->error[] = "SQL Installation File Missing!";
+	    	$this->error[] = "SQL File Missing!";
     	}
 
     	// Return the Array of SQL Strings

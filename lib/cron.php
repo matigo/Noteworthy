@@ -89,7 +89,7 @@ class Cron {
 
 	    // If the Elapsed Time is Greater than the Cron Interval, Return True
 	    if ( !$isActive && $Elapsed > intval($CronTime) ) {
-	    	saveSetting($this->settings['TokenName'], 'isActive', BoolYN(true) );
+	    	saveSetting($this->settings['TokenName'], 'isActive', 'Y' );
 	    	$rVal = true;
 	    }
 
@@ -104,7 +104,7 @@ class Cron {
      */
     private function _canUpdateService( $Service ) {
     	$LastCron = nullInt(readSetting($this->settings['TokenName'], 'Last_' . $Service));
-    	$CronTime = nullInt(readSetting($this->settings['TokenName'], 'iVal_' .$Service), 3600);
+    	$CronTime = nullInt(readSetting($this->settings['TokenName'], 'iVal_' .$Service), 1800);
     	$Elapsed =  time() - intval($LastCron);
 	    $rVal = false;
 
@@ -123,7 +123,7 @@ class Cron {
      */
     private function _markCronDone() {
 	    saveSetting($this->settings['TokenName'], 'LastCron', time() );
-	    saveSetting($this->settings['TokenName'], 'isActive', BoolYN(false) );
+	    saveSetting($this->settings['TokenName'], 'isActive', 'N' );
     }
 
     /**
@@ -132,6 +132,7 @@ class Cron {
     private function _updateFlatFiles() {
 	    $Pages = array( $this->settings['HomeURL'] . '/',
 	    				$this->settings['HomeURL'] . '/archives/',
+	    				$this->settings['HomeURL'] . '/rss/',
 	    			   );
 
 	    // Cycle Through the Pages
