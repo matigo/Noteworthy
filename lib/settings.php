@@ -28,7 +28,7 @@ class Settings extends Midori {
      */
     function update() {
 	    $rVal = array( 'isGood'	 => false,
-	    			   'Message' => '[lblUnkErr]',
+	    			   'Message' => '',
 	    			  );
 	    $isGood = false;
 	    $Errs = "";
@@ -42,6 +42,14 @@ class Settings extends Midori {
 	    	case 'email':
 	    		// Update the Email Settings
 	    		$isGood = $this->_saveEmailConfig();
+	    		break;
+
+	    	case 'email-adminurl':
+	    		// Send an Email Reminder of the Administration URL
+	    		$isGood = $this->_emailAdminLink();
+	    		if ( $isGood ) {
+		    		$rVal['Message'] = "Your Email Has Been Sent!";
+	    		}
 	    		break;
 
 	    	case 'createdb':
@@ -86,7 +94,10 @@ class Settings extends Midori {
 	    // Set the Return Message
     	if ( $isGood ) {
     		$rVal['isGood'] = BoolYN( $isGood );
-	    	$rVal['Message'] = NoNull($this->messages['lblSetUpdGood'], "Successfully Updated Settings");
+    		if ( $rVal['Message'] == '' ) {
+		    	$rVal['Message'] = NoNull($this->messages['lblSetUpdGood'], "Successfully Updated Settings");    		
+    		}
+
     	} else {
     		foreach ( $this->errors as $Key=>$Msg ) {
     			if ( $Errs != "" ) { $Errs .= "<br />\r\n"; }
@@ -382,6 +393,41 @@ class Settings extends Midori {
 
 		// Return the Boolean Response
 		return true;
+    }
+    
+    /**
+     *	Function Emails the Admin Link to the Currently Logged In User
+     */
+    private function _emailAdminLink() {
+    	$rVal = false;
+    	
+    	if ( array_key_exists('token', $this->settings) ) {
+    		require_once( LIB_DIR . '/email.php' );
+	    	require_once( LIB_DIR . '/user.php' );
+	    	$usr = new User( $this->settings['token'] );
+	    	
+	    	$AdminURL = $this->settings['HomeURL'] . "/" . $this->settings['adminCode'] . "/";
+	    	$Items = array( 'inptEmail'   => $usr->EmailAddr(),
+	    					'inptName'    => '',
+	    					'inptMessage' => "This is an automated message from " . $this->settings['SiteName'] . "<br />\r\n" .
+						    			     "Your Administration screens can be found at: $AdminURL <br />\r\n" .
+						    			     "<br />\r\n" .
+						    			     "Be sure to keep this email in a safe place so you don't forget.",
+						    'spage'		  => "send",
+						    );
+
+			// Prepare the Email Class
+			$email = new Email( $Items );
+			$data = $email->perform();
+
+			// Check the Results
+			if ( $data['isGood'] == 'Y' ) {
+				$rVal = true;
+			}
+    	}
+
+    	// Return the Boolean Response
+    	return $rVal;
     }
 
     /***********************************************************************

@@ -175,11 +175,13 @@
 			<div id="reminder" class="module-box grid_8 omega" [DO_EMAIL]>
 				<h2 class="title show_hide">[lblRemindTitle] <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<form name="reminder" action="[HOMEURL]/api/email/remind" method="post">
+					<form name="reminder" action="[HOMEURL]/api/settings/update" method="post">
 						[lblRemindReason]
+						<div id="remind-msg" style="padding: 0 5px 10px;"></div>
 						<input type='hidden' id='accessKey' name='accessKey' value='[ACCESSKEY]' />
-						<input type='hidden' id='dataset' name='dataset' value='remind' />
-						<button id="remind-mail" name="remind-mail" class="btn-small green" type="submit" tabindex="20"><span>[lblMailReminder]</span></button>					</form>
+						<input type='hidden' id='dataset' name='dataset' value='email-adminurl' />
+						<button id="remind-mail" name="remind-mail" class="btn-small green" type="submit" tabindex="20"><span>[lblMailReminder]</span></button>
+					</form>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -233,23 +235,22 @@
 
 			jQuery(function($) {
 				$('#save-settings').click(function() {
-					_canSubmit = false;
 					performUpdates();
-
 					return false;
 				});
 				
 				$('#save-mail').click(function() {
-					_canSubmit = false;
 					performUpdateMail();
-
 					return false;
 				});
 
 				$('#test-mail').click(function() {
-					_canSubmit = false;
 					performTestMail();
+					return false;
+				});
 
+				$('#remind-mail').click(function() {
+					performRemindMail();
 					return false;
 				});
 			});

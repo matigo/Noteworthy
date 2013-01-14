@@ -20,11 +20,9 @@ function performUpdates() {
         data: params,
         success: function( data ) {
             parseUpdateResult( "return-msg", data.data );
-            _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
-            _canSubmit = true;
         },
         dataType: "json"
     });
@@ -47,19 +45,17 @@ function performUpdateMail() {
         data: params,
         success: function( data ) {
             parseUpdateResult( "email-msg", data.data );
-            _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
-            _canSubmit = true;
         },
         dataType: "json"
     });
 }
 
-function performTestMail() {
+function performUpdateMail() {
     var params = new Object();
-    var method = 'email/test';
+    var method = 'settings/update';
     var apiPath = getAPIPath();
 
     // Set the Parameters
@@ -68,18 +64,42 @@ function performTestMail() {
 	    	params[ document.secondary.elements[i].id ] = document.secondary.elements[i].value;
     	}
 	}
-	params[ 'txtEmailFrom' ] = "none@noaddy.com";
 
     $.ajax({
         url: apiPath + method,
         data: params,
         success: function( data ) {
             parseUpdateResult( "email-msg", data.data );
-            _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
-            _canSubmit = true;
+        },
+        dataType: "json"
+    });
+}
+
+function performRemindMail() {
+    var params = new Object();
+    var method = 'settings/update';
+    var apiPath = getAPIPath();
+    document.getElementById("remind-mail").disabled = true;
+
+    // Set the Parameters
+    for( i = 0; i < document.reminder.elements.length; i++ ) {
+    	if ( document.reminder.elements[i].id != "" ) {
+	    	params[ document.reminder.elements[i].id ] = document.reminder.elements[i].value;
+    	}
+	}
+
+    $.ajax({
+        url: apiPath + method,
+        data: params,
+        success: function( data ) {
+            parseUpdateResult( "remind-msg", data.data );
+            document.getElementById("remind-mail").disabled = false;
+        },
+        error: function (xhr, ajaxOptions, thrownError){
+            alert(xhr.status + ' | ' + thrownError);
         },
         dataType: "json"
     });
