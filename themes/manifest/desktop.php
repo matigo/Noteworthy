@@ -75,7 +75,7 @@ class miTheme extends theme_main {
                       	  '[GENERATOR]'	  => GENERATOR,
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name']),
                           '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->messages['site_descr']),
-                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
+                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['PgRoot']) ),
                           '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
                           '[FEEDTITLE]'	  => NoNull($this->messages['lblFeedTitle'], "Subscribe via RSS"),
                           '[ERROR_MSG]'   => '',
@@ -168,7 +168,7 @@ class miTheme extends theme_main {
     }
 
     /**
-     * Function Returns a Boolean Response whether the MPage Requested
+     * Function Returns a Boolean Response whether the PgRoot Requested
      *       is Valid or Not 
      * 
      * Note: This needs to be made a bit more automatic, as it's high
@@ -185,7 +185,7 @@ class miTheme extends theme_main {
         }
 
         // Determine if the Page Requested is in the Array
-        if ( in_array(NoNull($this->settings['mpage']), $validPg) ) {
+        if ( in_array(NoNull($this->settings['PgRoot']), $validPg) ) {
             $rVal = true;
         }
 
@@ -201,21 +201,21 @@ class miTheme extends theme_main {
     	$CopyStr = date('Y');
     	$CopyStr .= ( array_key_exists('company_name', $this->messages) ) ? ' - ' . NoNull($this->messages['company_name']) :
     																		' - ' . NoNull($this->messages['site_name']);
-        $ReplStr = array( '[HOMEURL]'     => $this->settings['HomeURL'],
-                          '[COPYRIGHT]'   => $CopyStr,
-                          '[SITENAME]'    => NoNull($this->settings['SiteName'], $this->messages['SiteName']),
-                          '[SITEDESCR]'   => NoNull($this->settings['SiteDescr'], $this->settings['SiteName']),
-                          '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
-                          '[CSS_DIR]'     => CSS_DIR,
-                          '[IMG_DIR]'     => IMG_DIR,
-                          '[JS_DIR]'      => JS_DIR,
+        $ReplStr = array( '[HOMEURL]'		=> $this->settings['HomeURL'],
+                          '[COPYRIGHT]'		=> $CopyStr,
+                          '[SITENAME]'		=> NoNull($this->settings['SiteName'], $this->messages['SiteName']),
+                          '[SITEDESCR]'		=> NoNull($this->settings['SiteDescr'], $this->settings['SiteName']),
+                          '[CONF_DIR]'		=> $this->settings['HomeURL'] . "/conf",
+                          '[CSS_DIR]'		=> CSS_DIR,
+                          '[IMG_DIR]'		=> IMG_DIR,
+                          '[JS_DIR]'		=> JS_DIR,
 
                           /* Body Content */
-                          '[BLOG_BODY]'   => $this->_getBlogContent( 5 ),
-                          '[NAVIGATION]'  => $this->_getNavigationMenu(),
-                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
-                          '[PAGINATION]'  => $this->_getPageNavigation(),
-                          '[EXTEND_HDR]'  => '',
+                          '[NAVIGATION]'	=> $this->_getNavigationMenu(),
+                          '[PAGE_BODY]'		=> $this->_getBlogContent( 5 ),
+                          '[PAGE_TITLE]'	=> $this->_getPageTitle( NoNull($this->settings['PgRoot']) ),
+                          '[PAGINATION]'	=> $this->_getPageNavigation(),
+                          '[EXTEND_HDR]'	=> '',
                          );
 
         // Read In the Language Strings
@@ -248,9 +248,9 @@ class miTheme extends theme_main {
      */
     private function _getPageTitle( $Section ) {
         $rVal = NoNull($this->settings['SiteName']);
-        $rSuffix = $mPage = "";
-        if ( array_key_exists('mpage', $this->settings) ) {
-	        $mPage = $this->settings['mpage'];
+        $rSuffix = $PgRoot = "";
+        if ( array_key_exists('PgRoot', $this->settings) ) {
+	        $PgRoot = $this->settings['PgRoot'];
         }
 
         switch ( strtolower($Section) ) {
@@ -261,7 +261,7 @@ class miTheme extends theme_main {
                 break;
 
             default:
-            	$MsgIDX = 'ttl_' . strtolower($mPage);
+            	$MsgIDX = 'ttl_' . strtolower($PgRoot);
             	if ( array_key_exists($MsgIDX, $this->messages) ) {
 	                $rSuffix = $this->messages[$MsgIDX];	            	
             	}
@@ -284,7 +284,7 @@ class miTheme extends theme_main {
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
                       );
-        switch ( $this->settings['mpage'] ) {
+        switch ( $this->settings['PgRoot'] ) {
             case 'archives':
             case 'archive':
                 $rVal['[MONTHLY-LIST]'] = $this->_getMonthListings();
@@ -321,12 +321,12 @@ class miTheme extends theme_main {
 
     /**
      * Function Returns the Appropriate .html Content File Required for a
-     *      given mPage / sPage Combination.
+     *      given PgRoot / PgSub1 Combination.
      */
     private function _getReqFileName() {
         $rVal = '';
-        $FileName = '/content-' . strtolower(NoNull($this->settings['mpage'])) . '.html';
-        if ( NoNull($this->settings['mpage']) == 'page' ) {
+        $FileName = '/content-' . strtolower(NoNull($this->settings['PgRoot'])) . '.html';
+        if ( NoNull($this->settings['PgRoot']) == 'page' ) {
             $FileName = '/content-blog.html';
         }
         
@@ -381,6 +381,7 @@ class miTheme extends theme_main {
 		                                  '[PAGINATION]'	=> "",
 		                                  '[IMG_DIR]'		=> IMG_DIR,
 		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
+		                                  '[SEARCH-RESULT]' => "",
 		                                  '[DIV-CLASS]'     => "",
 		                                 );
 		                foreach ( $Entry as $Item=>$Value ) {
@@ -390,7 +391,7 @@ class miTheme extends theme_main {
 			                $ReplStr[ "[$Key]" ] = $Msg;
 		                }
 
-		                if ( $this->settings['mpage'] != 'search' ) {
+		                if ( $this->settings['PgRoot'] != 'search' ) {
 			                // Clean up the Content (If Necessary)
 			                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
 				                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
@@ -411,6 +412,7 @@ class miTheme extends theme_main {
 				            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
 	
 		                } else {
+		                	// This *IS* Search, So Construct the Result
 		                	if ( $ReplStr['[PostURL]'] != "" ) {
 		                		$SearchResource = '/content-search-post.html';
 		                		$ReplStr['[POST-URL]'] = str_replace('[HOMEURL]', $this->settings['HomeURL'], $ReplStr['[PostURL]'] );
@@ -438,7 +440,7 @@ class miTheme extends theme_main {
                                  );
             }
 
-            if ( $this->settings['mpage'] == 'search' ) {
+            if ( $this->settings['PgRoot'] == 'search' ) {
 	            // Replace the Search Template Content Accordingly
 	            if ( $rVal != "" ) {
 		            $ReplStr['[SEARCH-RESULT]'] = NoNull($rVal);

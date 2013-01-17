@@ -16,7 +16,7 @@ class Cron {
 
         // Set the Remainder of the Settings Tokens
         $this->settings['TokenName'] = 'cron';
-        $this->settings['spage'] = 'performUpdate';
+        $this->settings['PgSub1'] = 'performUpdate';
         $this->settings['isActive'] = readSetting($this->settings['TokenName'], 'isActive');
     }
 

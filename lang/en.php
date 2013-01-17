@@ -141,16 +141,44 @@ class lang_en implements lang_base {
                       'lblMonth11'      => "November",
                       'lblMonth12'      => "December",
                       'lblYearSuffix'	=> "",
-                      
+
+                      'lblBaseInfo'		=> "Base Information",
+
+                      'lblTxtHomeURL'	=> "Site URL",
+                      'lblTxtSiteName'	=> "Site Name",
+                      'lblTxtSiteDescr'	=> "Site Description",
+                      'lblTxtSEOTags'	=> "Site SEO Key Words",
+                      'lblTxtSEOTagsB'	=> "(Comma Separated)",
+                      'lblChkDefault'	=> "Default Landing Site",
+                      'lblChkDefaultB'	=> "(Redirects people going to invalid domains or sub-domains to this site)",
+
+                      'lblComments'		=> "Comments",
+                      'lblSpamFilter'	=> "Spam Filtering",
+                      'lblAkismetKey'	=> "Akismet Key",
+                      'lblDisqusID'		=> "Disqus ID",
+
+                      'lblStyling'		=> "Styling",
+                      'lblStylingB'		=> "Choose Your Theme",
+                      'lblUpdateHndl'	=> "Update Handling",
+                      'lblUpdateHndlB'	=> "This is how updates will be done on your site. If you choose \"Disabled\", then you will need to set up a cron job on your server. If you're not sure what this means, or you don't have access to crontab, then click \"Enabled\". This will make the site check for updates a visitor comes to the site. This will <i>not</i> affect your server load whatsoever. You can <a href=\"#cron\" title=\"Cron Jobs on Noteworthy\"><b>read more about Cron here</b></a>.",
+
+                      'lblSocialLinks'	=> "Social Links",
+                      'lblSocialLinksB'	=> "Let People See You",
+                      'lblSocialLinksC'	=> "Here you can set some links people can use to follow you elsewhere on the Internet.",
+                      'lblSocialName'	=> "Display Name",
+                      'lblSocialLink'	=> "Link",
+                      'lblSocialActive'	=> "Active",
+
                       'lblSetUpdGood'	=> "Successfully Updated Settings",
                       'lblSetUpdErr001'	=> "One or More Invalid MySQL Settings",
                       'lblSetUpdErr002'	=> "Could Not Save Configuration Data",
                       'lblSetUpdErr003'	=> "Database Already Exists",
                       'lblSetUpdErr004'	=> "Could Not Populate Database",
-                      
+
                       'lblInvalidFunc'	=> "Invalid Function",
                       'lblUnknownErr'	=> "An Odd Error Has Occurred",
                       'lblSuccess'		=> "Success!",
+                      'lblEmailSent'	=> "The Message Has Been Successfully Sent",
 
                       'admin_lblLogo'	=> APP_NAME,
                       'admin_strLogo'	=> APP_NAME . " | Sharing Your Ideas With the World",

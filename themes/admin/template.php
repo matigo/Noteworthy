@@ -23,7 +23,7 @@ class theme_main implements themes {
     public function _getData() {
         $html_out = "A critical error has occurred. We're terribly sorry for this and are working on a fix.";
 
-        switch ( strtolower(NoNull($this->settings['mpage'])) ) {
+        switch ( strtolower(NoNull($this->settings['PgRoot'])) ) {
             case 'atom':
             case 'rss':
                 $html_out = $this->_getRSS();

@@ -18,12 +18,12 @@ class theme_main implements themes {
 
     public function _getData() {
         $html_out = "A critical error has occurred. We're terribly sorry for this and are working on a fix.";
-        $mPage = '';
-        if ( array_key_exists('mpage', $this->settings) ) {
-	        $mPage = strtolower(NoNull($this->settings['mpage']));
+        $PgRoot = '';
+        if ( array_key_exists('PgRoot', $this->settings) ) {
+	        $PgRoot = strtolower(NoNull($this->settings['PgRoot']));
         }
 
-        switch ( $mPage ) {
+        switch ( $PgRoot ) {
             case 'atom':
             case 'rss':
                 $html_out = $this->_getRSS();

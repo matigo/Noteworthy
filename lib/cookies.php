@@ -4,7 +4,8 @@
  * @author Jason F. Irwin
  * @copyright 2012
  * 
- * Class contains the rules and methods called for Cookie Handling in Noteworhty
+ * Class contains the rules and methods called for Cookie Handling and
+ *		Restoration of Primary Settings in Noteworhty
  */
 require_once( LIB_DIR . '/functions.php');
 
@@ -38,6 +39,13 @@ class cookies extends Midori {
             }
         }
 
+        // Assemble the Appropriate URL Path (Overrides Existing Information)
+        $URLPath = $this->_readURL();
+        foreach ( $URLPath as $Key=>$Val ) {
+	        $rVal[ $Key ] = $Val;
+        }
+
+        // Add Any Missing Data from URL Query String (Does Not Override Existing Data)
         $missedData = $this->checkForMissingData();
         foreach( $missedData as $key=>$val ) {
             if ( !array_key_exists($key, $rVal) ) {
@@ -45,18 +53,7 @@ class cookies extends Midori {
             }
         }
 
-        // Are we visiting a specific timeline or post?
-        $subs = $this->_checkURL( NoNull($rVal['mpage']), NoNull($rVal['ppage']), NoNull($rVal['spage']) );
-        if ( count($subs) > 0 ) {
-            foreach( $subs as $key=>$val ) {
-                $rVal[ $key ] = $val;
-            }
-
-            // Clear the pPage value (as it's no longer required)
-            unset( $rVal['ppage'] );
-        }
-
-        // Populate Missing or Blank Array Values with Defaults
+        // Populate Missing or Blank Array Values with Defaults (Does Not Override Existing Data)
         $defaults = $this->_getCookieDefaults();
         foreach($defaults as $key=>$val) {
             if ( !array_key_exists($key, $rVal) ) {
@@ -76,11 +73,10 @@ class cookies extends Midori {
             }
 
 	        // Determine if the Admin Screen Should be Displayed
-	        if ( $this->_doShowAdmin(NoNull($rVal['mpage']), $rVal['adminCode'], $rVal['token']) ) {
+	        if ( $this->_doShowAdmin(NoNull($rVal['PgRoot']), $rVal['adminCode'], $rVal['token']) ) {
 	        	$rVal['DispPg'] = 'admin';
 	        }
         }
-
 
         // Save the Cookies
         $this->_saveCookies( $rVal );
@@ -163,16 +159,10 @@ class cookies extends Midori {
         } else {
             $DispLang = DEFAULT_LANG;
         }
-        
-        $ReqURI = $_SERVER['REQUEST_URI'];
-        if ( strpos($_SERVER['REQUEST_URI'], "?") ) {
-	        $ReqURI = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], "?"));
-        }
-        
+
         // Return the Array of Defaults
         return array('DispPg'       => 'default',
                      'DispLang'     => strtoupper($DispLang),
-                     'ReqURI'		=> NoNull($ReqURI),
                      'pftheme'      => '',
                      'TimeZone'     => 23,
                      'isLoggedIn'   => 'N',
@@ -180,9 +170,6 @@ class cookies extends Midori {
                      'token'        => getRandomString(16),
                      'GA_Account'   => '',
                      'isDebug'      => 'N',
-                     'mpage'		=> '',
-                     'spage'		=> '',
-                     'ppage'		=> ''
                      );
     }
 
@@ -202,19 +189,19 @@ class cookies extends Midori {
 
     /**
      * Function determines whether the Administration Panel should be displayed
-     *		based on the mPage value passed and the level of security
+     *		based on the PgRoot value passed and the level of security
      */
-    private function _doShowAdmin( $mPage, $AdminCode = "", $token = "" ) {
+    private function _doShowAdmin( $PgRoot, $AdminCode = "", $token = "" ) {
 	    $rVal = false;
 
 	    // If there is no system in place, create one
-	    if ( strtolower($mPage) == 'install' ) {
+	    if ( strtolower($PgRoot) == 'install' ) {
 	    	$isDone = readSetting('core', 'installDone');
 		    $rVal = YNBool(!$isDone);
 	    }
 
 	    // If the UserAccessID Matches the Access ID Passed, Grant Access
-	    if ( $AdminCode == $mPage && $mPage != "" ) {
+	    if ( $AdminCode == $PgRoot && $PgRoot != "" ) {
 		    $rVal = true;
 	    }
 
@@ -223,50 +210,42 @@ class cookies extends Midori {
     }
 
     /**
-     * Function Checks the mPage and sPage values and prepares the cookies
-     *      accordingly
+     * Function Determines the Appropriate Location and Returns an Array Containing
+     *		the Dislay Page as well as the Page Root.
+     *	Note:	this would be the logical location to put language override checking as
+     *			it would allow URLs like [HOMEURL]/ja/2013/01/01/ice-cream/
      */
-    private function _checkURL( $mPage, $pPage, $sPage ) {
-        $rVal = array();
-        $filters = array( 'api',
-        				  'rss',
-        				  'cron',
-                          'post'
-                         );
+    private function _readURL() {
+        $ReqURI = substr($_SERVER['REQUEST_URI'], 1);
+        if ( strpos($ReqURI, "?") ) { $ReqURI = substr($ReqURI, 0, strpos($ReqURI, "?")); }
+        $URLPath = split( '/', $ReqURI );
+        $filters = array( 'api', 'rss', 'cron' );
+        $rVal = array( 'DispPg' => 'default',
+                       'ReqURI'	=> NoNull($ReqURI),
+                       'PgRoot' => $URLPath[0],
+                      );
 
-        // Ensure we have both a Page Selection
-        // Note: A value is not required as confirmation as these values will only
-        //       arrive in pairs. Should a person be missing a value, they will be
-        //       returned to their home timelines.
-        if ( $mPage != "" ) {
-            if ( in_array($mPage, $filters) ) {
-                switch ( $mPage ) {
-                    case 'api':
-                        $rVal = array( 'DispPg' => 'api',
-                                       'mpage'  => $pPage,
-                                       'spage'  => $sPage
-                                      );
-                        break;
-
-                    case 'cron':
-                        $rVal = array( 'DispPg' => 'cron',
-                                       'mpage'  => '',
-                                       'spage'  => ''
-                                      );
-                        break;
-
-                    case 'rss':
-                        $rVal = array( 'DispPg' => 'rss',
-                                       'mpage'  => $pPage,
-                                       'spage'  => $sPage
-                                      );
-                        break;
-
-                    default:
-                        $rVal = array( $mPage => $sPage );
-                }
+        // Determine If We Have a URL Fork
+        if ( $URLPath[0] != "" ) {
+            if ( in_array($URLPath[0], $filters) ) {
+                $rVal['DispPg'] = $URLPath[0];
+                $rVal['PgRoot'] = $URLPath[1];
+            } elseif ( is_numeric($URLPath[0]) && is_numeric($URLPath[2]) && is_numeric($URLPath[2]) ) {
+                $rVal['DispPg'] = 'blog';
+                $rVal['PgRoot'] = $URLPath[0];
             }
         }
+
+        // Construct the Rest of the URL Items
+        $idx = 1;
+		if ( count($URLPath) > 2 ) {
+			for ( $i = 1; $i <= count($URLPath); $i++ ) {
+				if ( NoNull($URLPath[$i]) != "" && !in_array($URLPath[$i], array_values($rVal)) ) {
+					$rVal["PgSub$idx"] = $URLPath[$i];
+					$idx++;
+				}
+			}
+		}
 
         // Return the Array of Values
         return $rVal;

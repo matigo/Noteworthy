@@ -1,23 +1,12 @@
 Options +FollowSymlinks
+Options -Indexes
+
 RewriteEngine On
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteRule ^.*$ ./index.php
 
-RewriteRule ^([0-9]+)/([0-9]+)/([0-9]+)/([^/]+)/$ index.php?mpage=blog&year=$1&month=$2&day=$3&title=$4 [L,QSA]
-RewriteRule ^([0-9]+)/([0-9]+)/([0-9]+)/([^/]+)$ index.php?mpage=blog&year=$1&month=$2&day=$3&title=$4 [L,QSA]
-RewriteRule ^api/([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/$ index.php?mpage=api&ppage=$1&spage=$2 [L,QSA]
-RewriteRule ^api/([a-zA-Z0-9]+)/([a-zA-Z0-9]+)$ index.php?mpage=api&ppage=$1&spage=$2 [L,QSA]
-RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/$ index.php?mpage=$1&spage=$2 [L,QSA]
-RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)$ index.php?mpage=$1&spage=$2 [L,QSA]
-RewriteRule ^([a-zA-Z0-9]+)/$ index.php?mpage=$1 [L,QSA]
-RewriteRule ^([a-zA-Z0-9]+)$ index.php?mpage=$1 [L,QSA]
-
-<FilesMatch "\.inc$">
-    Deny from all
-</FilesMatch>
-
-<FilesMatch "\.user$">
-    Deny from all
-</FilesMatch>
-
-<FilesMatch "\.token$">
-    Deny from all
+<FilesMatch "\.(htaccess|htpasswd|inc|log|sql|user|token)$">
+	Order Allow,Deny
+	Deny from all
 </FilesMatch>

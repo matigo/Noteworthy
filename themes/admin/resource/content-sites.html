@@ -1,33 +1,33 @@
 		<div class="container_16 admin-panel background">
 			<div class="module-box grid_16 alpha">
-				<h2 class="title show_hide">Base Information<span class="close-icon"></span></h2>
+				<h2 class="title show_hide">[lblBaseInfo]<span class="close-icon"></span></h2>
 				<div class="module-box-inner">
 					<form name="primary" action="[HOMEURL]/api/settings/update" method="post">
 						<div>
-							<label for="txtHomeURL">Site URL</label>
+							<label for="txtHomeURL">[lblTxtHomeURL]</label>
 							<input type="text" value="[HOMEURL]" id="txtHomeURL" name="txtHomeURL" />
 						</div>
 						<div>
-							<label for="txtSiteName">Site Name</label>
+							<label for="txtSiteName">[lblTxtSiteName]</label>
 							<input class="input-medium" type="text" value="[SiteName]" id="txtSiteName" name="txtSiteName" maxlength="80" />
 						</div>
 						<div>
-							<label for="txtSiteDescr">Site Description</label>
+							<label for="txtSiteDescr">[lblTxtSiteDescr]</label>
 							<input class="input-medium" type="text" value="[SiteDescr]" id="txtSiteDescr" name="txtSiteDescr" maxlength="160" />
 						</div>
 						<div>
-							<label for="txtSiteSEO">Site SEO Key Words <i style="margin-left: 10px;">(Comma Separated)</i></label>
+							<label for="txtSiteSEO">[lblTxtSEOTags] <i style="margin-left: 10px;">[lblTxtSEOTagsB]</i></label>
 							<input class="input-medium" type="text" value="[SiteSEOTags]" id="txtSiteSEO" name="txtSiteSEO" maxlength="240" />
 						</div>
 						<div>
-							<input id="chkisDefault" type="checkbox" class="checkbox" checked="checked" name="chkisDefault" /> <label class="float-label" for="chkIsDefault">Default Landing Site</label><span style="margin-left: 10px;"><i>(Redirects people going to invalid domains or sub-domains to this site)</i></span>
+							<input id="chkisDefault" type="checkbox" class="checkbox" checked="checked" name="chkisDefault" /> <label class="float-label" for="chkIsDefault">[lblChkDefault]</label><span style="margin-left: 10px;"><i>[lblChkDefaultB]</i></span>
 						</div>
 
 						<hr />
 						
 						<div>
-							<div class="legend">Syling</div>
-							<label for="txtLocation">Choose Your Theme</label>
+							<div class="legend">[lblStyling]</div>
+							<label for="txtLocation">[lblStylingB]</label>
 							<div>
 								<select id="txtLocation" name="txtLocation" tabindex="-1">
 									[ThemeList]
@@ -38,21 +38,21 @@
 						<hr />
 
 						<div>
-							<div class="legend">Update Handling</div>
+							<div class="legend">[lblUpdateHndl]</div>
 							<input id="raNoCron" type="radio" class="radio" [raNoCronChk] name="doCron" value="N" /> <label class="float-label" for="raNoCron">[lblDisabled]</label>
 							<input id="raDoCron" type="radio" class="radio" [raDoCronChk] name="doCron" value="Y" /> <label class="float-label" for="raDoCron">[lblEnabled]</label>
-							<p style="margin: 15px 25px -10px 5px;">This is how updates will be done on your site. If you choose "Disabled", then you will need to set up a cron job on your server. If you're not sure what this means, or you don't have access to crontab, then click "Enabled". This will make the site check for updates a visitor comes to the site. This will <i>not</i> affect your server load whatsoever. You can <a href="#cron" title="Cron Jobs on Noteworthy"><b>read more about Cron here</b></a>.</p>
+							<p style="margin: 15px 25px -10px 5px;">[lblUpdateHndlB]</p>
 						</div>
 						<br />
 
 						<hr />
 
 						<div>
-							<div class="legend">Comments</div>
+							<div class="legend">[lblComments]</div>
 							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">[lblDisabled]</label>
 							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">[lblEnabled]</label>
 							<div id="disqussed" style="display: [dVis];">
-								<label for="txtDisqusID">Disqus ID</label>
+								<label for="txtDisqusID">[lblDisqusID]</label>
 								<input type="text" value="[DisqusID]" id="txtDisqusID" name="txtDisqusID"/>
 							</div>
 							<div id="disqus-err" class="validation-message"></div>
@@ -76,8 +76,8 @@
 						<hr />
 
 						<div>
-							<div class="legend">Spam Filtering</div>
-							<label for="txtAkismetKey">Akismet Key</label>
+							<div class="legend">[lblSpamFilter]</div>
+							<label for="txtAkismetKey">[lblAkismetKey]</label>
 							<input type="text" value="[AkismetKey]" id="txtAkismetKey" name="txtAkismetKey" style="float: left;" />
 							<button id="akismet-test" class="btn-small silver" style="margin-top: -2px;"><span>[lblTest]</span></button>
 							<div id="akismet-err" class="validation-message"></div>
@@ -96,16 +96,16 @@
 			<div class="clear"></div>
 
 			<div class="module-box grid_12 alpha">
-				<h2 class="title show_hide">Social Links <span class="close-icon"></span></h2>
+				<h2 class="title show_hide">[lblSocialLinks] <span class="close-icon"></span></h2>
 				<div class="module-box-inner">
-					<p>Here you can set some links people can use to follow you elsewhere on the Internet.</p>
+					<p>[lblSocialLinksB]</p>
 					<form name="socials" action="[HOMEURL]/api/settings/update" method="post">
 						<table id="socialTable" class="pages-table">
 							<thead>
 								<tr>
-									<th class="header">Display Name</th>
-									<th class="header">Link</th>
-									<th class="header">Active</th>
+									<th class="header">[lblSocialName]</th>
+									<th class="header">[lblSocialLink]</th>
+									<th class="header">[lblSocialActive]</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -146,12 +146,12 @@
 				</div>
 			</div>
 			<div class="module-box grid_4 omega">
-				<h2 class="title show_hide">Social Links</h2>
+				<h2 class="title show_hide">[lblSocialLinks]</h2>
 				<div class="module-box-inner">
 					<div class="user-messages">
 						<div id="note-sandbox" class="user-message">
-							<h3>Let People See You</h3>
-							<p>Here you can add links to your profiles on any other websites you might want to share with.</p>
+							<h3>[lblSocialLinksB]</h3>
+							<p>[lblSocialLinksC]</p>
 						</div>
 					</div>
 				</div>
@@ -222,8 +222,8 @@
 					<p>Setting up a cron job is quite easy if you have shell access on your web server. Simply type:</p>
 					<pre>crontab -e</pre>
 					<p>And you're in. If this is the first time you've used crontab, the file will be empty. You can have the server check for updates every 15 minutes by typing the following:</p>
-					<pre>15 * * * * /usr/bin/wget -q --timeout=600 "[HOMEURL]/cron/"</pre>
-					<p>15 minutes should be a decent time interval between cron jobs, but keep in mind that Tweets will only be checked every five minutes and Evernote every hour. This is to ensure these services don't block or ban you from accessing their servers. Want to learn more about cron jobs? <a href="http://en.wikipedia.org/wiki/Cron" title="Wikipedia | Cron" target="_blank">Wikipedia</a> has a good article on them explaining how they work and how to use them.</p>
+					<pre>*/15 * * * * /usr/bin/wget -q --timeout=600 "[HOMEURL]/cron/"</pre>
+					<p>15 minutes should be a decent time interval between cron jobs, but keep in mind that Tweets will only be checked every five minutes and Evernote every half-hour. This is to ensure these services don't block or ban you from accessing their servers. Want to learn more about cron jobs? <a href="http://en.wikipedia.org/wiki/Cron" title="Wikipedia | Cron" target="_blank">Wikipedia</a> has a good article on them explaining how they work and how to use them.</p>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -256,39 +256,32 @@
 		<script type="text/javascript" src="[JS_DIR]/sites.js"></script>
 		<script type="text/javascript">
 			$(function(){
-				getNotebooks( '[ACCESSKEY]' );
+				window.accessKey = "[ACCESSKEY]";
+				getNotebooks();
             });
             
 			jQuery(function($) {
 				$('#akismet-test').click(function() {
-					_canSubmit = false;
-					checkAkismet( '[ACCESSKEY]', $('#siteurl').val(), $('#akismet-id').val() );
-
+					checkAkismet( $('#siteurl').val(), $('#akismet-id').val() );
 					return false;
 				});
 				$('#save-sites').click(function() {
-					_canSubmit = false;
 					performUpdates();
-
 					return false;
 				});
 				$('#save-social').click(function() {
-					_canSubmit = false;
 					performSocialUpdates();
-
 					return false;
 				});
 				$('#evernote-test').click(function() {
 					var radios = document.getElementsByName('UseSandbox');
 					var UseSandbox = "Y";
-					_canSubmit = false;
 
 					for (var i = 0; i < radios.length; i++) {
 					    if (radios[i].checked) { UseSandbox = radios[i].value; }
 					}
 
-					checkEvernote( '[ACCESSKEY]', $('#ttoken').val(), UseSandbox );
-
+					checkEvernote( $('#ttoken').val(), UseSandbox );
 					return false;
 				});
 				$('#notebook-click').click(function() {
@@ -306,8 +299,7 @@
 				    }
 
 				    // Set the Notebooks (Even if Zero are Selected)
-				    setSelectedNotebooks( '[ACCESSKEY]', guidList );
-
+				    setSelectedNotebooks( guidList );
 					return false;
 				});
 				$('#checkall').click(function() {

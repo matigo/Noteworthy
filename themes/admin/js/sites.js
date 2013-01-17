@@ -3,13 +3,13 @@ var _canSubmit = true;
 /* ******************************************* *
  *      General Sites Page Functions
  * ******************************************* */
-function checkAkismet( apiKey, siteURL, akismetKey ) {
+function checkAkismet( siteURL, akismetKey ) {
     var params = new Object();
     var method = 'akismet/validate';
     var apiPath = getAPIPath();
 
     // Set the Parameters
-    params['accessKey'] = apiKey;
+    params['accessKey'] = window.accessKey;
     params['txtHomeURL'] = siteURL;
     params['txtAkismetKey'] = akismetKey;
 
@@ -189,13 +189,13 @@ function displayServerNote( radioID ) {
 	document.getElementById("note-production").style.display = raProduct;
 }
 
-function checkEvernote( apiKey, evernoteToken, useSandbox ) {
+function checkEvernote( evernoteToken, useSandbox ) {
     var params = new Object();
     var method = 'evernote/testToken';
     var apiPath = getAPIPath();
 
     // Set the Parameters
-    params['accessKey'] = apiKey;
+    params['accessKey'] = window.accessKey;
     params['sandbox'] = useSandbox;
     params['ttoken'] = evernoteToken;
 
@@ -203,7 +203,7 @@ function checkEvernote( apiKey, evernoteToken, useSandbox ) {
         url: apiPath + method,
         data: params,
         success: function( data ) {
-            parseEvernoteResult( data.data, apiKey );
+            parseEvernoteResult( data.data );
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
@@ -213,36 +213,33 @@ function checkEvernote( apiKey, evernoteToken, useSandbox ) {
     });
 }
 
-function parseEvernoteResult( data, apiKey ) {
+function parseEvernoteResult( data ) {
 	var result = false;
-	var _errMsg = "";
-	
-	if ( data.isGood == "Y" ) {
-		getNotebooks( apiKey );
+
+	if ( typeof data.Message != "undefined" ) {
+		getNotebooks();
 	} else {
 		document.getElementById("enNotebooks").innerHTML = "";
-		alert( data.Message );
+		alert( data.errors[0] );
 	}
 }
 
-function getNotebooks( apiKey ) {
+function getNotebooks() {
     var params = new Object();
     var method = 'evernote/listNotebooks';
     var apiPath = getAPIPath();
 
     // Set the Parameters
-    params['accessKey'] = apiKey;
+    params['accessKey'] = window.accessKey;
 
     $.ajax({
         url: apiPath + method,
         data: params,
         success: function( data ) {
             parseEvernoteNotebooks( data.data );
-            _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
-            _canSubmit = true;
         },
         dataType: "json"
     });
@@ -278,13 +275,13 @@ function parseEvernoteNotebooks( data ) {
 	document.getElementById("enNotebooks").innerHTML = result;
 }
 
-function setSelectedNotebooks( apiKey, NotebookList ) {
+function setSelectedNotebooks( NotebookList ) {
     var params = new Object();
     var method = 'evernote/setSelectedNotebooks';
     var apiPath = getAPIPath();
 
     // Set the Parameters
-    params['accessKey'] = apiKey;
+    params['accessKey'] = window.accessKey;
     params['guidlist'] = NotebookList;
 
     $.ajax({
@@ -292,11 +289,9 @@ function setSelectedNotebooks( apiKey, NotebookList ) {
         data: params,
         success: function( data ) {
             parseSelectedNotebooks( data.data );
-            _canSubmit = true;
         },
         error: function (xhr, ajaxOptions, thrownError){
             alert(xhr.status + ' | ' + thrownError);
-            _canSubmit = true;
         },
         dataType: "json"
     });

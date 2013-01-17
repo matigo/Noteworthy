@@ -48,7 +48,7 @@ class Settings extends Midori {
 	    		// Send an Email Reminder of the Administration URL
 	    		$isGood = $this->_emailAdminLink();
 	    		if ( $isGood ) {
-		    		$rVal['Message'] = "Your Email Has Been Sent!";
+		    		$rVal['Message'] = $this->messages['lblEmailSent'];
 	    		}
 	    		break;
 
@@ -413,7 +413,7 @@ class Settings extends Midori {
 						    			     "Your Administration screens can be found at: $AdminURL <br />\r\n" .
 						    			     "<br />\r\n" .
 						    			     "Be sure to keep this email in a safe place so you don't forget.",
-						    'spage'		  => "send",
+						    'PgSub1'		  => "send",
 						    );
 
 			// Prepare the Email Class

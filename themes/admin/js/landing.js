@@ -80,72 +80,85 @@ function parsePostsResult( data ) {
 						   '[REFRESH]' +
 					   '</td></tr>';
 
-	if ( data.isGood == 'Y' ) {
-		_homeURL = _homeURL.replace("/api/", '');
-		result = true;
-		var ds = data.posts;
-		var _postURL = '',
-			_refresh = '';
-		var _cPage = 1,
-			_Results = 25,
-			_RecTotal = 1;
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == 'Y' ) {
+			_homeURL = _homeURL.replace("/api/", '');
+			result = true;
+			var ds = data.posts;
+			var _postURL = '',
+				_refresh = '';
+			var _cPage = 1,
+				_Results = 25,
+				_RecTotal = 1;
 
-		// Append the HTML to the Result String
-		for ( var i = 0; i < ds.length; i++ ) {
-			if ( ds[i].PostURL != null ) {
-				_postURL = '<a href="' + ds[i].PostURL + '" target="_blank">' + ds[i].Title + '</a>';
-				_refresh = "<button class=\"btn-tiny silver\" onclick=\"refreshPost('" + ds[i].guid + "')\"><span>Refresh</span></button>";
+			// Append the HTML to the Result String
+			for ( var i = 0; i < ds.length; i++ ) {
+				if ( ds[i].PostURL != null ) {
+					_postURL = '<a href="' + ds[i].PostURL + '" target="_blank">' + ds[i].Title + '</a>';
+					_refresh = "<button class=\"btn-tiny silver\" onclick=\"refreshPost('" + ds[i].guid + "')\"><span>Refresh</span></button>";
 
-			} else {
-				_postURL = ds[i].Title;
-				_refresh = "<button class=\"btn-tiny red\" onclick=\"refreshPost('" + ds[i].guid + "')\"><span>Repair</span></button>";
+				} else {
+					_postURL = ds[i].Title;
+					_refresh = "<button class=\"btn-tiny red\" onclick=\"refreshPost('" + ds[i].guid + "')\"><span>Repair</span></button>";
+				}
+
+				_cPage = ds[i].PageNo;
+				_Results = ds[i].Results;
+				_RecTotal = ds[i].RecordTotal;
+
+				_row = _rowTemplate.replace("[ID]", ds[i].id);
+				_row = _row.replace("[GUID]", ds[i].guid);
+				_row = _row.replace("[TITLE]", _postURL);
+				_row = _row.replace("[CREATEDTS]", dateFormat(ds[i].CreateDTS * 1000, "mmmm dS, yyyy"));
+				_row = _row.replace("[UPDATEDTS]", dateFormat(ds[i].UpdateDTS * 1000, "mmmm dS, yyyy"));
+				_row = _row.replace("[METAS]", ds[i].MetaRecords);
+				_row = _row.replace("[REFRESH]", _refresh);
+				_row = _row.replace("[HOMEURL]", _homeURL);
+
+				_rows += _row;
 			}
-			
-			_cPage = ds[i].PageNo;
-			_Results = ds[i].Results;
-			_RecTotal = ds[i].RecordTotal;
 
-			_row = _rowTemplate.replace("[ID]", ds[i].id);
-			_row = _row.replace("[GUID]", ds[i].guid);
-			_row = _row.replace("[TITLE]", _postURL);
-			_row = _row.replace("[CREATEDTS]", dateFormat(ds[i].CreateDTS * 1000, "mmmm dS, yyyy"));
-			_row = _row.replace("[UPDATEDTS]", dateFormat(ds[i].UpdateDTS * 1000, "mmmm dS, yyyy"));
-			_row = _row.replace("[METAS]", ds[i].MetaRecords);
-			_row = _row.replace("[REFRESH]", _refresh);
-			_row = _row.replace("[HOMEURL]", _homeURL);
+			if ( ds.length == 0 || ds === false ) {
+				showZeroPostDiv();
+			}
 
-			_rows += _row;
-		}
-		
-		if ( ds.length == 0 || ds === false ) {
+			// Add Pagination
+			parsePageNavigation( _cPage, _Results, _RecTotal );
+
+		} else {
+			_returnDiv = _dispDiv.replace("[CLASS]", "sys-error");
+			_returnDiv = _returnDiv.replace("[MESSAGE]", data.Message);
+			document.getElementById("system-msg").innerHTML = _returnDiv;
+
+			// Show the Zero Post Div
 			showZeroPostDiv();
 		}
-
-		// Add Pagination
-		parsePageNavigation( _cPage, _Results, _RecTotal );
-
-	} else {
-		_returnDiv = _dispDiv.replace("[CLASS]", "sys-error");
-		_returnDiv = _returnDiv.replace("[MESSAGE]", data.Message);
-		document.getElementById("system-msg").innerHTML = _returnDiv;
-		
-		// Show the Zero Post Div
-		showZeroPostDiv();
+		document.getElementById("post-data").innerHTML = _rows;
 	}
-	document.getElementById("post-data").innerHTML = _rows;
-	
+
 	// Return Appropriately
 	return false;
 }
 
 function parsePageNavigation( CurrentPage, ResultsPerPage, RecordCount ) {
 	var result = '',
-		isActive = '';
+		isActive = '',
+		navStr = '';
 	var loops = 0,
 		PageNo = 1;
+	var minPage = CurrentPage - 5,
+		maxPage = CurrentPage + 5;
 	
 	if ( CurrentPage > 1 ) {
-		result = "<a href=\"#\" onclick=\"getPostsList(" + (i - 1) + ");\" class=\"left-arr\">&larr;</a>";
+		result = "<a onclick=\"getPostsList(" + (i - 1) + ");\" class=\"left-arr\">&larr;</a>";
+		// Add the First Page Prefix If Necessary
+		if ( (CurrentPage - 5) > 2 ) {
+			result += "<a " + isActive + " onclick=\"getPostsList(1);\">1</a>" +
+					  "<a>...</a>";
+		}
+	}
+	if ( maxPage < 10 ) {
+		maxPage = 10;
 	}
 
 	for ( var i = 1; i <= RecordCount; i + ResultsPerPage ) {
@@ -153,13 +166,22 @@ function parsePageNavigation( CurrentPage, ResultsPerPage, RecordCount ) {
 		if ( PageNo == CurrentPage ) {
 			isActive = ' class="active"';
 		}
-		result += "<a href=\"#\"" + isActive + " onclick=\"getPostsList(" + PageNo + ");\">" + PageNo + "</a>";
+		
+		navStr = "<a " + isActive + " onclick=\"getPostsList(" + PageNo + ");\">" + PageNo + "</a>";
+		if ( PageNo >= minPage && PageNo <= maxPage ) {
+			result += navStr;		
+		}
 
 		i += ResultsPerPage;		
 		PageNo++;
 	}
+	
+	// Add the Last Page Suffix
+	if ( PageNo > maxPage ) {
+		result += "<a>...</a>" + navStr;
+	}
 
-	result += "<a href=\"#\" onclick=\"getPostsList(" + (CurrentPage + 1) + ");\" class=\"right-arr\">&rarr;</a>";
+	result += "<a onclick=\"getPostsList(" + (CurrentPage + 1) + ");\" class=\"right-arr\">&rarr;</a>";
 
 	// Update the Pagination
 	document.getElementById("paginate").innerHTML = result;

@@ -33,14 +33,14 @@ class api extends Midori {
 
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
 		if ( $this->_canProceed() ) {
-		    switch ( NoNull($this->settings['mpage'], $this->settings['spage']) ) {
+		    switch ( NoNull($this->settings['PgRoot'], $this->settings['PgSub1']) ) {
 		    	case 'account':
 		    		$rVal = "";
 		    		break;
 
 		    	case 'akismet':
 		    		$rVal = array('isGood' => "N" );
-		    		switch( NoNull($this->settings['spage']) ) {
+		    		switch( NoNull($this->settings['PgSub1']) ) {
 			    		case 'validate':
 			    			require_once( LIB_DIR . '/akismet.php' );
 			    			$siteURL = NoNull($this->settings['txtHomeURL']);
@@ -58,7 +58,7 @@ class api extends Midori {
 			    	$content = new Content( $this->settings, $this->messages, dirname(__FILE__) );
 		    		$rVal = array('isGood' => "N" );
 
-		    		switch ( NoNull($this->settings['spage']) ) {
+		    		switch ( NoNull($this->settings['PgSub1']) ) {
 			    		case 'listPosts':
 			    			$rVal['posts'] = $content->getCompletePostsList();
 			    			$rVal['isGood'] = "Y";
@@ -95,7 +95,7 @@ class api extends Midori {
 		    	case 'users':
 		    		require_once( LIB_DIR . '/user.php' );
 		    		$usr = new User( $this->settings['token'] );
-		    		switch ( NoNull( $this->settings['spage']) ) {
+		    		switch ( NoNull( $this->settings['PgSub1']) ) {
 			    		case 'login':
 			    			$rVal = $usr->authAccount( $this->settings['email'], $this->settings['route'], $this->settings['token'] );
 			    			break;
@@ -130,7 +130,7 @@ class api extends Midori {
      *	Definition: Is API Key required? Yes? Do we have it? Yes? Matches?
      */
     private function _canProceed() {
-	    $doPage = NoNull($this->settings['mpage'], $this->settings['spage']);
+	    $doPage = NoNull($this->settings['PgRoot'], $this->settings['PgSub1']);
 	    $rVal = false;
 
 	    if ( BoolYN($this->settings['require_key']) ) {

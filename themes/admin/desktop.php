@@ -89,7 +89,7 @@ class miTheme extends theme_main {
                       	  '[GENERATOR]'	  => GENERATOR,
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name']),
                           '[SITEDESCR]'   => $this->messages['site_descr'],
-                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['mpage']) ),
+                          '[PAGE_TITLE]'  => $this->_getPageTitle( NoNull($this->settings['PgRoot']) ),
                           '[LANG_CD]'     => strtoupper($this->messages['lang_cd']),
                           '[ERROR_MSG]'   => '',
                           '[CONF_DIR]'    => $this->settings['HomeURL'] . "/conf",
@@ -165,7 +165,7 @@ class miTheme extends theme_main {
     }
 
     /**
-     * Function Returns a Boolean Response whether the MPage Requested
+     * Function Returns a Boolean Response whether the PgRoot Requested
      *       is Valid or Not 
      * 
      * Note: This needs to be made a bit more automatic, as it's high
@@ -177,7 +177,7 @@ class miTheme extends theme_main {
         $validPg = array('login', 'landing', 'dashboard', 'search', 'about', '');
 
         // Determine if the Page Requested is in the Array
-        if ( in_array(NoNull($this->settings['spage']), $validPg) ) {
+        if ( in_array(NoNull($this->settings['PgSub1']), $validPg) ) {
             $rVal = true;
         }
 
@@ -263,7 +263,7 @@ class miTheme extends theme_main {
 	    	$Gravatar = getGravatarURL( $this->user->EmailAddr() );
 	    	$DispName = $this->user->DisplayName();
 	    	$HomeURL  = $this->settings['HomeURL'];
-	    	$AboutLnk = $HomeURL . "/" . $this->settings['mpage'] . '/dashboard/';
+	    	$AboutLnk = $HomeURL . "/" . $this->settings['PgRoot'] . '/dashboard/';
 		    $rVal = "<div id=\"logout\">" .
 		    		"<img class=\"grav_default\" src=\"$Gravatar\" alt=\"" . $this->messages['lblWelcome'] . "\">" . $this->messages['lblWelcome'] . " <a class=\"welcome-link\" href=\"$AboutLnk\">$DispName</a>" .
 		    		"<img src=\"" . IMG_DIR . "/icons/lock_large_locked.png\" alt=\"" . $this->messages['lblLogout'] . "\"> <a href=\"$HomeURL\">" . $this->messages['lblLogout'] . "</a>" .
@@ -293,7 +293,7 @@ class miTheme extends theme_main {
      */
     private function _getPageTitle() {
         $rVal = NoNull($this->messages['site_name']);
-        $rSuffix = $this->messages['ttl_' . strtolower(NoNull($this->settings['mpage'])) ];
+        $rSuffix = $this->messages['ttl_' . strtolower(NoNull($this->settings['PgRoot'])) ];
 
         // Append the Page Title if it's Applicable
         if ( $rSuffix != '' ) { $rVal .= " | $rSuffix"; }
@@ -308,7 +308,7 @@ class miTheme extends theme_main {
     private function _getExtendedHeaderInfo() {
         $rVal = '';
         
-        switch ( NoNull($this->settings['spage']) ) {
+        switch ( NoNull($this->settings['PgSub1']) ) {
             case 'contact':
                 $rVal = tabSpace(4) . "<link rel=\"stylesheet\" href=\"" . CSS_DIR . "/contact.css\" type=\"text/css\" />";
                 break;
@@ -342,11 +342,11 @@ class miTheme extends theme_main {
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
                        '[SYSTEM-MSGS]'	=> '',
-                       '[ADMINURL]'		=> $this->settings['HomeURL'] . '/' . $this->settings['mpage'],
+                       '[ADMINURL]'		=> $this->settings['HomeURL'] . '/' . $this->settings['PgRoot'],
                        '[NBOOKCOUNT]'	=> $this->_getSelectedNotebookCount(),
                       );
 
-        switch ( $this->settings['spage'] ) {
+        switch ( $this->settings['PgSub1'] ) {
             case 'sites':
             	// Website Settings
             	$doComments = YNBool( $this->settings['doComments'] );
@@ -478,13 +478,13 @@ class miTheme extends theme_main {
 
     /**
      * Function Returns the Appropriate .html Content File Required for a
-     *      given sPage Value.
+     *      given PgSub1 Value.
      */
     private function _getReqFileName() {
         $rVal = '';
 
         if ( YNBool($this->settings['isLoggedIn']) ) {
-	        $FileName = '/content-' . strtolower(NoNull($this->settings['spage'])) . '.html';
+	        $FileName = '/content-' . strtolower(NoNull($this->settings['PgSub1'])) . '.html';
         } else {
 	        $FileName = '/content-login.html';
         }
@@ -525,7 +525,7 @@ class miTheme extends theme_main {
             			   );
 
             foreach ( $pages as $url=>$dtl ) {
-            	$FullURL = $this->settings['HomeURL'] . '/' . $this->settings['mpage'] . "/$url/";
+            	$FullURL = $this->settings['HomeURL'] . '/' . $this->settings['PgRoot'] . "/$url/";
             	$SubList = '';
             	$isCurrent = '';
             	if ( array_key_exists('subs', $dtl) ) {
@@ -536,7 +536,7 @@ class miTheme extends theme_main {
 	            	$SubList .= "</ul>";
             	}
             	$isCurrent = '';
-            	if ( $this->settings['spage'] == $url ) {
+            	if ( $this->settings['PgSub1'] == $url ) {
 	            	$isCurrent = ' class="current_menu_item"';
             	}
             	$rVal .= '<li' . $isCurrent . '><a href="' . $FullURL . '"><span class="nav-icon ' . $dtl['icon'] . '"></span> ' . $dtl['label'] . '</a>' . $SubList . '</li>';
@@ -566,7 +566,7 @@ class miTheme extends theme_main {
 
     	// Ensure We Have a Token
     	if ( $this->settings['token'] != "" ) {
-			$data = $this->user->authAccount( $this->settings['email_addr'], $this->settings['mpage'], $this->settings['token'] );
+			$data = $this->user->authAccount( $this->settings['email_addr'], $this->settings['PgRoot'], $this->settings['token'] );
 			if ( $data['redir'] != "" ) { $redirURL = $this->settings['HomeURL'] . '/' . $data['redir']; }
 			$rVal = YNBool( $data['isGood'] );
     	}

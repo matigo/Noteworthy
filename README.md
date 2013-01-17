@@ -1,17 +1,18 @@
 <h1>Noteworthy</h1>
 <h4><i>A PHP-Based Blogging Tool <span style="font-size:50%">for use with</span> Evernote</i></h4>
 
-The Following is a list of notes regarding the use and configuration of Noteworthy.
+<p>The Following is a list of notes regarding the use and configuration of Noteworthy.</p>
+<p>For more documentation, be sure to <a href="https://github.com/matigo/Noteworthy/wiki" title="GitHub | Noteworthy Wiki">check out the Wiki</a>.</p>
 
 <h2>General Requirements</h2>
-You will need:
+<p>You will need:</p>
 <ul>
 	<li>a web server running PHP 5.0 or higher</li>
 	<li>MySQL 5.0 or higher</li>
 </ul>
 
 <h2>Optional Components</h2>
-There are some optional pieces to the puzzle that might make things a little better. These things include:
+<p>There are some optional pieces to the puzzle that might make things a little better. These things include:</p>
 <ul>
 	<li>something to drink</li>
 	<li>good music</li>
@@ -44,11 +45,13 @@ There are some optional pieces to the puzzle that might make things a little bet
 <p>Don't lose your admin URL. Unlike most other blogging platforms, Noteworthy does not have a static administration URL. It's unique for every person. If you lose your login, you will need to do some ugly workarounds in the filesystem in order to regain permission to the admin panel. This will be addressed in later releases.</p>
 
 <h2>Considerations</h2>
-The use of a database is a requirement at the moment. In future releases, the MySQL component will be optional.
+<p>The use of a MySQL database is a requirement at the moment. In future releases, the MySQL component will be optional.</p>
 
 <h2>Quick Notes</h2>
 <p>Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.</p>
+<p>The API Keys that Evernote provides are only good for one year, and there is no way (that I know of) to check their expiration date aside from logging in to Evernote and checking. As a result, if Noteworthy stops working after one year, you'll need to get a new API key and enter it in the administration screens. None of your data will be lost when this happens.</p>
 <p>There are a few issues with the JavaScript in the Admin Panel. Be sure to click the Save buttons again if an error is returned the first time. This should be resolved in future updates.</p>
+<p>Noteworthy will only work when on a Top Level Domain (website.com) or a sub-domain (abc.website.com). Folder-based installations will be possible in a future release of the application.</p>
 
 <h2>Questions?</h2>
 <p>Have questions about Noteworthy? Feel free to contact me on here, <a href="http://twitter.com/matigo">Twitter</a>, or <a href="http://jasonirwin.ca/contact/">my website</a>. I respond to all email.</p>

@@ -5463,7 +5463,7 @@ $.widget( "ui.autocomplete", {
 				switch( event.keyCode ) {
 				case keyCode.PAGE_UP:
 					suppressKeyPress = true;
-					this._move( "previousPage", event );
+					this._move( "previouPgSub1", event );
 					break;
 				case keyCode.PAGE_DOWN:
 					suppressKeyPress = true;
@@ -5524,7 +5524,7 @@ $.widget( "ui.autocomplete", {
 				var keyCode = $.ui.keyCode;
 				switch( event.keyCode ) {
 				case keyCode.PAGE_UP:
-					this._move( "previousPage", event );
+					this._move( "previouPgSub1", event );
 					break;
 				case keyCode.PAGE_DOWN:
 					this._move( "nextPage", event );
@@ -9213,7 +9213,7 @@ $.widget( "ui.menu", {
 
 		switch ( event.keyCode ) {
 		case $.ui.keyCode.PAGE_UP:
-			this.previousPage( event );
+			this.previouPgSub1( event );
 			break;
 		case $.ui.keyCode.PAGE_DOWN:
 			this.nextPage( event );
@@ -9598,7 +9598,7 @@ $.widget( "ui.menu", {
 		}
 	},
 
-	previousPage: function( event ) {
+	previouPgSub1: function( event ) {
 		var item, base, height;
 		if ( !this.active ) {
 			this.next( event );
@@ -9733,7 +9733,7 @@ $.widget( "ui.progressbar", {
 
 // number of pages in a slider
 // (how many times can you page up/down to go through the whole range)
-var numPages = 5;
+var nuPgRoots = 5;
 
 $.widget( "ui.slider", $.ui.mouse, {
 	version: "1.9.0",
@@ -9872,10 +9872,10 @@ $.widget( "ui.slider", $.ui.mouse, {
 						newVal = this._valueMax();
 						break;
 					case $.ui.keyCode.PAGE_UP:
-						newVal = this._trimAlignValue( curVal + ( (this._valueMax() - this._valueMin()) / numPages ) );
+						newVal = this._trimAlignValue( curVal + ( (this._valueMax() - this._valueMin()) / nuPgRoots ) );
 						break;
 					case $.ui.keyCode.PAGE_DOWN:
-						newVal = this._trimAlignValue( curVal - ( (this._valueMax() - this._valueMin()) / numPages ) );
+						newVal = this._trimAlignValue( curVal - ( (this._valueMax() - this._valueMin()) / nuPgRoots ) );
 						break;
 					case $.ui.keyCode.UP:
 					case $.ui.keyCode.RIGHT:

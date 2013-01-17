@@ -1085,7 +1085,7 @@ require_once(LIB_DIR . '/globals.php');
      */
     function apiFilteredItems( $Items ) {
         $rVal = array();
-        $filter = array('mpage', 'spage', 'DispPg', 'pftheme', 
+        $filter = array('PgRoot', 'PgSub1', 'DispPg', 'pftheme', 
                         'isLoggedIn', 'token',
                         'URL', 'HomeURL',
                         'ThemeName', 'ContentDIR',

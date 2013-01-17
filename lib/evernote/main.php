@@ -51,8 +51,8 @@ class evernote {
 
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
 		if ( $this->_canProceed() ) {
-			writeNote( "Evernote - performAction: " . NoNull($this->settings['spage']) );
-		    switch ( NoNull($this->settings['spage']) ) {
+			writeNote( "Evernote - performAction: " . NoNull($this->settings['PgSub1']) );
+		    switch ( NoNull($this->settings['PgSub1']) ) {
 		    	case 'listNotebooks':
 		    		$data = $this->_getNotebooks();
 		    		break;

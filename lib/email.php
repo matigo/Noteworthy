@@ -32,7 +32,7 @@ class Email {
      * Function performs the Messaging Activity Requested
      */
     public function perform() {
-        $Method = NoNull($this->settings['spage']);
+        $Method = NoNull($this->settings['PgSub1']);
         $rVal = $this->messages['lblInvalidFunc'] . " [$Method]";
 
         // Perform the Requested Work

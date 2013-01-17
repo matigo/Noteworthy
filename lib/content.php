@@ -517,7 +517,7 @@ class Content extends Midori {
 		$PostFilter = sqlScrub($ReqURL);
 		$rVal = "";
 
-		switch ( strtolower($Segments[1]) ) {
+		switch ( strtolower(NoNull($Segments[1], $Segments[0])) ) {
 			case 'archives':
 			case 'archive':
 				$PageNo = 0;
@@ -615,6 +615,11 @@ class Content extends Midori {
 	    		break;
 
 	    	case 'SEARCH':
+	    		$OrderBy = "";
+	    		// Check the "Order By Date" Filter
+	    		if ( array_key_exists('obd', $this->settings) ) {
+		    		$OrderBy = "ORDER BY c.`CreateDTS` DESC";
+	    		}
 	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, c.`TypeCd` as `TYPE-CODE`," .
 	    					  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`, UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
 	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`," .
@@ -627,7 +632,7 @@ class Content extends Midori {
 	    						"   and MATCH (n.`Title`, n.`Value`, n.`PostURL`) AGAINST ('$PostFilter')) tmp" .
 	    				" WHERE c.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" .
 	    				"   and MATCH (c.`Title`, c.`Value`, c.`PostURL`) AGAINST ('$PostFilter')" .
-	    				" ORDER BY c.`CreateDTS` DESC" .
+	    				" $OrderBy" .
 	    				" LIMIT $PageNo, $Results";
 	    		break;
 
@@ -1320,7 +1325,7 @@ class Content extends Midori {
 	     $rVal = false;
      	
 		// Do Not Save Search Results
-		if ( $this->settings['mpage'] != "search" ) {
+		if ( $this->settings['PgRoot'] != "search" ) {
 			$LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
 			$CacheDIR = $this->settings['ContentDIR'] . "/cache";
 			$CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
@@ -1343,7 +1348,7 @@ class Content extends Midori {
      private function _saveCachedHTML( $FileName, $HTML, $UseCurrentID = false ) {
 	     $rVal = false;
 
-	     if ( $this->settings['mpage'] != "search" ) {
+	     if ( $this->settings['PgRoot'] != "search" ) {
 	     	 $LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
 	     	 $CacheDIR = $this->settings['ContentDIR'] . "/cache";
 		     $CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
