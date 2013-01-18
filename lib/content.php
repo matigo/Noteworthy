@@ -355,7 +355,7 @@ class Content extends Midori {
 	    $rVal = array();
 	    $TotalPosts = 0;
 	    $Items = 0;
-	    
+
 	    switch ( $Type ) {
 		    case 'archives_mo':
 		    	$sqlStr = "SELECT DATE_FORMAT(c.`CreateDTS`, '%Y') as `DTYear`," .
@@ -363,7 +363,7 @@ class Content extends Midori {
 		    					" count(`id`) as `PostCount`" .
 		    			  "  FROM `Content` c" .
 		    			  " WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
-		    			  "   and c.`CreateDTS` <= Now()" .
+		    			  "   and c.`CreateDTS` <= Now() and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 		    			  " GROUP BY `DTYear` DESC, `DTMonth` DESC" .
 		    			  " ORDER BY `DTYear` DESC, `DTMonth` DESC;";
 		    	$rslt = doSQLQuery( $sqlStr );
@@ -381,7 +381,7 @@ class Content extends Midori {
 		    default:
 		    	// Return the Full Listing (All)
 	    }
-	    
+
 	    // Return the Array
 	    return $rVal;
     }
@@ -418,7 +418,8 @@ class Content extends Midori {
 	    $rVal = array();
 	    
 	    $sqlStr = "SELECT DISTINCT DATE_FORMAT(c.`CreateDTS`, '%Y') as `Prefix` FROM `Content` c" .
-	    		  " WHERE c.`isReplaced` = 'N'" .
+	    		  " WHERE c.`isReplaced` = 'N' and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
+	    		  "   and c.`CreateDTS` <= Now()" .
 	    		  " ORDER BY `Prefix`";
 	    $rslt = doSQLQuery( $sqlStr );
 	    if ( is_array($rslt) ) {
@@ -441,6 +442,7 @@ class Content extends Midori {
 
 	    $sqlStr = "SELECT c.`guid`, c.`Title`, c.`PostURL` as `URL` FROM `Content` c" .
 	    		  " WHERE c.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" .
+	    		  "   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 	    		  "   and c.`TypeCd` = 'POST' $SQLotd" .
 	    		  " ORDER BY c.`CreateDTS` DESC" .
 	    		  " LIMIT 0, $PostCount";
@@ -474,6 +476,7 @@ class Content extends Midori {
 			    			  "  FROM `Content` c, `Meta` m" .
 			    			  " WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
 			    			  "   and c.`TypeCd` = 'POST' and m.`TypeCd` = 'POST-TAG'" .
+			    			  "   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 			    			  "   and c.`CreateDTS` <= Now()" .
 			    			  " GROUP BY m.`Value`" .
 			    			  " ORDER BY `PostCount` DESC";
@@ -488,9 +491,6 @@ class Content extends Midori {
 						// Record the Last Post's Create TimeStamp with the Recordset
 						$rVal['lastCreateTS'] = $MaxEntryTS;
 				    }
-
-				    // Save the Data to the Cache
-				    //$this->_recordCachedTagsList( $rVal, $MaxEntryTS );
 			    	break;
 
 			    case 2:
@@ -514,10 +514,10 @@ class Content extends Midori {
 		$doExcerpt = YNBool($this->settings['RSSExcerpt']);
 		$Segments = explode('/', $ReqURL);
 		$TypeFilter = "POST-URL";
-		$PostFilter = sqlScrub($ReqURL);
+		$PostFilter = '%' . sqlScrub($ReqURL) . '%';
 		$rVal = "";
 
-		switch ( strtolower(NoNull($Segments[1], $Segments[0])) ) {
+		switch ( strtolower(NoNull($Segments[0])) ) {
 			case 'archives':
 			case 'archive':
 				$PageNo = 0;
@@ -533,8 +533,8 @@ class Content extends Midori {
 			
 			case 'tags':
 			case 'tag':
-				$TypeFilter = "POST-TAG";
-				$PostFilter = '%' . sqlScrub($Segments[2]) . '%';
+				$QType = 'TAGS';
+				$PostFilter = '%' . sqlScrub(NoNull($Segments[1])) . '%';
 				break;
 
 			default:
@@ -554,14 +554,15 @@ class Content extends Midori {
 			$QType = 'HOME';
 			$doExcerpt = true;
 		}
-		
+
 		switch ( strtoupper($QType) ) {
 			case 'RECORDCOUNT':
 	    	case 'TOTALCOUNT':
 	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c, `Meta` m" .
 	    				" WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
 	    				"   and c.`TypeCd` = 'POST' and m.`TypeCd` = '$TypeFilter'" .
-	    				"   and c.`CreateDTS` <= Now() and c.`Value` LIKE '$PostFilter'";
+	    				"   and c.`CreateDTS` <= Now() and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
+	    				"   and c.`Value` LIKE '$PostFilter'";
 	    		break;
 	    	
 	    	case 'WITHGAPS':
@@ -572,13 +573,15 @@ class Content extends Midori {
 	    					  " (SELECT count(m.`id`) FROM `Meta` m WHERE c.`id` = m.`ContentID`) as `MetaRecords`" .
 	    				"  FROM `Content` c" .
 	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
+	    				"   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 	    				" ORDER BY c.`CreateDTS` DESC" .
 	    				" LIMIT $PageNo, $Results;";
 	    		break;
 
 	    	case 'WITHGAPS-COUNT':
 	    		$rVal = "SELECT count(c.`guid`) as `Records` FROM `Content` c" .
-	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'";
+	    				" WHERE c.`TypeCd` = 'POST' and c.`isReplaced` = 'N'" .
+	    				"   and c.`SiteID` = " . nullInt($this->settings['SiteID']);
 	    		break;
 
 	    	case 'HOME':
@@ -593,7 +596,7 @@ class Content extends Midori {
 	    					  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`, $ContentStr as `CONTENT`" .
 	    				"  FROM `Content` c" .
 	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
-	    				"   and c.`CreateDTS` <= Now()" .
+	    				"   and c.`CreateDTS` <= Now() and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 	    				" ORDER BY c.`CreateDTS` DESC" .
 	    				" LIMIT $PageNo, $Results";
 	    		break;
@@ -608,9 +611,11 @@ class Content extends Midori {
 		    				  " c.`PostURL`, c.`PostAuthor`, c.`CreateDTS`, c.`UpdateDTS`, tmp.`Results`" .
 	    				"  FROM `Content` c," .
 	    					  " (SELECT count(t.`id`) as `Results` FROM `Content` t" .
-	    					  "   WHERE t.`isReplaced` = 'N' and t.`TypeCd` = 'POST' and t.`CreateDTS` BETWEEN $PostFilter) tmp" .
+	    					  "   WHERE t.`isReplaced` = 'N' and t.`TypeCd` = 'POST' and t.`SiteID` = " . nullInt($this->settings['SiteID']) .
+	    					  	  " and t.`CreateDTS` BETWEEN $PostFilter) tmp" .
 	    				" WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST' and c.`CreateDTS` BETWEEN $PostFilter" .
-	    				" ORDER BY c.`CreateDTS`" .
+	    				"   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
+	    				" ORDER BY c.`CreateDTS` DESC" .
 	    				" LIMIT $PageNo, $Results";
 	    		break;
 
@@ -632,9 +637,23 @@ class Content extends Midori {
 	    						"   and MATCH (n.`Title`, n.`Value`, n.`PostURL`) AGAINST ('$PostFilter')) tmp" .
 	    				" WHERE c.`isReplaced` = 'N' and c.`CreateDTS` <= Now()" .
 	    				"   and MATCH (c.`Title`, c.`Value`, c.`PostURL`) AGAINST ('$PostFilter')" .
+	    				"   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 	    				" $OrderBy" .
 	    				" LIMIT $PageNo, $Results";
 	    		break;
+
+	    	case 'TAGS':
+	    		$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, c.`PostURL` as `POST-URL`, " .
+		    				  " UNIX_TIMESTAMP(c.`EntryDTS`) as `ENTRY-UNIX`, UNIX_TIMESTAMP(c.`CreateDTS`) as `DATE-UNIX`," .
+		    				  " UNIX_TIMESTAMP(c.`UpdateDTS`) as `UPDATE-UNIX`, c.`PostAuthor` as `POST-AUTHOR`," .
+		    				  " substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) as `CONTENT`" .
+		    				  "  FROM `Content` c, `Meta` m" .
+		    				  " WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
+		    				  "   and c.`CreateDTS` <= Now() and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
+		    				  "   and m.`TypeCd` = 'POST-TAG' and m.`Value` LIKE '$PostFilter'" .
+		    				  " ORDER BY c.`CreateDTS` DESC" .
+		    				  " LIMIT $PageNo, $Results;";
+		    	break;
 
 			default:
 		    	$rVal = "SELECT c.`id` as `POST-ID`, c.`guid` as `POST-GUID`, c.`Title` as `TITLE`, c.`PostURL` as `POST-URL`, " .
@@ -643,7 +662,8 @@ class Content extends Midori {
 		    				  " substr(c.`Value`, locate('<p>', c.`Value`), locate('</p>', c.`Value`) + 3) as `CONTENT`" .
 		    			" FROM `Content` c" .
 		    			" WHERE c.`isReplaced` = 'N' and c.`TypeCd` = 'POST'" .
-		    			"   and c.`CreateDTS` <= Now() and c.`PostURL` LIKE '%$PostFilter%'" .
+		    			"   and c.`CreateDTS` <= Now() and c.`PostURL` LIKE '$PostFilter'" .
+		    			"   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 		    			" ORDER BY c.`CreateDTS` DESC" .
 		    			" LIMIT $PageNo, $Results;";
 		}
@@ -845,11 +865,11 @@ class Content extends Midori {
 		    		// If there Are 0 Results (rslt is NOT an array) Then 404
 		    	}
 		    	break;
-		    
+
 		    case 2:
 		    	// ToDo: Write Non-MySQL Retrieval Code
 		    	break;
-		    
+
 		    default:
 		    	// API Retrieval -- We Shouldn't Be Here
 	    }
@@ -885,25 +905,26 @@ class Content extends Midori {
      *		or not.
      */
     private function _isLanding() {
+	    $Filter = array('tag', 'tags');
     	$ReqURL = str_replace("/", "", $this->settings['ReqURI'] );
 	    $rVal = false;
 
 	    // If the Request URL is Blank or Numberic "201212" Return True
 	    if ( $ReqURL == "" || is_numeric($ReqURL) ) { $rVal = true; }
-	    
+
 	    // If Were Looking at Tags Return True
-	    if ( strpos("  " . $this->settings['ReqURI'], '/tags/') > 0 ) { $rVal = true; }
+	    if ( in_array($this->settings['PgRoot'], $Filter) ) { $rVal = true; }
 
 	    // Return the Boolean Response
 	    return $rVal;
     }
 
     private function _isArchive() {
-    	$ReqURL = str_replace("/", "", $this->settings['ReqURI'] );
+    	$Filter = array('archive', 'archives');
 	    $rVal = false;
 
 	    // If Were Looking at Archives Return True
-	    if ( strpos("  " . $this->settings['ReqURI'], '/archives/') > 0 ) { $rVal = true; }
+	    if ( in_array($this->settings['PgRoot'], $Filter) ) { $rVal = true; }
 
 	    // Return the Boolean Response
 	    return $rVal;
@@ -1033,7 +1054,8 @@ class Content extends Midori {
 	    				" UNIX_TIMESTAMP(c.`EntryDTS`) as `EntryTS`" .
 	    		  "  FROM `Content` c, `Meta` m" .
 	    		  " WHERE m.`ContentID` = c.`id` and c.`isReplaced` = 'N'" .
-	    		  "   and m.`TypeCd` = 'POST-URL' and c.`guid` = '$guid'";
+	    		  "   and m.`TypeCd` = 'POST-URL' and c.`guid` = '$guid'" .
+	    		  "   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 	    $rslt = doSQLQuery( $sqlStr );
 	    if ( is_array($rslt) ) {
 			foreach ( $rslt as $Key=>$Row ) {
@@ -1124,6 +1146,7 @@ class Content extends Midori {
 			    									  "ELSE UNIX_TIMESTAMP(max(`CreateDTS`)) END) as `LastID`" .
 			    			  "  FROM `Content`" .
 			    			  " WHERE `isReplaced` = 'N' and `CreateDTS` <= Now() and `TypeCd` NOT IN ('POST-FOOTER')" .
+			    			  "   and `SiteID` = " . nullInt($this->settings['SiteID']) .
 			    			  " GROUP BY `TypeCd`";
 			    	$rslt = doSQLQuery( $sqlStr );
 				    if ( is_array($rslt) ) {
@@ -1202,6 +1225,7 @@ class Content extends Midori {
 	    	if ( strlen($PostIDs) > 1 ) {
 		    	$sqlStr = "SELECT `ParentID`, `Value` FROM `Content`" .
 		    			  " WHERE `isReplaced` = 'N' and `TypeCd` = 'POST-FOOTER'" .
+		    			  "   and c.`SiteID` = " . nullInt($this->settings['SiteID']) .
 		    			  "   and `ParentID` IN ($PostIDs)" .
 		    			  " ORDER BY `CreateDTS` DESC";
 		    	$meta = doSQLQuery( $sqlStr );

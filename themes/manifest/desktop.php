@@ -284,6 +284,7 @@ class miTheme extends theme_main {
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
                       );
+
         switch ( $this->settings['PgRoot'] ) {
             case 'archives':
             case 'archive':
@@ -307,10 +308,6 @@ class miTheme extends theme_main {
                 }
                 break;
 
-            case 'search':
-                //$rVal['[RESULTS]'] = $this->_getSearchHTML();
-                break;
-            
             default:
                 
         }
@@ -359,6 +356,35 @@ class miTheme extends theme_main {
     /* ********************************************************************* *
      *  Blog Content Component
      * ********************************************************************* */
+    private function _parseBlogContent( $Entry ) {
+        $rVal = array( '[HOMEURL]'		 => $this->settings['HomeURL'],
+                       '[POST-FOOTER]'	 => "",
+                       '[DISQUS_ID]'	 => NoNull($this->settings['DisqusID']),
+                       '[COMMENTS]'		 => "",
+                       '[PAGINATION]'	 => "",
+                       '[IMG_DIR]'		 => IMG_DIR,
+                       '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
+                       '[SEARCH-RESULT]' => "",
+                       '[DIV-CLASS]'	 => "",
+                      );
+        foreach ( $Entry as $Item=>$Value ) {
+            $rVal[ $Item ] = $Value;
+        }
+        foreach ( $this->messages as $Key=>$Msg ) {
+            $rVal[ "[$Key]" ] = $Msg;
+        }
+        
+        if ( count($Entry) == 0 ) {
+	        $rVal['[SEARCH-RESULT]'] = "<div class=\"post hentry\"><div class=\"postContent\">" .
+									   "<p>No Results Found</p>" .
+									   "</div></div>";
+        }
+
+
+        // Return the Parsed Entry
+        return $rVal;
+    }
+
     private function _getBlogContent( $PostNum ) {
     	$data = $this->content->getContent( $PostNum, true );
 	    $rVal = "";
@@ -370,74 +396,52 @@ class miTheme extends theme_main {
             $Records = nullInt($data['Records']);
             $i = 1;
 
-            if ( intval($data['RecordCount']) > 0 ) {
-            	$this->settings['RecordCount'] = intval($RecordCount);
+            if ( $RecordCount > 0 ) {
+	            $this->settings['RecordCount'] = $RecordCount;
 	            foreach ($data as $Key=>$Entry ) {
 	            	if ( $Key == $i ) {
-		                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
-		                                  '[POST-FOOTER]'   => "",
-		                                  '[DISQUS_ID]'	    => readSetting('core', 'DisqusID'),
-		                                  '[COMMENTS]'      => "",
-		                                  '[PAGINATION]'	=> "",
-		                                  '[IMG_DIR]'		=> IMG_DIR,
-		                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
-		                                  '[SEARCH-RESULT]' => "",
-		                                  '[DIV-CLASS]'     => "",
-		                                 );
-		                foreach ( $Entry as $Item=>$Value ) {
-			                $ReplStr[ $Item ] = $Value;
-		                }
-		                foreach ( $this->messages as $Key=>$Msg ) {
-			                $ReplStr[ "[$Key]" ] = $Msg;
-		                }
+		                $ReplStr = $this->_parseBlogContent( $Entry );
+		                		                
+		                switch ( $this->settings['PgRoot'] ) {
+			                case 'search':
+			                	if ( $ReplStr['[PostURL]'] != "" ) {
+			                		$SearchResource = '/content-search-post.html';
+			                		$ReplStr['[POST-URL]'] = str_replace('[HOMEURL]', $this->settings['HomeURL'], $ReplStr['[PostURL]'] );
+			                		if ( $ReplStr['[TYPE-CODE]'] == 'TWEET' ) {
+			                			$ReplStr['[CONTENT]'] = parseTweet( $ReplStr['[CONTENT]'] );
+			                			$ReplStr['[TITLE]'] = strip_tags( $ReplStr['[CONTENT]'] );
+				                		$SearchResource = '/content-search-tweet.html';
+			                		}
+			                		$rVal .= readResource( RES_DIR . $SearchResource, $ReplStr);
+			                	}
+			                	break;
 
-		                if ( $this->settings['PgRoot'] != 'search' ) {
-			                // Clean up the Content (If Necessary)
-			                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
-				                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
-			                }
-		
-			                // Append the Footnotes (If Necessary)
-				            if ( $ReplStr['[POST-FOOTER]'] ) {
-					            $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr);
-				            }
-		
-				            // Construct the Comments (If Necessary)
-				            $doComments = YNBool( readSetting('core', 'doComments') );
-				            if ( $doComments && $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
-					            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
-				            }
-
-				            // Replace the Template Content Accordingly
-				            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
+			                default:
+				                // Clean up the Content (If Necessary)
+				                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
+					                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
+				                }
+			
+				                // Append the Footnotes (If Necessary)
+					            if ( $ReplStr['[POST-FOOTER]'] ) {
+						            $ReplStr['[POST-FOOTER]'] = readResource( RES_DIR . '/content-blog-footer.html', $ReplStr);
+					            }
+			
+					            // Construct the Comments (If Necessary)
+					            $doComments = YNBool( readSetting('core', 'doComments') );
+					            if ( $doComments && $ReplStr['[DISQUS_ID]'] && intval($data['RecordCount']) == 1 ) {
+						            $ReplStr['[COMMENTS]'] = readResource( RES_DIR . '/content-blog-comments.html', $ReplStr);
+					            }
 	
-		                } else {
-		                	// This *IS* Search, So Construct the Result
-		                	if ( $ReplStr['[PostURL]'] != "" ) {
-		                		$SearchResource = '/content-search-post.html';
-		                		$ReplStr['[POST-URL]'] = str_replace('[HOMEURL]', $this->settings['HomeURL'], $ReplStr['[PostURL]'] );
-		                		if ( $ReplStr['[TYPE-CODE]'] == 'TWEET' ) {
-		                			$ReplStr['[CONTENT]'] = parseTweet( $ReplStr['[CONTENT]'] );
-		                			$ReplStr['[TITLE]'] = strip_tags( $ReplStr['[CONTENT]'] );
-			                		$SearchResource = '/content-search-tweet.html';
-		                		}
-		                		$rVal .= readResource( RES_DIR . $SearchResource, $ReplStr);
-		                	}
+					            // Replace the Template Content Accordingly
+					            $rVal .= readResource( RES_DIR . "/$ResourceFile", $ReplStr);
 		                }
 		                $i++;
 	            	}
 	            }
+
             } else {
-                $ReplStr = array( '[HOMEURL]'       => $this->settings['HomeURL'],
-                                  '[POST-FOOTER]'   => "",
-                                  '[DISQUS_ID]'	    => NoNull($this->settings['DisqusID']),
-                                  '[COMMENTS]'      => "",
-                                  '[SEARCH-PHRASE]' => NoNull($this->settings['s']),
-                                  '[SEARCH-RESULT]' => "<div class=\"post hentry\"><div class=\"postContent\">" .
-													   "<p>No Results Found</p>" .
-													   "</div></div>",
-                                  '[DIV-CLASS]'     => "",
-                                 );
+                $ReplStr = $this->_parseBlogContent( array() );
             }
 
             if ( $this->settings['PgRoot'] == 'search' ) {
@@ -504,7 +508,7 @@ class miTheme extends theme_main {
             	if ( $i <= $TagCount ) {
             		array_push($Filter, $Tag);
             	}
-            	if ( intval($Posts) > $max ) { $max = intval($Posts); }
+            	if ( nullInt($Posts) > $max ) { $max = nullInt($Posts); }
                 $i++;
             }
 
@@ -517,6 +521,9 @@ class miTheme extends theme_main {
 	            
 	            $rVal .= "<li><a href=\"$URL\" class=\"tag-link\" title=\"$Title\" style=\"font-size: " . ($FontSize + 10) . "pt;\">$Tag</a></li>";
             }
+
+        } else {
+	        $rVal = $data;
         }
 
         // Return the Tags Listing
@@ -578,6 +585,8 @@ class miTheme extends theme_main {
 	    		
 		    	$rVal .= "<li><a href=\"$URL\" title=\"$Title $Year\">$Title $Year</a>&nbsp;($Posts)</li>";
 	    	}
+	    } else {
+		    $rVal = $data;
 	    }
 	    
 	    // Return the List of Months

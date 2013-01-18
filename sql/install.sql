@@ -17,6 +17,7 @@ VALUES ('POST', 'Post Content'), ('POST-GPS', 'Post Entry GPS Location'), ('POST
 
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     `id`            int(11)        UNSIGNED NOT NULL    AUTO_INCREMENT,
+    `SiteID`		smallint(6)	   UNSIGNED NOT NULL	DEFAULT 0,
     `guid`          char(36)                NOT NULL    ,
     `TypeCd`        varchar(12)             NOT NULL    DEFAULT 'OTHER',
     `Title`         varchar(512)            NOT NULL    ,
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     `ParentID`      int(11)                     NULL    ,
     `PostURL`		text					NOT NULL	,
     `PostAuthor`	varchar(80)				NOT NULL	,
+    `UpdateSeqID`	int(11)					NOT NULL	DEFAULT 0,
 
     `CreateDTS`     datetime                NOT NULL	,
     `UpdateDTS`     datetime                NOT NULL	,
@@ -34,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 CREATE INDEX `conPriIDX` ON `[DBNAME]`.`Content` (`id`, `ParentID`, `TypeCd`, `isReplaced`);
+CREATE INDEX `conSitIDX` ON `[DBNAME]`.`Content` (`SiteID`, `TypeCd`, `isReplaced`);
 ALTER TABLE `[DBNAME]`.`Content` ADD FULLTEXT(`Title`, `Value`, `PostURL`);
 
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Meta` (
@@ -64,4 +67,4 @@ CREATE TABLE IF NOT EXISTS `[DBNAME]`.`SysParm` (
 CREATE INDEX `typPriIDX` ON `[DBNAME]`.`SysParm` (`Code`, `isDeleted`);
 
 INSERT INTO `[DBNAME]`.`SysParm` (`Code`, `intVal`)
-VALUES ('DB_VERSION', 2);
+VALUES ('DB_VERSION', 4);
