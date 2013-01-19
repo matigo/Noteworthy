@@ -1,6 +1,4 @@
 /* Clean Admin
- * (c) 2012, Web factory Ltd
- * http://themeforest.net/user/WebFactory
  */
 
 jQuery(function($) {
@@ -50,6 +48,44 @@ jQuery(function($) {
                        .css('-webkit-border-radius', '0');
      }
   }
+
+  function checkCron() {
+    var params = new Object();
+    var method = 'cron/status';
+    var apiPath = getAPIPath();
+
+    // Set the Parameters
+    params['accessKey'] = window.accessKey;
+
+    $.ajax({
+        url: apiPath + method,
+        data: params,
+        success: function( data ) {
+            parseResult( data.data );
+        },
+        error: function (xhr, ajaxOptions, thrownError){
+            alert(xhr.status + ' | ' + thrownError);
+        },
+        dataType: "json"
+    });
+  }
+  function parseResult( data ) {
+	var _dispMsg = "** API Error**";
+
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == 'Y' ) {
+			_dispMsg = data.Message;
+		}
+	}
+	document.getElementById("cron-info").innerHTML = _dispMsg;
+    if ( _dispMsg != "") {
+        document.getElementById("cron-info").style.display = 'block';
+    } else {
+        document.getElementById("cron-info").style.display = 'none';
+    }
+  }
+  // Check the Cron Status Every 5 Seconds
+  setInterval(checkCron, 5000);
 
   // open/close boxes
   $('.show_hide span').click(function(elem){
@@ -102,8 +138,7 @@ jQuery(function($) {
   if ($('#markItUp').length) {
     $('#markItUp').markItUp(cleanSettings);
   }
-  
-  
+
   // datepickers init
   if ($('.input-date').length) {
     $('.input-date').datepicker({

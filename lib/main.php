@@ -154,6 +154,11 @@ class Midori {
         return $rVal;
     }
 
+    /**
+     *	Function formats the result in the appropriate format and returns the data
+     *
+     *	Note: Removed the Return Value in the Header (200) to resolve Issue #26
+     */
     private function _formatResult( $Response, $Data, $FormatType ) {
         $rVal = '';
         $appType = 'application/octet-stream';
@@ -187,11 +192,10 @@ class Midori {
                               'data'            => $Data
                              );
         }
-        
+
         // Return the Data in the Requested Format
         header("Content-Type: " . $appType);
         header("Content-Length: " . strlen($rVal));
-        header("HTTP", true, 200);
         exit( $rVal );
     }
 

@@ -275,6 +275,46 @@ function parseEvernoteNotebooks( data ) {
 	document.getElementById("enNotebooks").innerHTML = result;
 }
 
+function triggerCron( NotebookList ) {
+    var params = new Object();
+    var method = 'cron/trigger';
+    var apiPath = getAPIPath();
+
+    // Set the Parameters
+    params['accessKey'] = window.accessKey;
+
+    $.ajax({
+        url: apiPath + method,
+        data: params,
+        success: function( data ) {
+            parseCronMsg( data.data );
+        },
+        error: function (xhr, ajaxOptions, thrownError){
+            alert(xhr.status + ' | ' + thrownError);
+        },
+        dataType: "json"
+    });
+}
+
+function parseCronMsg( data ) {
+	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>';
+	var _errMsg = "";
+
+	if( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == "Y" ) {
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-success");
+			_errMsg = "Importing Your Data";
+		} else {
+			_errMsg = "Something Went Wrong!";
+			_dispDiv = _dispDiv.replace("[CLASS]", "sys-error");
+		}
+	}
+	_dispDiv = _dispDiv.replace("[MESSAGE]", _errMsg);
+	document.getElementById("import-click").style.display = 'none';
+	document.getElementById("import-msg").style.display = 'block';
+	document.getElementById("import-msg").innerHTML = _dispDiv;
+}
+
 function setSelectedNotebooks( NotebookList ) {
     var params = new Object();
     var method = 'evernote/setSelectedNotebooks';

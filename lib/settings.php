@@ -82,7 +82,12 @@ class Settings extends Midori {
 		    	// Update the Main Site Data
 		    	$isGood = $this->_saveSiteData();
 		    	break;
-		    	
+		    
+		    case 'logout':
+		    	// Delete the Server-Side Browser Reference
+		    	$isGood = $this->_doLogOut();
+		    	break;
+
 		    case 'social':
 		    	$isGood = $this->_saveSocialData();
 		    	break;
@@ -367,6 +372,24 @@ class Settings extends Midori {
 
     	// Return the Array of SQL Strings
     	return $rVal;
+    }
+
+    /***********************************************************************
+     *  Log Out
+     ***********************************************************************/
+    /**
+     *	Function Calls the User/Logout Function and Returns a Boolean
+     */
+    private function _doLogOut() {
+	    $rVal = false;
+
+	    // Fire Up the User Class
+	    require_once( LIB_DIR . '/user.php' );
+	    $usr = new User( $this->settings['token'] );
+	    $rVal = $usr->doLogout();
+
+	    // Return the Boolean Response
+	    return $rVal;
     }
 
     /***********************************************************************

@@ -1114,6 +1114,13 @@ figure {
 	background-repeat: repeat-x;
 }
 
+#navigation ul li.cron_item {
+	background-image: url(../img/sprites.png);
+	background-position: 0 -21px;
+	background-repeat: repeat-x;
+	float: right;
+}
+
 #navigation li a:link, #navigation li a:visited {
 	display:block
 }
@@ -1520,4 +1527,20 @@ ul.image-list li a {
 
 a:hover#to-top {
 	text-decoration:none
+}
+
+/* #cron-info
+================================================== */
+#cron-info {
+	background-color: #F1F6FC;
+	border: 1px solid #136BC5;
+	background-image: url(../img/icons/information.png);
+	background-position: 5px 7px;
+	background-repeat: no-repeat;
+	color: #136BC5;
+
+	float: right;
+	font-weight: bold;
+	margin: 5px 5px 5px 0;
+	padding: 7px 10px 5px 30px;
 }

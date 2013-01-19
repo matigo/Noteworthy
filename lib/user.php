@@ -33,14 +33,20 @@ class User extends Midori {
         return YNBool( $this->settings['isLoggedIn'] );
     }
 
+    // Return the Administration Code (Used for the Administration Panel)
     public function AdminCode() {
         return $this->settings['adminCode'];
     }
 
+    // Return the User.ID Value (If Applicable)
     public function UserID() {
-	    return $this->settings['id'];
+	    return nullInt($this->settings['id']);
     }
-    
+
+    public function doLogout() {
+	    return $this->_logoutUser();
+    }
+
     public function EmailAddr( $Value = '' ) {
 	    $rVal = '';
 
@@ -286,6 +292,25 @@ class User extends Midori {
 	    
 	    // Return the Cleaned Up UserName
 	    return USERS_DIR . '/' . $rVal . '.user';
+    }
+    
+    /**
+     *	Function Removes the Token from the Tokens directory and Returns a boolean
+     *
+     *	NOTE: There really should be a check in place to make sure there will still be some
+     *		  functional tokens remaining afterwards. We don't want a user locked out.
+     */
+    private function _logoutUser() {
+    	$TokenFile = TOKEN_DIR . '/' . $this->settings['token'] . '.token';
+	    $rVal = false;
+	    
+	    if ( file_exists($TokenFile) ) {
+		    unset( $TokenFile );
+		    $rVal = true;
+	    }
+	    
+	    // Return the Boolean Response
+	    return $rVal;
     }
 
 }

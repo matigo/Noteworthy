@@ -208,8 +208,8 @@
 				<div class="module-box-inner">
 					<div class="user-messages">
 						<p>Once Evernote is Configured, you can import the data from your selected notebooks. This may take a little bit of time depending on the size and number of notes in your selected folders. Once the first import is complete, new records will be searched for every hour.</p>
-						<div id="import-msg" style="padding: 5px 50px 10px;"></div>
 						<button id="import-click" class="btn-small green" type="submit"><span>Import Notes</span></button>
+						<div id="import-msg"></div>
 					</div>
 				</div>
 			</div>
@@ -238,7 +238,7 @@
 		</div>
 
 		<div class="container_16" id="footer-inner-page">
-			<p>&copy; [CopyYear] &middot; [lblPoweredBy] &middot; [lblAllRights] &middot; <a href="#" id="to-top">[lblTop]</a></p>
+			<p>&copy; [CopyYear] &middot; [lblPoweredBy] &middot; [lblAllRights] &middot; [APP_VER]<a href="#" id="to-top">[lblTop]</a></p>
 		</div>
 		<div class="clear height-fix"></div>
 
@@ -271,6 +271,10 @@
 				});
 				$('#save-social').click(function() {
 					performSocialUpdates();
+					return false;
+				});
+				$('#import-click').click(function() {
+					triggerCron();
 					return false;
 				});
 				$('#evernote-test').click(function() {

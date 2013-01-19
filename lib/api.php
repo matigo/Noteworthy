@@ -26,9 +26,10 @@ class api extends Midori {
      *		in an array.
      */
     public function performAction() {
-	    $rVal = array('data'   => false,
-					  'errors' => 'Invalid Request',
-					  'isGood' => 'N',
+	    $rVal = array('data'    => false,
+					  'errors'  => 'Invalid Request',
+					  'Message' => '',
+					  'isGood'  => 'N',
 					  );
 
 	    // Ensure the Basic Requirements are Met, and Perform the Requested Action(s)
@@ -64,6 +65,25 @@ class api extends Midori {
 			    			$rVal['isGood'] = "Y";
 			    			break;
 			    		
+			    		default:
+			    			// Do Nothing
+		    		}
+		    		break;
+
+		    	case 'cron':
+		    		switch ( NoNull($this->settings['PgSub1']) ) {
+			    		case 'status':
+							require_once( LIB_DIR . '/cron.php');
+							$cron = new Cron( $this->settings );
+							$rVal = $cron->reportStatus();
+			    			break;
+
+			    		case 'trigger':
+				    		$CronURL = $this->Settings['HomeURL'] . '/cron/';
+				        	httpPostAsync( $CronURL, '');
+			    			$rVal['isGood'] = "Y";
+			    			break;
+
 			    		default:
 			    			// Do Nothing
 		    		}

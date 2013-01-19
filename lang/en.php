@@ -54,6 +54,8 @@ class lang_en implements lang_base {
                       'lblAbout'		=> "About",
                       'lblLinks'		=> "Links",
                       'lblSettings'		=> "Settings",
+                      'lblCronOn'		=> "Updating DB",
+                      'lblCronOff'		=> "Cron Off",
                       'lblLogout'		=> "Logout",
                       
                       'lblLoginSub'		=> "Login to Continue",
@@ -174,6 +176,11 @@ class lang_en implements lang_base {
                       'lblSetUpdErr002'	=> "Could Not Save Configuration Data",
                       'lblSetUpdErr003'	=> "Database Already Exists",
                       'lblSetUpdErr004'	=> "Could Not Populate Database",
+
+                      'lblCron001'		=> "Checking Twitter for Updates",
+                      'lblCron002'		=> "Checking Evernote for Updates",
+                      'lblCron003'		=> "Finishing Up",
+                      'lblCron004'		=> "Updating Cache Files",
 
                       'lblInvalidFunc'	=> "Invalid Function",
                       'lblUnknownErr'	=> "An Odd Error Has Occurred",

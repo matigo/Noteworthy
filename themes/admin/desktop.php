@@ -264,9 +264,11 @@ class miTheme extends theme_main {
 	    	$DispName = $this->user->DisplayName();
 	    	$HomeURL  = $this->settings['HomeURL'];
 	    	$AboutLnk = $HomeURL . "/" . $this->settings['PgRoot'] . '/dashboard/';
+	    	$LogoutLnk = "";
+	    	// $LogoutLnk = "<img src=\"" . IMG_DIR . "/icons/lock_large_locked.png\" alt=\"" . $this->messages['lblLogout'] . "\"> <a href=\"$HomeURL\">" . $this->messages['lblLogout'] . "</a>";
 		    $rVal = "<div id=\"logout\">" .
 		    		"<img class=\"grav_default\" src=\"$Gravatar\" alt=\"" . $this->messages['lblWelcome'] . "\">" . $this->messages['lblWelcome'] . " <a class=\"welcome-link\" href=\"$AboutLnk\">$DispName</a>" .
-		    		"<img src=\"" . IMG_DIR . "/icons/lock_large_locked.png\" alt=\"" . $this->messages['lblLogout'] . "\"> <a href=\"$HomeURL\">" . $this->messages['lblLogout'] . "</a>" .
+		    		$LogoutLnk .
 		    		"</div>";	    	
     	}
 
@@ -510,12 +512,15 @@ class miTheme extends theme_main {
         if ( YNBool($this->settings['isLoggedIn']) ) {
             $pages = array('dashboard'	=> array('icon' 	=> "icon-home",
             									 'current'	=> "N",
+            									 'class'	=> "current_menu_item",
             									 'label'	=> $this->messages['lblDashboard'] ),
             			   'sites'		=> array('icon' 	=> "icon-pencil",
             									 'current'	=> "N",
+            									 'class'	=> "current_menu_item",
             									 'label'	=> $this->messages['lblSites'] ),
             			   'settings'	=> array('icon' 	=> "icon-cogs",
             									 'current'	=> "N",
+            									 'class'	=> "current_menu_item",
             									 'label'	=> $this->messages['lblSettings'] ),
             			/*
             			   'about'		=> array('icon' 	=> "icon-user",
@@ -537,7 +542,7 @@ class miTheme extends theme_main {
             	}
             	$isCurrent = '';
             	if ( $this->settings['PgSub1'] == $url ) {
-	            	$isCurrent = ' class="current_menu_item"';
+	            	$isCurrent = ' class="' . $dtl['class'] . '"';
             	}
             	$rVal .= '<li' . $isCurrent . '><a href="' . $FullURL . '"><span class="nav-icon ' . $dtl['icon'] . '"></span> ' . $dtl['label'] . '</a>' . $SubList . '</li>';
 	        }
@@ -548,6 +553,7 @@ class miTheme extends theme_main {
 	        		tabSpace( 6) . "<div class=\"container_16 sticky\" id=\"navigation\">\r\n" .
 	        		tabSpace( 8) . "<ul class=\"nav-list\" id=\"main-nav\">\r\n" .
 	        		tabSpace(10) . $rVal .
+	        		tabSpace( 8) . "<span id=\"cron-info\" style=\"display: none;\"></span>" .
 	        		tabSpace( 8) . "</ul>\r\n" .
 	        		tabSpace( 6) . "</div>\r\n" .
 	        		tabSpace( 4) . "</div>";

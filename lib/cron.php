@@ -10,6 +10,7 @@ require_once( LIB_DIR . '/functions.php');
 
 class Cron {
     var $settings;
+    var $messages;
 
     function __construct( $Settings ) {
         $this->settings = $Settings;
@@ -28,11 +29,15 @@ class Cron {
     	$rVal = "Nothing To Be Done";
 
 	    if ( $this->_canDoUpdate() ) {
+	    	if ( !is_array($this->messages) ) {
+		    	$this->messages = getLangDefaults( $this->settings['DispLang'] );
+	    	}
 	    	$rVal = array();
 
 		    // Update the Twitter Feed (Done Every 5 Minutes)
 		    $TwitName = $this->settings['TwitName'];
 		    if ( $TwitName != "" ) {
+		    	saveSetting($this->settings['TokenName'], 'Process', $this->messages['lblCron001'] );
 			    writeNote( "Collecting Tweets for: $TwitName" );
 			    require_once( LIB_DIR . '/twitter.php' );
 			    $twt = new Twitter();
@@ -42,6 +47,7 @@ class Cron {
 
 		    // Update the Evernote Posts (If Necessary)
 		    if ( $this->_canUpdateService("Evernote") ) {
+		    	saveSetting($this->settings['TokenName'], 'Process', $this->messages['lblCron002'] );
 		    	writeNote( "Perform Evernote Update" );
 				require_once( LIB_DIR . '/evernote/main.php' );
 				$eNote = new evernote( $this->settings );
@@ -64,6 +70,24 @@ class Cron {
 		    writeNote( "Cron Result: $rVal" );
 	    }
 	    // Return the Value
+	    return $rVal;
+    }
+    
+    function reportStatus() {
+    	$isActive = YNBool($this->settings['isActive']);
+	    $rVal = array( 'isGood'	 => "Y",
+	    			   'Message' => "",
+	    			   'errors'  => "",
+	    			  );
+	    
+	    if ( $isActive ) {
+	    	if ( !is_array($this->messages) ) {
+		    	$this->messages = getLangDefaults( $this->settings['DispLang'] );
+	    	}
+		    $rVal['Message'] = readSetting($this->settings['TokenName'], 'Process');
+	    }
+
+	    // Return the Current Activity
 	    return $rVal;
     }
 
@@ -122,14 +146,17 @@ class Cron {
      *	Function Marks an Active Cron as Complete
      */
     private function _markCronDone() {
+    	saveSetting($this->settings['TokenName'], 'Process', $this->messages['lblCron003'] );
 	    saveSetting($this->settings['TokenName'], 'LastCron', time() );
 	    saveSetting($this->settings['TokenName'], 'isActive', 'N' );
+	    saveSetting($this->settings['TokenName'], 'Process', '' );
     }
 
     /**
      *	Function Loads the Long-Loading Pages Once so they're cached
      */
     private function _updateFlatFiles() {
+    	saveSetting($this->settings['TokenName'], 'Process', $this->messages['lblCron004'] );
 	    $Pages = array( $this->settings['HomeURL'] . '/',
 	    				$this->settings['HomeURL'] . '/archives/',
 	    				$this->settings['HomeURL'] . '/rss/',
