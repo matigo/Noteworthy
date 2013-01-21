@@ -13,19 +13,22 @@ require_once(LIB_DIR . '/globals.php');
      *	Function returns the Site Details based on the SiteID Requested
      */
     function getSiteDetails( $SiteID = 0 ) {
+    	$RootURL = str_replace('/index.php', '', $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF']);
     	$SiteID = nullInt( $SiteID );
     	$CacheToken = "Site_$SiteID";
     	$APIKey = readSetting( $CacheToken, 'api_key' );
-    	$SiteURL = readSetting( $CacheToken, 'HomeURL' );
+    	$SiteURL = NoNull(readSetting( $CacheToken, 'HomeURL' ), $RootURL);
     	$doSave = false;
     	if ( $APIKey == "" ) {
     		$APIKey = getRandomString( 32, true);
     		$doSave = true;
     	}
-        $rVal = array('URL'             => $_SERVER['SERVER_NAME'],
-		              'HomeURL'         => 'http://' . $_SERVER['SERVER_NAME'],
+
+    	// Construct the Return Array
+        $rVal = array('URL'             => $SiteURL,
+		              'HomeURL'         => 'http://' . $SiteURL,
 		
-		              'api_url'         => 'http://' . $_SERVER['SERVER_NAME'] . '/api/',
+		              'api_url'         => 'http://' . $SiteURL . '/api/',
 		              'api_port'        => 80,
 		              'api_key'         => $APIKey,
 		              'require_key'		=> 'Y',
@@ -86,7 +89,7 @@ require_once(LIB_DIR . '/globals.php');
     		$Suffix = str_pad((int) $idx, 2, "0", STR_PAD_LEFT);
         	$rVal[ "SocName$Suffix" ] = $Name;
         	$rVal[ "SocLink$Suffix" ] = $Link;
-        	$rVal[ "SocShow$Suffix" ] = "1";
+        	$rVal[ "SocShow$Suffix" ] = "Y";
         	$idx++;
 		}
 
@@ -116,7 +119,6 @@ require_once(LIB_DIR . '/globals.php');
 	    return $rVal;
     }
 
-
     /**
      *	Function Returns a Theme Name based on the Values in style.css
      */
@@ -138,6 +140,22 @@ require_once(LIB_DIR . '/globals.php');
 
     	// Return the Theme Name
     	return $rVal;
+    }
+    
+    /**
+     *	Function Sets the Defaults Used Within the Theme
+     */
+    function prepThemeLocations( $HomeURL, $ThemeDIR ) {
+    	$ThemeSplit = explode('/', $ThemeDIR);
+    	$ThemeLoc = $ThemeSplit[ count($ThemeSplit) - 1 ];
+
+		define('SITE_DIR', "http://$HomeURL");
+		define('HOME_DIR', "$HomeURL/themes/$ThemeLoc");
+
+		define('IMG_DIR',  HOME_DIR . "/img");
+		define('CSS_DIR', HOME_DIR . "/css");
+		define('JS_DIR', HOME_DIR . "/js");
+		define('RES_DIR', "$ThemeDIR/resource" );
     }
 
     /**

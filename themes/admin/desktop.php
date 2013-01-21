@@ -47,7 +47,7 @@ class miTheme extends theme_main {
             // Kill the Class
             unset( $Lang );
         }
-        
+
         // Are We Trying to Log In?
         if ( $this->settings['dataset'] == 'login' ) {
 	        $this->_performLogin();
@@ -192,6 +192,7 @@ class miTheme extends theme_main {
     private function _collectPageData() {
     	$PostCount = (!is_numeric( $this->content->getReadableURI() )) ? 5 : 9;
         $ReplStr = array( '[HOMEURL]'	  => $this->settings['HomeURL'],
+        				  '[API_URL]'	  => $this->settings['api_url'],
                       	  '[SITEURL]'	  => $this->settings['URL'],
                           '[COPYRIGHT]'   => date('Y') . " - " . NoNull($this->messages['company_name'], NoNull($this->settings['site_name'])),
                           '[CopyYear]'	  => date('Y'),

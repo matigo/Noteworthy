@@ -242,6 +242,7 @@ class Content extends Midori {
 
     	switch ( $this->settings['ReqURI'] ) {
 	    	case '/':
+	    	case '':
 	    		$rVal = 'home';
 	    		break;
 
@@ -727,58 +728,51 @@ class Content extends Midori {
 	    				// One Result Found
 	    				$Resource = 'content-blog.html';
 
-				    	// Check to see if the Cached Content needs to be Updated or Not
-	    				// -- This is done by ensuring the EntryDTS is Older than the cached
-	    				//	  file. As comments are controlled by Disqus, the cache should
-	    				//	  always be newer than the EntryDTS value.
-				        $Content = $this->_collectCachedContent( NoNull($rslt[0]['guid']), nullInt($rslt[0]['EntryTS']) );
-				        if ( !$Content ) {
-					        // Collect the Full Content Value
-					        $PostIDs = NoNull( $rslt[0]['POST-ID'] );
-					        $sqlStr = "SELECT `TypeCd`, `Value` FROM `Content`" .
-					        		  " WHERE $PostIDs IN (`id`, `ParentID`);";
-					        $meta = doSQLQuery( $sqlStr );
-				    		if ( is_array($meta) ) {
-				    			foreach( $meta as $Key=>$Row ) {
-					    			switch ( $Row['TypeCd'] ) {
-						    			case 'POST-FOOTER':
-						    				$rslt[0]['POST-FOOTER'] = NoNull($Row['Value']);
-						    				break;
+				        // Collect the Full Content Value
+				        $PostIDs = NoNull( $rslt[0]['POST-ID'] );
+				        $sqlStr = "SELECT `TypeCd`, `Value` FROM `Content`" .
+				        		  " WHERE $PostIDs IN (`id`, `ParentID`);";
+				        $meta = doSQLQuery( $sqlStr );
+			    		if ( is_array($meta) ) {
+			    			foreach( $meta as $Key=>$Row ) {
+				    			switch ( $Row['TypeCd'] ) {
+					    			case 'POST-FOOTER':
+					    				$rslt[0]['POST-FOOTER'] = NoNull($Row['Value']);
+					    				break;
 
-						    			case 'POST':
-						    				$rslt[0]['CONTENT'] = $this->_cleanContent( $Row['Value'] );
-						    				break;
+					    			case 'POST':
+					    				$rslt[0]['CONTENT'] = $this->_cleanContent( $Row['Value'] );
+					    				break;
 
-						    			default:
-						    				// Not Sure What to Do Here
-					    			}
+					    			default:
+					    				// Not Sure What to Do Here
 				    			}
-				    		}
+			    			}
+			    		}
 
-				    		// Enter in the Default Post Author if One Does Not Exist
-				    		if ( $rslt[0]['POST-AUTHOR'] == "" ) {
-					    		$rslt[0]['POST-AUTHOR'] = NoNull($this->settings['DEFAULT-POST-AUTHOR']);
-				    		}
+			    		// Enter in the Default Post Author if One Does Not Exist
+			    		if ( $rslt[0]['POST-AUTHOR'] == "" ) {
+				    		$rslt[0]['POST-AUTHOR'] = NoNull($this->settings['DEFAULT-POST-AUTHOR']);
+			    		}
 
-				    		// Collect the PostMeta
-				    		$PostMeta = array();
-				    		$sqlStr = "SELECT m.`id`, m.`ContentID`, m.`TypeCd`, m.`Value` FROM `Meta` m" .
-				    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
-				    				  "   and m.`ContentID` IN ($PostIDs)" .
-				    				  " ORDER BY m.`ContentID`, m.`TypeCd`, m.`Value`";
-				    		$meta = doSQLQuery( $sqlStr );
-				    		if ( is_array($meta) ) {
-					    		foreach ( $meta as $Key=>$Row ) {
-						    		$PostMeta[ nullInt( $Key ) ] = array( "ContentID"	=> nullInt( $Row['ContentID'] ),
-						    											  "TypeCd"		=> NoNull( $Row['TypeCd'] ),
-						    											  "Value"		=> NoNull( $Row['Value'] )
-						    											 );
-					    		}
-				    		}
-	
-				    		// Construct the Search Result for the Theme
-				    		$rVal[ $Records ] = $this->_buildMultiReturnArray( $rslt[0], $PostMeta );
-				        }
+			    		// Collect the PostMeta
+			    		$PostMeta = array();
+			    		$sqlStr = "SELECT m.`id`, m.`ContentID`, m.`TypeCd`, m.`Value` FROM `Meta` m" .
+			    				  " WHERE m.`TypeCd` IN ('POST-TAG', 'POST-GPS-LAT', 'POST-GPS-LNG')" .
+			    				  "   and m.`ContentID` IN ($PostIDs)" .
+			    				  " ORDER BY m.`ContentID`, m.`TypeCd`, m.`Value`";
+			    		$meta = doSQLQuery( $sqlStr );
+			    		if ( is_array($meta) ) {
+				    		foreach ( $meta as $Key=>$Row ) {
+					    		$PostMeta[ nullInt( $Key ) ] = array( "ContentID"	=> nullInt( $Row['ContentID'] ),
+					    											  "TypeCd"		=> NoNull( $Row['TypeCd'] ),
+					    											  "Value"		=> NoNull( $Row['Value'] )
+					    											 );
+					    	}
+					    }
+
+			    		// Construct the Search Result for the Theme
+			    		$rVal[ $Records ] = $this->_buildMultiReturnArray( $rslt[0], $PostMeta );
 
 		    		} else {
 			    		// Multiple Results Found (Home Page or Search Page)
@@ -1082,51 +1076,6 @@ class Content extends Midori {
     }
 
     /**
-     *	Function Retrieves the Cached Content from storage
-     */
-    private function _collectCachedContent( $guid, $PostAge ) {
-    	$CacheFile = $this->settings['ContentDIR'] . "/cache/$guid.static";
-	    $rVal = false;
-
-	    if ( file_exists($CacheFile) ) {
-	    	$FileAge = filemtime($CacheFile);
-	    	if ( $FileAge <= $PostAge || $PostAge <= 0 ) {
-		    	$data = utf8_decode( file_get_contents($CacheFile) );
-		    	$rVal = unserialize( $data );
-			}
-        }
-        
-        // Return the Data (if Applicable)
-        return $rVal;
-    }
-    
-    /**
-     *	Function Records the Cached Content to Storage
-     */
-    private function _recordCachedContent( $data ) {
-    	$guid = $data['guid'];
-    	if ( $guid == "" ) { return false; }
-	    $CacheFile = $this->settings['ContentDIR'] . "/cache/$guid.static";
-	    $rVal = false;
-
-	    // Check to see if the Settings File Exists or Not
-	    if ( checkDIRExists( $this->settings['ContentDIR'] . "/cache" ) ) {
-		    $Content = unserialize($data);
-
-		    // Write the File to the Cache Folder
-		    $fh = fopen($CacheFile, 'w');
-		    fwrite($fh, serialize($Content));
-		    fclose($fh);
-
-		    // Set the Happy Return Boolean
-		    return $rVal;
-	    }
-	    
-	    // Return the Boolean Response
-	    return $rVal;
-    }
-
-    /**
      * Function Returns the Last Content.id Value for TypeCd = 'POST'
      *	- This is used mainly to ensure the cache is sufficiently up to date
      */
@@ -1346,10 +1295,11 @@ class Content extends Midori {
       *
       */
      private function _readCachedHTML( $FileName, $UseCurrentID = false ) {
-	     $rVal = false;
-     	
+		$Filter = array( 'search' );
+		$rVal = false;
+
 		// Do Not Save Search Results
-		if ( $this->settings['PgRoot'] != "search" ) {
+		if ( !in_array($this->settings['PgRoot'], $Filter) ) {
 			$LastContentID = ( $UseCurrentID ) ? $this->_getLastContentID( true ) : $this->settings['LastContentID'];
 			$CacheDIR = $this->settings['ContentDIR'] . "/cache";
 			$CacheFile = $CacheDIR . '/' . $this->_buildCacheFileName( $FileName );
@@ -1363,6 +1313,8 @@ class Content extends Midori {
 					$rVal = $data['HTML'];
 				}
 			}
+		} else {
+			print_r( "Skipping: $FileName \r\n" );
 		}
 
 		// Return the HTML (if Applicable)

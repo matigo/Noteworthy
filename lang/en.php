@@ -119,7 +119,7 @@ class lang_en implements lang_base {
                       'lblTwitDescr'	=> "Importing Tweets",
                       'lblTwitReason'	=> "By importing your Twitter Timeline, you'll have a local copy of your Tweets which can be used in the search queries. The first time you activate this feature, your past Tweets (up to 3,000 of them) will be read into the database.",
 
-                      'lblTags'			=> "Tagged",
+                      'lblTags'			=> "Tagged Under",
                       'lblPublished'	=> "Published On",
                       'lblLinks'		=> "Links",
                       'lblComment'		=> "Leave a Comment",

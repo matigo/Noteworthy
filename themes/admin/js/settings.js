@@ -6,7 +6,7 @@ var _canSubmit = true;
 function performUpdates() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     for( i = 0; i < document.primary.elements.length; i++ ) {
@@ -31,7 +31,7 @@ function performUpdates() {
 function performUpdateMail() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     for( i = 0; i < document.secondary.elements.length; i++ ) {
@@ -56,7 +56,7 @@ function performUpdateMail() {
 function performUpdateMail() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     for( i = 0; i < document.secondary.elements.length; i++ ) {
@@ -81,7 +81,7 @@ function performUpdateMail() {
 function performRemindMail() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
     document.getElementById("remind-mail").disabled = true;
 
     // Set the Parameters
@@ -133,16 +133,6 @@ function parseUpdateResult( msgID, data ) {
 
     // Return the Parsed Result Message
 	return result;
-}
-
-function getAPIPath() {
-	var url = $(location).attr('href').replace($(location).attr('pathname'),'');
-	var rVal = url;
-	if ( url.indexOf('?') > 1 ) {
-		rVal = url.substring(0, url.indexOf('?'));
-	}
-
-	return rVal + '/api/';
 }
 
 /* ******************************************* *

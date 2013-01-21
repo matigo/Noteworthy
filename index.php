@@ -5,13 +5,9 @@
  * @copyright 2012
  * 
  * This is the main index file for the Noteworthy Software
- * 
- * Change Log
- * ----------
- * 2012.10.07 - Created File (J2fi)
  */
 define('BASE_DIR', dirname(__FILE__));
-DEFINE('CONTENT_DIR', BASE_DIR . '/content');
+define('CONTENT_DIR', BASE_DIR . '/content');
 define('TOKEN_DIR', BASE_DIR . '/tokens');
 define('THEME_DIR', BASE_DIR . '/themes');
 define('USERS_DIR', BASE_DIR . '/users');

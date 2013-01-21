@@ -6,7 +6,7 @@ var _canSubmit = true;
 function checkAkismet( siteURL, akismetKey ) {
     var params = new Object();
     var method = 'akismet/validate';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;
@@ -46,21 +46,10 @@ function parseResult( data ) {
 	return result;
 }
 
-function getAPIPath() {
-	var url = $(location).attr('href').replace($(location).attr('pathname'),'');
-	var rVal = url;
-	if ( url.indexOf('?') > 1 ) {
-		rVal = url.substring(0, url.indexOf('?'));
-	}
-	rVal = rVal.replace("#", "");
-
-	return rVal + '/api/';
-}
-
 function performUpdates() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
     var _dispDiv = '<div class="sys-message sys-info"><p>Updating the Cache Files. This May Take a Few Minutes.</p></div>';
 
     // Set the Parameters
@@ -93,7 +82,7 @@ function performUpdates() {
 function performSocialUpdates() {
     var params = new Object();
     var method = 'settings/update';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
     var _dispDiv = '<div class="sys-message sys-info"><p>Updating the Cache Files. This May Take a Few Minutes.</p></div>';
 
     // Set the Parameters
@@ -192,7 +181,7 @@ function displayServerNote( radioID ) {
 function checkEvernote( evernoteToken, useSandbox ) {
     var params = new Object();
     var method = 'evernote/testToken';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;
@@ -216,8 +205,10 @@ function checkEvernote( evernoteToken, useSandbox ) {
 function parseEvernoteResult( data ) {
 	var result = false;
 
-	if ( typeof data.Message != "undefined" ) {
-		getNotebooks();
+	if ( typeof data.isGood != "undefined" ) {
+		if ( data.isGood == "Y" ) {
+			getNotebooks();		
+		}
 	} else {
 		document.getElementById("enNotebooks").innerHTML = "";
 		alert( data.errors[0] );
@@ -227,7 +218,7 @@ function parseEvernoteResult( data ) {
 function getNotebooks() {
     var params = new Object();
     var method = 'evernote/listNotebooks';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;
@@ -278,7 +269,7 @@ function parseEvernoteNotebooks( data ) {
 function triggerCron( NotebookList ) {
     var params = new Object();
     var method = 'cron/trigger';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;
@@ -318,7 +309,7 @@ function parseCronMsg( data ) {
 function setSelectedNotebooks( NotebookList ) {
     var params = new Object();
     var method = 'evernote/setSelectedNotebooks';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;

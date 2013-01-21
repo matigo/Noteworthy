@@ -6,7 +6,7 @@ var _canSubmit = true;
 function getPostsList( Page ) {
     var params = new Object();
     var method = 'content/listPosts';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     params['accessKey'] = window.accessKey;
     params['Page'] = Page;
@@ -29,7 +29,7 @@ function getPostsList( Page ) {
 function refreshPost( guid ) {
     var params = new Object();
     var method = 'evernote/refreshNote';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     params['accessKey'] = window.accessKey;
     params['guid'] = guid;
@@ -49,17 +49,6 @@ function refreshPost( guid ) {
     });
 }
 
-function getAPIPath() {
-	var url = $(location).attr('href').replace($(location).attr('pathname'),'');
-	var rVal = url;
-	if ( url.indexOf('?') > 1 ) {
-		rVal = url.substring(0, url.indexOf('?'));
-	}
-	rVal = rVal.replace("#", "");
-
-	return rVal + '/api/';
-}
-
 /* ******************************************* *
  *      Parsing Functions
  * ******************************************* */
@@ -67,7 +56,7 @@ function parsePostsResult( data ) {
 	var result = false;
 	var _rows = '',
 		_row = '';
-	var _homeURL = getAPIPath();
+	var _homeURL = window.apiURL;
 	var _dispDiv = '<div class="sys-message [CLASS]"><p>[MESSAGE]</p></div>',
 		_returnDiv = '',
 		_isGood = 'N';

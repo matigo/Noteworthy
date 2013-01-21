@@ -218,10 +218,24 @@ class cookies extends Midori {
     private function _readURL() {
         $ReqURI = substr($_SERVER['REQUEST_URI'], 1);
         if ( strpos($ReqURI, "?") ) { $ReqURI = substr($ReqURI, 0, strpos($ReqURI, "?")); }
+        $BasePath = split( '/', BASE_DIR );
         $URLPath = split( '/', $ReqURI );
         $filters = array( 'api', 'rss', 'cron' );
+
+        // Determine If We're In a Sub-Folder
+        foreach ( $BasePath as $Folder ) {
+        	if ( $Folder != "" ) {
+	        	$idx = array_search($Folder, $URLPath);
+	        	if ( is_numeric($idx) ) { unset( $URLPath[$idx] ); }
+        	}
+        }
+
+        // Re-Assemble the URL Path
+        $URLPath = explode('/', implode('/', $URLPath));
+
+        // Construct the Return Array
         $rVal = array( 'DispPg' => 'default',
-                       'ReqURI'	=> NoNull($ReqURI),
+                       'ReqURI'	=> NoNull(implode('/', $URLPath)),
                        'PgRoot' => $URLPath[0],
                       );
 
@@ -230,7 +244,7 @@ class cookies extends Midori {
             if ( in_array($URLPath[0], $filters) ) {
                 $rVal['DispPg'] = $URLPath[0];
                 $rVal['PgRoot'] = $URLPath[1];
-            } elseif ( is_numeric($URLPath[0]) && is_numeric($URLPath[2]) && is_numeric($URLPath[2]) ) {
+            } elseif ( is_numeric($URLPath[0]) && is_numeric($URLPath[1]) && is_numeric($URLPath[2]) ) {
                 $rVal['DispPg'] = 'blog';
                 $rVal['PgRoot'] = $URLPath[0];
             }

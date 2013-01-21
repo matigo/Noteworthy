@@ -364,6 +364,14 @@ input[type=submit]:focus{
 .entry-content a:visited{
   text-decoration: underline;
 }
+.entry-tags {
+  margin-bottom: 10px;
+  text-align: center;
+}
+.entry-tags a:link,
+.entry-tags a:visited{
+  text-decoration: underline;
+}
 .hentry{
   position: relative;
   border-bottom: 1px dotted #ddd;

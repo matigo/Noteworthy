@@ -59,7 +59,7 @@ class miTheme extends theme_main {
     public function getSuffix() {
         return $this->BuildFooterData();
     }
-
+    
     /***********************************************************************
      *                          Content Functions
      ***********************************************************************/
@@ -149,24 +149,6 @@ class miTheme extends theme_main {
      *
      *   The following code should only be called by the above functions
      ***********************************************************************/
-    /**
-     * Function returns an HTML Formatted String containing Language Options.
-     * Note: The Current Language will appear as "Selected"
-     */
-    private function _listLanguages() {
-        $Langs = listThemeLangs();
-        $rVal = "";
-
-        foreach ($Langs as $key=>$val) {
-            if ( strtolower($this->settings['DispLang']) != strtolower($key) ) {
-                $rVal .= "<a onClick=\"javascript:switchLang('$key');\">$val</a>";
-            }
-        }
-
-        // Return the List
-        return $rVal;
-    }
-
     /**
      * Function Returns a Boolean Response whether the PgRoot Requested
      *       is Valid or Not 
@@ -401,7 +383,7 @@ class miTheme extends theme_main {
 	            foreach ($data as $Key=>$Entry ) {
 	            	if ( $Key == $i ) {
 		                $ReplStr = $this->_parseBlogContent( $Entry );
-		                		                
+
 		                switch ( $this->settings['PgRoot'] ) {
 			                case 'search':
 			                	if ( $ReplStr['[PostURL]'] != "" ) {
@@ -420,6 +402,10 @@ class miTheme extends theme_main {
 				                // Clean up the Content (If Necessary)
 				                if ( $ReplStr['[ARCHIVE-LIST]'] ) {
 					                $ReplStr['[ARCHIVE-LIST]'] = $this->_prepCustoms( $ReplStr['[ARCHIVE-LIST]'] );
+				                }
+				                
+				                if ( $ReplStr['[POST-TAG]'] != "" ) {
+					                $ReplStr['[POST-TAG]'] = $this->messages['lblTags'] . ": " . $ReplStr['[POST-TAG]'];
 				                }
 			
 				                // Append the Footnotes (If Necessary)
@@ -462,9 +448,7 @@ class miTheme extends theme_main {
 
         } else {
         	// HTML Was Returned, So Show It
-        	if ( $data ) {
-	        	$rVal = $data;
-        	}
+        	if ( $data ) { $rVal = $data; }
         }
 
         // Return the Page Data

@@ -52,7 +52,7 @@ jQuery(function($) {
   function checkCron() {
     var params = new Object();
     var method = 'cron/status';
-    var apiPath = getAPIPath();
+    var apiPath = window.apiURL;
 
     // Set the Parameters
     params['accessKey'] = window.accessKey;
