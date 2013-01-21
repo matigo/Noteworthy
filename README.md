@@ -31,6 +31,7 @@
 <li>Configure Noteworthy using the "Sites" and "Settings" tabs</li>
 <li>Let Noteworthy download the Evernote notebooks you've selected</li>
 </ol>
+<p>Noteworthy can be installed in either a root domain (website.com), subdomain (abc.website.com), or a subfolder (website.com/blog)</p>
 
 <h2>Disclaimers</h2>
 <p>Do <b>NOT</b> share your Evernote API keys with anybody. You have been warned.</p>
@@ -51,7 +52,6 @@
 <p>Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.</p>
 <p>The API Keys that Evernote provides are only good for one year, and there is no way (that I know of) to check their expiration date aside from logging in to Evernote and checking. As a result, if Noteworthy stops working after one year, you'll need to get a new API key and enter it in the administration screens. None of your data will be lost when this happens.</p>
 <p>There are a few issues with the JavaScript in the Admin Panel. Be sure to click the Save buttons again if an error is returned the first time. This should be resolved in future updates.</p>
-<p>Noteworthy will only work when on a Top Level Domain (website.com) or a sub-domain (abc.website.com). Folder-based installations will be possible in a future release of the application.</p>
 
 <h2>Questions?</h2>
 <p>Have questions about Noteworthy? Feel free to contact me on here, <a href="http://twitter.com/matigo">Twitter</a>, or <a href="http://jasonirwin.ca/contact/">my website</a>. I respond to all email.</p>
