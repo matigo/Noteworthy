@@ -1,57 +1,46 @@
-<h1>Noteworthy</h1>
-<h4><i>A PHP-Based Blogging Tool <span style="font-size:50%">for use with</span> Evernote</i></h4>
+#Noteworthy
+####A PHP-Based Blogging Tool for use with Evernote
 
-<p>The Following is a list of notes regarding the use and configuration of Noteworthy.</p>
-<p>For more documentation, be sure to <a href="https://github.com/matigo/Noteworthy/wiki" title="GitHub | Noteworthy Wiki">check out the Wiki</a>.</p>
+The Following is a list of notes regarding the use and configuration of Noteworthy.
+For more documentation, be sure to [check out the Wiki](https://github.com/matigo/Noteworthy/wiki).
 
-<h2>General Requirements</h2>
-<p>You will need:</p>
-<ul>
-	<li>a web server running PHP 5.0 or higher</li>
-	<li>MySQL 5.0 or higher</li>
-</ul>
+##General Requirements
+You will need:
+* a web server running PHP 5.0 or higher
+* MySQL 5.0 or higher
 
-<h2>Optional Components</h2>
-<p>There are some optional pieces to the puzzle that might make things a little better. These things include:</p>
-<ul>
-	<li>something to drink</li>
-	<li>good music</li>
-	<li>a faithful dog</li>
-</ul>
+##Optional Components
+There are some optional pieces to the puzzle that might make things a little better. These things include:
+* something to drink
+* good music
+* a faithful dog
 
-<h2>Installation</h2>
-<p>Installation is pretty straight-forward, as Noteworthy will do all of the work. You don't need to mess around with text files or anything like that. It's all controlled through the web administration panels. And here's the Order of Operations:</p>
-<ol>
-<li>Dump all the files into a directory</li>
-<li>Make sure all directories (including the web root) are 755</li>
-<li>Visit the website just to make sure it's working</li>
-<li>Pet your dog</li>
-<li>Visit {Website}/install/</li>
-<li>Enter your email address (A real one is not important. This isn't for me. It's for you.)</li>
-<li>Configure Noteworthy using the "Sites" and "Settings" tabs</li>
-<li>Let Noteworthy download the Evernote notebooks you've selected</li>
-</ol>
-<p>Noteworthy can be installed in either a root domain (website.com), subdomain (abc.website.com), or a subfolder (website.com/blog)</p>
+##Installation
+Installation is pretty straight-forward, as Noteworthy will do all of the work. You don't need to mess around with text files or anything like that. It's all controlled through the web administration panels. And here's the Order of Operations:
 
-<h2>Disclaimers</h2>
-<p>Do <b>NOT</b> share your Evernote API keys with anybody. You have been warned.</p>
-<p>If you are using a shared hosting platform, you will probably want to create three other directories before visiting Noteworthy for the first time:</p>
-<ul>
-<li>/logs</li>
-<li>/tokens</li>
-<li>/users</li>
-</ul>
-<p>I've seen on two different shared hosting servers problems when Noteworthy creates the directories that it needs for your data. The issue seems to be with write permission to the new directories after they've been created. If you have shell access to your account, then it's not a problem. Make all directories (including the web root) 755 [chmod -R 755], and you'll be good.<p>
-<p>And finally ...</p>
-<p>Don't lose your admin URL. Unlike most other blogging platforms, Noteworthy does not have a static administration URL. It's unique for every person. If you lose your login, you will need to do some ugly workarounds in the filesystem in order to regain permission to the admin panel. This will be addressed in later releases.</p>
+* Dump all the files into a directory
+* Make sure all directories (including the web root) are 755
+* Visit the website just to make sure it's working
+* Pet your dog
+* Visit {Website}/install/
+* Enter your email address (A real one is not important. This isn't for me. It's for you.)
+* Configure Noteworthy using the "Sites" and "Settings" tabs
+* Let Noteworthy download the Evernote notebooks you've selected
 
-<h2>Considerations</h2>
-<p>The use of a MySQL database is a requirement at the moment. In future releases, the MySQL component will be optional.</p>
+Noteworthy can be installed in either a root domain (website.com), subdomain (abc.website.com), or a subfolder (website.com/blog)
 
-<h2>Quick Notes</h2>
-<p>Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.</p>
-<p>The API Keys that Evernote provides are only good for one year, and there is no way (that I know of) to check their expiration date aside from logging in to Evernote and checking. As a result, if Noteworthy stops working after one year, you'll need to get a new API key and enter it in the administration screens. None of your data will be lost when this happens.</p>
-<p>There are a few issues with the JavaScript in the Admin Panel. Be sure to click the Save buttons again if an error is returned the first time. This should be resolved in future updates.</p>
+##Disclaimers
+Do **NOT** share your Evernote API keys with anybody. Sharing your API Key grants that person full access to your Evernote account which, if you use Evernote like I do, could be a terrifying prospect. This is why I'm sharing Noteworthy with you rather than providing a hosted solution that you could use.
+And finally ...
+Don't lose your admin URL. Unlike most other blogging platforms, Noteworthy does not have a static administration URL. It's unique for every person. If you lose your login, you will need to do some ugly workarounds in the filesystem in order to regain permission to the admin panel. This will be addressed in later releases.
 
-<h2>Questions?</h2>
-<p>Have questions about Noteworthy? Feel free to contact me on here, <a href="http://twitter.com/matigo">Twitter</a>, or <a href="http://jasonirwin.ca/contact/">my website</a>. I respond to all email.</p>
+##Considerations
+The use of a MySQL database is a requirement at the moment. In future releases, the MySQL component will be optional.
+
+##Quick Notes
+Noteworthy will create any missing directories that it needs, so please ensure the files and directories are owned by Apache (or whichever user is the web server). No directory should be 777. 755 is plenty sufficient for this project.
+The API Keys that Evernote provides are only good for one year, and there is no way (that I know of) to check their expiration date aside from logging in to Evernote and checking. As a result, if Noteworthy stops working after one year, you'll need to get a new API key and enter it in the administration screens. None of your data will be lost when this happens.
+There are a few issues with the JavaScript in the Admin Panel. Be sure to click the Save buttons again if an error is returned the first time. This should be resolved in future updates.
+
+##Questions?
+Have questions about Noteworthy? Feel free to contact me on here, [Twitter](http://twitter.com/matigo), or [my website](http://jasonirwin.ca/contact/). I respond to all email.
