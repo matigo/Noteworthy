@@ -6,7 +6,7 @@ For more documentation, be sure to [check out the Wiki](https://github.com/matig
 
 ##General Requirements
 You will need:
-* a web server running PHP 5.0 or higher
+* a web server running PHP 5.3 or higher with php-curl
 * MySQL 5.0 or higher
 
 ##Optional Components
