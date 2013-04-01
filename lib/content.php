@@ -714,15 +714,6 @@ class Content extends Midori {
 		    	$sqlStr = $this->_getAppropriateSQLQuery( $ReqURL, '', $PageNo, $Results, $doOverride );
 		    	$rslt = doSQLQuery( $sqlStr );
 
-		    	/*
-		    	print_r( "SQL Query: <br />\r\n" );
-		    	print_r( $sqlStr );
-		    	print_r( "<br />\r\n" );
-		    	print_r( "Result: <br />\r\n" );
-		    	print_r( $rslt );
-		    	die();
-		    	*/
-
 		    	if ( is_array($rslt) ) {
 		    		if ( count($rslt) == 1 ) {
 	    				// One Result Found
@@ -1313,8 +1304,6 @@ class Content extends Midori {
 					$rVal = $data['HTML'];
 				}
 			}
-		} else {
-			print_r( "Skipping: $FileName \r\n" );
 		}
 
 		// Return the HTML (if Applicable)
