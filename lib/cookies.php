@@ -23,8 +23,20 @@ class cookies extends Midori {
     function _getCookies() {
         $rVal = array();
 
-        foreach( $_POST as $key=>$val ) {
-            $rVal[ $key ] = $this->_CleanRequest($key, $val);
+        $input = file_get_contents('php://input');
+        if ( $input ) {
+            $input = json_decode($input);
+        
+            foreach( $input as $key=>$val ) {
+                $rVal[ $key ] = $this->_CleanRequest($key, $val);
+            }
+        }
+
+        if ( is_array($_POST) ) {
+            foreach( $_POST as $key=>$val ) {
+                if ( !array_key_exists($key, $rVal) )
+                    $rVal[ $key ] = $this->_CleanRequest($key, $val);
+            }
         }
 
         foreach( $_GET as $key=>$val ) {

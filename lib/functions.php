@@ -77,6 +77,7 @@ require_once(LIB_DIR . '/globals.php');
     function getSocialDefaults() {
 		$Sites = array( 'Twitter'	=> 'http://twitter.com/',
 	    				'Facebook'	=> 'http://facebook.com/',
+	    				'App.Net'	=> 'http://alpha.app.net/',
 	    				'YouTube'	=> 'http://youtube.com/',
 	    				'Last.fm'	=> 'http://lastfm.com/',
 	    				'Vimeo'		=> 'http://vimeo.com/',
@@ -792,7 +793,6 @@ require_once(LIB_DIR . '/globals.php');
      *  -- This should NOT be used to update data, as the "Read" Server is called
      */
     function doSQLQuery( $sqlStr, $UseDB = '' ) {
-        writeNote( "doSQLQuery(): $sqlStr" );
         $rVal = array();
         $r = 0;
 
@@ -802,6 +802,7 @@ require_once(LIB_DIR . '/globals.php');
 			return false;
 		}
 		if ( $UseDB == '' ) { $UseDB = DB_MAIN; }
+        writeNote( "doSQLQuery(): $sqlStr" );
 
         $GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
@@ -836,7 +837,6 @@ require_once(LIB_DIR . '/globals.php');
      *      a boolean response.
      */
     function doSQLExecute( $sqlStr, $UseDB = '' ) {
-        writeNote( "doSQLExecute(): $sqlStr" );
         $rVal = -1;
 
         // Do Not Proceed If We Don't Have SQL Settings
@@ -845,6 +845,7 @@ require_once(LIB_DIR . '/globals.php');
 			return false;
 		}
 		if ( $UseDB == '' ) { $UseDB = DB_MAIN; }
+        writeNote( "doSQLExecute(): $sqlStr" );
 
 		$GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
