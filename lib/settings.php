@@ -489,6 +489,13 @@ class Settings extends Midori {
 		foreach ( $data as $Key=>$Val ) {
 			saveSetting( $CacheToken, $Key, $Val );
 		}
+		
+		// Save some Initial Data to the Web Cron If We're Just Setting It Up
+		if ( YNBool($data['doWebCron']) ) {
+    	    saveSetting($this->settings['TokenName'], 'LastCron', 0 );
+    	    saveSetting($this->settings['TokenName'], 'isActive', 'N' );
+    	    saveSetting($this->settings['TokenName'], 'Process', '' );
+		}
 
 		if ( $RebuildCache ) {
 			$rVal = scrubDIR( $this->settings['ContentDIR'] . '/cache' );
