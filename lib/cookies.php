@@ -180,6 +180,7 @@ class cookies extends Midori {
                      'isLoggedIn'   => 'N',
                      'isAdmin'		=> 'N',
                      'token'        => getRandomString(16),
+                     'Referrer'     => $_SERVER['HTTP_REFERER'],
                      'GA_Account'   => '',
                      'isDebug'      => 'N',
                      );

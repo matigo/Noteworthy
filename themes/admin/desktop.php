@@ -345,6 +345,7 @@ class miTheme extends theme_main {
                        '[SOCIAL-LINK]'  => '',
                        '[RESULTS]'      => '',
                        '[SYSTEM-MSGS]'	=> '',
+                       '[STATS-PANEL]'  => '',
                        '[ADMINURL]'		=> $this->settings['HomeURL'] . '/' . $this->settings['PgRoot'],
                        '[NBOOKCOUNT]'	=> $this->_getSelectedNotebookCount(),
                       );
@@ -377,6 +378,11 @@ class miTheme extends theme_main {
             	$doCron = YNBool( $this->settings['doWebCron'] );
             	$rVal['[raNoCronChk]'] = ( !$doCron ) ? 'checked="checked"' : '';
             	$rVal['[raDoCronChk]'] = (  $doCron ) ? 'checked="checked"' : '';
+
+            	// Stats Settings
+            	$doStat = YNBool( $this->settings['doStatChk'] );
+            	$rVal['[raNoStatChk]'] = ( !$doStat ) ? 'checked="checked"' : '';
+            	$rVal['[raDoStatChk]'] = (  $doStat ) ? 'checked="checked"' : '';
 
             	// Twitter Settings
             	$doTwitter = YNBool( $this->settings['doTwitter'] );
@@ -437,6 +443,7 @@ class miTheme extends theme_main {
             case 'dashboard':
             case '':
             	$rVal['[SYSTEM-MSGS]'] = $this->_getSystemMessages();
+            	$rVal['[STATS-PANEL]'] = $this->_getStatsPanels();
             	break;
 
             default:
@@ -444,6 +451,46 @@ class miTheme extends theme_main {
         }
 
         // Return the Extra Content Data
+        return $rVal;
+    }
+    
+    function _getStatsPanels() {
+        $ReplStr = array( '[PAGE-VIEWS]' => '',
+                          '[VISITORS]'   => '',
+                          '[TOP-PAGES]'  => '',
+                         );
+        $rVal = "";
+
+        // Collect the Data Only if We Should
+        if ( NoNull($this->settings['doStatChk'], 'N') == 'Y' ) {
+            foreach( $this->messages as $key=>$val ) {
+                if ( !array_key_exists( $key, $ReplStr ) ) {
+                    $ReplStr[ "[$key]" ] = $val;
+                }
+            }
+
+            // Load the Analytics Package
+            require_once(LIB_DIR . '/analytics.php');
+            $stats = new Analytics( $this->settings );
+
+            $data = $stats->getVisitorCount();
+            $ReplStr['[PAGE-VIEWS]'] = nullInt($data['PageViews']);
+            $ReplStr['[VISITORS]'] = nullInt($data['Visitors']);
+            unset( $data );
+
+            $pages = $stats->getVisitorPages( 6 );
+            foreach ( $pages as $Key=>$Value ) {
+                $ReplStr['[TOP-PAGES]'] .= tabSpace(6) . "<span style=\"display: inline-block; width: 85%; margin-bottom: 5px; border-bottom: 1px solid #DDDDDD;\">" . NoNull($Key) . "</span>" .
+                                           tabSpace(6) . "<span style=\"display: inline-block; width: 14%; margin-bottom: 5px; text-align: right; border-bottom: 1px solid #DDDDDD;\">" . number_format(nullInt($Value)) . "</span><br />";
+            }
+            unset( $pages );
+            unset( $stats );
+
+            // Collect the Formatted Page
+            $rVal = readResource( RES_DIR . '/landing-stats.html', $ReplStr );
+        }
+
+        // Return the Data
         return $rVal;
     }
 

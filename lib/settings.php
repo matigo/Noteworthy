@@ -477,6 +477,7 @@ class Settings extends Midori {
 
 		              'doComments'		=> $this->settings['raComments'],
 		              'doWebCron'		=> $this->settings['raWebCron'],
+		              'doStatChk'       => $this->settings['raStatChk'],
 		              'DisqusID'     	=> $this->settings['txtDisqusID'],
 		              'AkismetKey'		=> $this->settings['txtAkismetKey'],
 		              'doTwitter'		=> $this->settings['raTwitter'],

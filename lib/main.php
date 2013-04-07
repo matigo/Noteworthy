@@ -50,6 +50,17 @@ class Midori {
                      );
         $ThemeLocation = $this->Site['Location'];
         $FormatType = 'html';
+        $StatFilter = array( 'default', 'blog', 'rss' );
+
+        // Record the Visit (If Stats Are Enabled)
+        if ( in_array($this->Settings['DispPg'], $StatFilter) ) {
+            if ( NoNull($this->Settings['doStatChk'], 'N') == 'Y' ) {
+                require_once(LIB_DIR . '/analytics.php');
+                $stats = new Analytics( $this->Settings );
+                $stats->recordVisit();
+                unset( $stats );
+            }
+        }
 
         switch ( $this->Settings['DispPg'] ) {
             case 'api':

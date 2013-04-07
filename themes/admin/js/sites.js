@@ -60,6 +60,7 @@ function performUpdates() {
 	}
 	// Ensure 'doComments' is Properly Set
 	params[ 'raWebCron' ] = findSelectionValue( 'doCron' );
+	params[ 'raStatChk' ] = findSelectionValue( 'doStat' );
 	params[ 'raComments' ] = findSelectionValue( 'doComments' );
 	params[ 'raTwitter' ] = findSelectionValue( 'doTwitter' );
 	document.getElementById("return-msg").innerHTML = _dispDiv;

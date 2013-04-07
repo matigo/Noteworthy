@@ -48,6 +48,16 @@
 						<hr />
 
 						<div>
+							<div class="legend">[lblStatsChk]</div>
+							<input id="raNoStat" type="radio" class="radio" [raNoStatChk] name="doStat" value="N" /> <label class="float-label" for="raNoStat">[lblDisabled]</label>
+							<input id="raDoStat" type="radio" class="radio" [raDoStatChk] name="doStat" value="Y" /> <label class="float-label" for="raDoStat">[lblEnabled]</label>
+							<p style="margin: 15px 25px -10px 5px;">[lblStatsChkB]</p>
+						</div>
+						<br />
+
+						<hr />
+
+						<div>
 							<div class="legend">[lblComments]</div>
 							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">[lblDisabled]</label>
 							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">[lblEnabled]</label>
