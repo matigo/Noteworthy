@@ -124,6 +124,10 @@ class Content extends Midori {
 	    return $rVal;
     }
 
+    function getCacheHTML( $FileName ) {
+        return $this->_readCachedHTML( $FileName );
+    }
+
     function saveCacheHTML( $HTML, $FileName = "", $UseCurrentID = false ) {
 	    $CacheFile = ( $FileName == "" ) ? $this->_getReadableURI() : $FileName;
 	    return $this->_saveCachedHTML( $CacheFile, $HTML, $UseCurrentID );
