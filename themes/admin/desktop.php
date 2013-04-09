@@ -473,15 +473,13 @@ class miTheme extends theme_main {
             require_once(LIB_DIR . '/analytics.php');
             $stats = new Analytics( $this->settings );
 
-            $data = $stats->getVisitorCount();
-            $ReplStr['[PAGE-VIEWS]'] = nullInt($data['PageViews']);
-            $ReplStr['[VISITORS]'] = nullInt($data['Visitors']);
-            unset( $data );
+            $views = $stats->getVisitorCount();
+            $ReplStr['[PAGE-VIEWS]'] = number_format($views);
 
-            $pages = $stats->getVisitorPages( 6 );
+            $pages = $stats->getVisitorPages( 5 );
             foreach ( $pages as $Key=>$Value ) {
                 $ReplStr['[TOP-PAGES]'] .= tabSpace(6) . "<span style=\"display: inline-block; width: 85%; margin-bottom: 5px; border-bottom: 1px solid #DDDDDD;\">" . NoNull($Key) . "</span>" .
-                                           tabSpace(6) . "<span style=\"display: inline-block; width: 14%; margin-bottom: 5px; text-align: right; border-bottom: 1px solid #DDDDDD;\">" . number_format(nullInt($Value)) . "</span><br />";
+                                           tabSpace(6) . "<span style=\"display: inline-block; width: 14%; margin-bottom: 5px; text-align: right; border-bottom: 1px solid #DDDDDD;\">" . number_format($Value) . "</span><br />";
             }
             unset( $pages );
             unset( $stats );

@@ -460,22 +460,6 @@ require_once(LIB_DIR . '/globals.php');
 	}
 
     /**
-     * Function returns a person's IPv4 address
-     */
-    function getVisitorIPv4() {
-        $rVal = "";
-
-        if (isset( $_SERVER['HTTP_X_FORWARDED_FOR'] )) {
-            $rVal = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } else {
-            $rVal = $_SERVER['REMOTE_ADDR'];
-        }
-
-        // Return the Visitor's IPv4 Address
-        return trim($rVal);
-    }
-
-    /**
      * Function constructs and returns a Google Analytics Code Snippit
      */
     function getGoogleAnalyticsCode( $UserAccount ) {
@@ -837,6 +821,7 @@ require_once(LIB_DIR . '/globals.php');
      *      a boolean response.
      */
     function doSQLExecute( $sqlStr, $UseDB = '' ) {
+        $sqlQueries = array();
         $rVal = -1;
 
         // Do Not Proceed If We Don't Have SQL Settings
@@ -845,13 +830,27 @@ require_once(LIB_DIR . '/globals.php');
 			return false;
 		}
 		if ( $UseDB == '' ) { $UseDB = DB_MAIN; }
-        writeNote( "doSQLExecute(): $sqlStr" );
+
+		// Strip Out The SQL Queries (If There Are Many)
+        if ( strpos($sqlStr, ';') > 0 ) {
+            $sqlQueries = explode(';', $sqlStr);
+        } else {
+            $sqlQueries[] = $sqlStr;
+        }
 
 		$GLOBALS['Perf']['queries']++;
         $db = mysql_connect(DB_SERV, DB_USER, DB_PASS);
         $selected = mysql_select_db($UseDB, $db);
         mysql_query("SET NAMES " . DB_CHARSET);
-        mysql_query($sqlStr);
+
+        // Execute Each Statement
+        foreach ( $sqlQueries as $sqlStatement ) {
+            if ( NoNull($sqlStatement) != "" ) {
+                writeNote( "doSQLExecute(): $sqlStatement" );
+                mysql_query($sqlStatement);
+            }
+        }
+
         $rVal = mysql_insert_id();
         if ( $rVal == 0 ) {
             $rVal = mysql_affected_rows();

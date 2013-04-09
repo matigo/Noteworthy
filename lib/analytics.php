@@ -49,7 +49,8 @@ class Analytics {
                        'PgRoot'     => $settings['PgRoot'],
                        'IPv4'       => '',
                        'IPv6'       => '',
-                       'txnTable'   => getTableName( 'visitorTXN' ),
+                       'txnTable'   => getTableName( 'VisitTXN' ),
+                       'dtlTable'   => getTableName( 'VisitDTL' ),
                        'DataFile'   => 'core',
                       );
 
@@ -86,28 +87,25 @@ class Analytics {
      */
     private function _recordVisit() {
         $txnTable = $this->settings['txnTable'];
-        $isRSS = BoolYN( $this->settings['PgRoot'] == 'rss' );
-        $isAPI = BoolYN( $this->settings['PgRoot'] == 'api' );
+        $dtlTable = $this->settings['dtlTable'];
         $isRES = BoolYN( $this->_isResource() );
         $rVal = false;
 
-        $sqlStr = "INSERT INTO `$txnTable` (`DateStamp`, `SiteID`, `VisitURL`, `ReferURL`, " .
-                                           "`VisitorIP4`, `VisitorIP6`, `UserAgent`, " .
-                                           "`Browser`, `BrowserVer`, `Platform`, " .
-                                           "`isAPI`, `isRSS`, `isResource`, `isOwner`) " .
-                  "SELECT DATE_FORMAT(Now(), '%Y-%m-%d %H:00:00'), " .
-                               nullInt($this->settings['SiteID']) . ", " .
-                        " '" . sqlScrub($this->settings['RequestURL']) . "', " .
-                        " '" . sqlScrub($this->settings['Referrer']) . "', " .
-                        " '" . sqlScrub($this->settings['IPv4']) . "', " .
-                        " '" . sqlScrub($this->settings['IPv6']) . "', " .
-                        " '" . sqlScrub($this->settings['UserAgent']) . "', " .
-                        " '" . sqlScrub($this->settings['Browser']) . "', " .
-                        " '" . sqlScrub($this->settings['BrowserVer']) . "', " .
-                        " '" . sqlScrub($this->settings['Platform']) . "', " .
-                        " '$isRSS', '$isAPI', '$isRES', 'N';";
-
-        // Record the Visit
+        // Construct the INSERT Statement and Record It
+        $dsvID = "CONCAT(DATE_FORMAT(Now(), '%Y-%m-%d %h:00:00'), '-', " . 
+                         nullInt($this->settings['SiteID']) .  ", '-', " . 
+                        "'" . sqlScrub($this->settings['RequestURL']) . "')";
+        $sqlStr = "INSERT INTO `$txnTable` (`dsvID`, `DateStamp`, `SiteID`, `VisitURL`, `Hits`, `isResource`, `UpdateDTS`) " .
+                  "VALUES ( MD5($dsvID), DATE_FORMAT(Now(), '%Y-%m-%d %h:00:00'), " . nullInt($this->settings['SiteID']) . "," .
+                          " '" . sqlScrub($this->settings['RequestURL']) . "'," .
+                          " 1, '$isRES', Now() )" .
+                  "ON DUPLICATE KEY UPDATE `Hits` = `Hits` + 1," .
+                                         " `UpdateDTS` = Now();" .
+                  "INSERT INTO `$dtlTable` (`SiteID`, `DateStamp`, `VisitURL`, `ReferURL`, `SearchQuery`, `isResource`, `isSearch`, `UpdateDTS`) " .
+                  "VALUES ( " . nullInt($this->settings['SiteID']) . ", DATE_FORMAT(Now(), '%Y-%m-%d %h:00:00')," . 
+                          " '" . sqlScrub($this->settings['RequestURL']) . "'," .
+                          " '" . sqlScrub($this->settings['Referrer']) . "'," .
+                          " '', '$isRES', 'N', Now() );";
         $rslt = doSQLExecute( $sqlStr );
         if ( $rslt > 0 ) { $rVal = true; }
 
@@ -118,24 +116,23 @@ class Analytics {
     /**
      *  Function Returns the Number of Visitors In the Last 24 Hours
      */
-    private function _getVisitorCounts() {
+    private function _getVisitorCounts( $Days = 1 ) {
         $txnTable = $this->settings['txnTable'];
-        $rVal = array( 'PageViews' => 0,
-                       'Visitors'  => 0,
-                      );
+        $Days = nullInt( $Days, 1 );
+        $rVal = 0;
 
-        $sqlStr = "SELECT DATE_FORMAT(`DateStamp`, '%Y-%m-%d') as `DTS`, count(`id`) as `PageViews`, count(DISTINCT `VisitorIP4`) as `Visitors`" .
+        $sqlStr = "SELECT DATE_FORMAT(`DateStamp`, '%Y-%m-%d') as `DTS`, sum(`Hits`) as `PageViews`" .
                   "  FROM `$txnTable`" .
-                  " WHERE `isResource` = 'N' and `isAPI` = 'N'" .
-                  "   and `isRSS` = 'N' and `isDeleted` = 'N'" .
-                  "   and `DateStamp` >= DATE_FORMAT(DATE_SUB(Now(), INTERVAL 1 DAY), '%Y-%m-%d %H:00:00')" .
-                  " GROUP BY `DTS`";
+                  " WHERE `isResource` = 'N' and `isDeleted` = 'N'" .
+                  "   and `DateStamp` >= DATE_FORMAT(DATE_SUB(Now(), INTERVAL $Days DAY), '%Y-%m-%d %H:00:00')" .
+                  "   and `SiteID` = " . nullInt($this->settings['SiteID']) .
+                  " GROUP BY `DTS`;";
         $rslt = doSQLQuery( $sqlStr );
         if ( is_array($rslt) ) {
-            foreach ( $rVal as $Key=>$Val ) {
-                $rVal[ $Key ] = nullInt( $rslt[0][$Key] );
-            }
+            $rVal = nullInt( $rslt[0]['PageViews'] );
         }
+        
+        writeNote( "PageViews: $rVal" );
 
         // Return the Array
         return $rVal;
@@ -144,29 +141,30 @@ class Analytics {
     /**
      *  Function Returns the X Most Popular Pages in the Last 24 Hours
      */
-    private function _getVisitorPages( $Limit = 10 ) {
-        $txnTable = $this->settings['txnTable'];
+    private function _getVisitorPages( $Limit = 10, $Days = 1 ) {
+        $dtlTable = $this->settings['dtlTable'];
+        $Days = nullInt( $Days, 1 );
         $rVal = array();
 
-        $sqlStr = "SELECT `VisitURL`, count(`id`) as `Hits`" . 
-                  "  FROM `$txnTable`" .
-                  " WHERE `isResource` = 'N' and `isAPI` = 'N'" .
-                  "   and `isRSS` = 'N' and `isDeleted` = 'N'" .
-                  "   and `DateStamp` >= DATE_FORMAT(DATE_SUB(Now(), INTERVAL 1 DAY), '%Y-%m-%d %H:00:00')" .
+        $sqlStr = "SELECT `VisitURL`, sum(`Hits`) as `PageViews`" .
+                  "  FROM `$dtlTable`" .
+                  " WHERE `isDeleted` = 'N' and `isResource` = 'N'" .
+                  "   and `isSearch` = 'N' and `SiteID` = " . nullInt($this->settings['SiteID']) .
+                  "   and `DateStamp` >= DATE_FORMAT(DATE_SUB(Now(), INTERVAL $Days DAY), '%Y-%m-%d %H:00:00')" .
                   " GROUP BY `VisitURL`" .
-                  " ORDER BY `Hits` DESC, `VisitURL`" .
-                  "  LIMIT 0, $Limit";
+                  " ORDER BY `PageViews` DESC" .
+                  " LIMIT 0, $Limit";
         $rslt = doSQLQuery( $sqlStr );
         if ( is_array($rslt) ) {
             foreach ( $rslt as $Row ) {
-                $rVal[ NoNull($Row['VisitURL']) ] = nullInt($Row['Hits']);
+                $rVal[ NoNull($Row['VisitURL']) ] = nullInt($Row['PageViews']);
             }
         }
 
         // Return the List
         return $rVal;
     }
-    
+
     /** ********************************************************************** *
      *  TXN Table Check & Creation Functions
      ** ********************************************************************** */
@@ -180,16 +178,15 @@ class Analytics {
 
         // If the Transaction Table is Not the Same as Expected, then Create It
         if ( $curTable != $txnTable ) {
-            $sqlStrs = $this->_readTXNTableDefinitions();
-            if ( $sqlStrs ) {
-                foreach ( $sqlStrs as $sqlStr ) {
-                    $rslt = doSQLExecute( $sqlStr );
-                }
+            $sqlStr = $this->_readTXNTableDefinitions();
+            if ( $sqlStr ) {
+                $rslt = doSQLExecute( $sqlStr );
             }
 
             // Confirm the Table Exists, and Save the TXN Name if Appropriate
-            if ( $this->_confirmTXNTable() ) {
+            if ( $this->_confirmTXNTables() ) {
                 $rVal = saveSetting( $this->settings['DataFile'], 'txnTable', $txnTable );
+                writeNote( "Saved Transaction Table Record: " . BoolYN($rVal) );
             }
         }
 
@@ -200,20 +197,17 @@ class Analytics {
     private function _readTXNTableDefinitions() {
         $SQLFile = BASE_DIR . "/sql/visittxn.sql";
         writeNote( "Reading SQL Scripts File: $SQLFile" );
-        $rVal = array();
+        $rVal = "";
 
 	    // Add the Main Table Definitions & Populations
     	if ( file_exists($SQLFile) ) {
-    	    $Search = array('[DBNAME]', '[TXNTABLE]' );
-    	    $Replace = array( DB_MAIN, $this->settings['txnTable'] );
+    	    $Search = array('[DBNAME]', '[TXNTABLE]', '[DTLTABLE]' );
+    	    $Replace = array( DB_MAIN, $this->settings['txnTable'], $this->settings['dtlTable'] );
 	    	$lines = file($SQLFile);
 	    	$rVal = "";
 
 	    	foreach ( $lines as $line ) {
-	    		$rVal[$i] .= str_replace( $Search, $Replace, NoNull($line) );
-
-	    		// If there is a Semi-Colon, The Line is Complete
-	    		if ( strpos($line, ';') ) { $i++; }
+	    		$rVal .= str_replace( $Search, $Replace, NoNull($line) );
 	    	}
     	} else {
         	$rVal = false;
@@ -223,20 +217,29 @@ class Analytics {
     	return $rVal;
     }
 
-    private function _confirmTXNTable() {
-        $txnTable = $this->settings['txnTable'];
+    private function _confirmTXNTables() {
+        $txnTables = array( $this->settings['txnTable'],
+                            $this->settings['dtlTable'],
+                           );
+        $rVal = false;
+        $i = 0;
+
         $sqlStr = "SHOW TABLES;";
         $rslt = doSQLQuery( $sqlStr );
-
         if ( is_array($rslt) ) {
             $ColName = "Tables_in_" . DB_MAIN;
             foreach ( $rslt as $Row ) {
-                if ( NoNull($Row[ $ColName ]) == $txnTable ) { return true; }
+                if ( in_array( NoNull($Row[ $ColName ]), $txnTables ) ) { $i++; }
             }
+
+            writeNote( "Found $i of " . count($txnTables) . " Statistics Tables" );
+
+            // If the Number of Identified Tables Is Equal To the Tables Required ...
+            if ( $i == count($txnTables) ) { $rVal = true; }
         }
-        
-        // If We're Here, the Table Does Not Exist
-        return false;
+
+        // Return the Boolean Response
+        return $rVal;
     }
 
     /** ********************************************************************** *

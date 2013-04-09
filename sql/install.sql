@@ -17,7 +17,7 @@ VALUES ('POST', 'Post Content'), ('POST-GPS', 'Post Entry GPS Location'), ('POST
 
 CREATE TABLE IF NOT EXISTS `[DBNAME]`.`Content` (
     `id`            int(11)        UNSIGNED NOT NULL    AUTO_INCREMENT,
-    `SiteID`		smallint(6)	   UNSIGNED NOT NULL	DEFAULT 0,
+    `SiteID`        int(11)        UNSIGNED NOT NULL    ,
     `guid`          char(36)                NOT NULL    ,
     `TypeCd`        varchar(12)             NOT NULL    DEFAULT 'OTHER',
     `Title`         varchar(512)            NOT NULL    ,
