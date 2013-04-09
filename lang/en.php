@@ -158,6 +158,8 @@ class lang_en implements lang_base {
                       'lblSpamFilter'	=> "Spam Filtering",
                       'lblAkismetKey'	=> "Akismet Key",
                       'lblDisqusID'		=> "Disqus ID",
+                      'lblGoogAnal'     => "Google Analytics",
+                      'lblAnalyticsKey' => "Site Key",
 
                       'lblStyling'		=> "Styling",
                       'lblStylingB'		=> "Choose Your Theme",

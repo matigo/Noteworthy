@@ -390,6 +390,10 @@ class miTheme extends theme_main {
             	$rVal['[raDoTweetChk]'] = (  $doTwitter ) ? 'checked="checked"' : '';
             	$rVal['[tVis]'] = ( $doTwitter ) ? 'block' : 'none';
             	$rVal['[TwitName]'] = NoNull($this->settings['twitName']);
+            	
+            	// Akismet & Analytics Settings
+            	$rVal['[AkismetKey]'] = NoNull($this->settings['AkismetKey']);
+            	$rVal['[AnalyticsKey]'] = NoNull($this->settings['AnalyticsKey']);
 
             	// Evernote Settings
             	$UseSandbox = NoNull($this->setting['sandbox'], readSetting( 'core', 'UseSandbox' ));

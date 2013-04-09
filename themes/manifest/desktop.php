@@ -108,12 +108,15 @@ class miTheme extends theme_main {
      */
     private function BuildFooterData() {
         $precision = 6;
+        $Analytics = "";
         $GLOBALS['Perf']['app_f'] = getMicroTime();
         $App = round(( $GLOBALS['Perf']['app_f'] - $GLOBALS['Perf']['app_s'] ), $precision);
         $SQL = nullInt( $GLOBALS['Perf']['queries'] );
         $Api = nullInt( $GLOBALS['Perf']['apiHits'] );
         $Cch = nullInt( $GLOBALS['Perf']['caches'] );
-        $Analytics = ( ANALYTICS_ENABLED == 1 ) ? getGoogleAnalyticsCode( GA_ACCOUNT ) : '';
+        if ( NoNull($this->settings['AnalyticsKey']) != "" ) {
+            $Analytics = getGoogleAnalyticsCode( $this->settings['AnalyticsKey'] );
+        }
         $CopyYear = date('Y');
         $LangList = ( ENABLE_MULTILANG == 1 ) ? $this->_listLanguages() . " | " : "";
         

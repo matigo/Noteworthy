@@ -58,6 +58,15 @@
 						<hr />
 
 						<div>
+							<div class="legend">[lblGoogAnal]</div>
+							<label for="txtAnalyticsKey">[lblAnalyticsKey]</label>
+							<input type="text" value="[AnalyticsKey]" id="txtAnalyticsKey" name="txtAnalyticsKey" style="float: left;" />
+							<div id="analytics-err" class="validation-message"></div>
+						</div>
+
+						<hr />
+
+						<div>
 							<div class="legend">[lblComments]</div>
 							<input id="raNoComment" type="radio" class="radio" [raNoCommentChk] name="doComments" value="N" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raNoComment">[lblDisabled]</label>
 							<input id="raGoComment" type="radio" class="radio" [raGoCommentChk] name="doComments" value="Y" onclick="displayDisqusDiv(this.value);" /> <label class="float-label" for="raGoComment">[lblEnabled]</label>

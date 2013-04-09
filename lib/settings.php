@@ -480,6 +480,7 @@ class Settings extends Midori {
 		              'doStatChk'       => $this->settings['raStatChk'],
 		              'DisqusID'     	=> $this->settings['txtDisqusID'],
 		              'AkismetKey'		=> $this->settings['txtAkismetKey'],
+		              'AnalyticsKey'	=> $this->settings['txtAnalyticsKey'],
 		              'doTwitter'		=> $this->settings['raTwitter'],
 		              'TwitName'		=> $this->settings['txtTwitName'],
 
